@@ -222,6 +222,264 @@ class AuthController {
       next(error);
     }
   };
+
+  /**
+   * Update user profile
+   * PUT /api/auth/profile
+   */
+  public updateProfile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        const error: AppError = new Error("User not authenticated") as AppError;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
+        error.isOperational = true;
+        throw error;
+      }
+
+      const updateData = req.body;
+
+      // Validate required fields
+      if (
+        !updateData.username &&
+        !updateData.email &&
+        !updateData.newPassword
+      ) {
+        const error: AppError = new Error(
+          "Pls update At least one field (username, email, or newPassword) "
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      // Validate email format if provided
+      if (updateData.email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(updateData.email)) {
+          const error: AppError = new Error("Invalid email format") as AppError;
+          error.statusCode = HTTP_STATUS.BAD_REQUEST;
+          error.isOperational = true;
+          throw error;
+        }
+      }
+
+      // Validate username if provided
+      if (updateData.username && updateData.username.length < 3) {
+        const error: AppError = new Error(
+          "Username must be at least 3 characters long"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      // Validate new password if provided
+      if (updateData.newPassword && updateData.newPassword.length < 6) {
+        const error: AppError = new Error(
+          "New password must be at least 6 characters long"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      // Update profile
+      const updatedUser = await authService.updateProfile(userId, updateData);
+
+      const response: ApiResponse<typeof updatedUser> = {
+        success: true,
+        message: "Profile updated successfully",
+        data: updatedUser,
+      };
+
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Delete user account (soft delete)
+   * DELETE /api/auth/account
+   */
+  public deleteAccount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        const error: AppError = new Error("User not authenticated") as AppError;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
+        error.isOperational = true;
+        throw error;
+      }
+
+      // Delete account
+      const result = await authService.deleteAccount(userId);
+
+      if (result) {
+        const response: ApiResponse<null> = {
+          success: true,
+          message: "Account deleted successfully",
+          data: null,
+        };
+
+        res.status(HTTP_STATUS.OK).json(response);
+      } else {
+        const error: AppError = new Error(
+          "Failed to delete account"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        error.isOperational = true;
+        throw error;
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Get all users with search and filter
+   * GET /api/auth/users?search=john&role=user&limit=10&offset=0&sortBy=username&sortOrder=ASC
+   */
+  public getAllUsers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const {
+        search,
+        role,
+        limit = "10",
+        offset = "0",
+        sortBy = "created_at",
+        sortOrder = "DESC",
+      } = req.query;
+
+      // Validate and parse query parameters
+      const parsedLimit = parseInt(limit as string, 10);
+      const parsedOffset = parseInt(offset as string, 10);
+
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+        const error: AppError = new Error(
+          "Limit must be a number between 1 and 100"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        const error: AppError = new Error(
+          "Offset must be a non-negative number"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      if (role && !["user", "admin"].includes(role as string)) {
+        const error: AppError = new Error(
+          "Role must be either 'user' or 'admin'"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      if (
+        sortBy &&
+        !["username", "email", "created_at", "updated_at"].includes(
+          sortBy as string
+        )
+      ) {
+        const error: AppError = new Error(
+          "sortBy must be one of: username, email, created_at, updated_at"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      if (sortOrder && !["ASC", "DESC"].includes(sortOrder as string)) {
+        const error: AppError = new Error(
+          "sortOrder must be either 'ASC' or 'DESC'"
+        ) as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      const result = await authService.getAllUsers({
+        search: search as string,
+        role: role as "user" | "admin",
+        limit: parsedLimit,
+        offset: parsedOffset,
+        sortBy: sortBy as "username" | "email" | "created_at" | "updated_at",
+        sortOrder: sortOrder as "ASC" | "DESC",
+      });
+
+      const response: ApiResponse<typeof result> = {
+        success: true,
+        message: "Users retrieved successfully",
+        data: result,
+      };
+
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Get user by ID
+   * GET /api/auth/users/:id
+   */
+  public getUserById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        const error: AppError = new Error("User ID is required") as AppError;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
+        error.isOperational = true;
+        throw error;
+      }
+
+      const user = await authService.getUserById(id);
+
+      if (!user) {
+        const error: AppError = new Error("User not found") as AppError;
+        error.statusCode = HTTP_STATUS.NOT_FOUND;
+        error.isOperational = true;
+        throw error;
+      }
+
+      const response: ApiResponse<typeof user> = {
+        success: true,
+        message: "User retrieved successfully",
+        data: user,
+      };
+
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default new AuthController();
