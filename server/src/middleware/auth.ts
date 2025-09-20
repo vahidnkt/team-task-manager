@@ -87,8 +87,9 @@ export const requireRole = (roles: string[]) => {
       }
 
       if (!roles.includes(req.user.role)) {
+        const requiredRoles = roles.join(" or ");
         const error: AppError = new Error(
-          "Insufficient permissions"
+          `Access denied. You need ${requiredRoles} role to access this resource. Your current role: ${req.user.role}`
         ) as AppError;
         error.statusCode = 403;
         error.isOperational = true;

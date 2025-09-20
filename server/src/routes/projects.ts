@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { projectController } from "../controllers/projectController";
-import { authenticateToken, requireUser } from "../middleware/auth";
+import {
+  authenticateToken,
+  requireUser,
+  requireAdmin,
+} from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/roleCheck";
 import {
   validateProjectCreation,
@@ -31,10 +35,11 @@ router.get(
 /**
  * @route   POST /api/projects
  * @desc    Create new project
- * @access  Private (User+)
+ * @access  Private (Admin only)
  */
 router.post(
   "/",
+  requireAdmin,
   validateProjectCreation,
   apiAccessLogger("project-create"),
   projectController.createProject.bind(projectController)
