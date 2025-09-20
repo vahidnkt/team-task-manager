@@ -1,27 +1,108 @@
-import { ActivityModel } from "../models/Activity";
+import { Activity } from "../models/Activity";
+import { Project } from "../models/Project";
+import { Task } from "../models/Task";
+import { User } from "../models/User";
 import {
-  Activity,
   CreateActivityRequest,
   ActivitySummary,
 } from "../types/activity.types";
 
 export class ActivityService {
-  // Get activities for a project
+  // Create a new activity log entry
+  async createActivity(activityData: CreateActivityRequest): Promise<Activity> {
+    const { project_id, task_id, user_id, action, description } = activityData;
+
+    // Verify project exists
+    const project = await Project.findByPk(project_id);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Verify user exists
+    const user = await User.findByPk(user_id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify task exists if task_id is provided
+    if (task_id) {
+      const task = await Task.findByPk(task_id);
+      if (!task) {
+        throw new Error("Task not found");
+      }
+    }
+
+    // Create activity using Sequelize
+    return await Activity.create({
+      projectId: project_id,
+      taskId: task_id || undefined,
+      userId: user_id,
+      action,
+      description,
+    } as any);
+  }
+
+  // Find activity by ID
+  async getActivityById(id: number): Promise<Activity | null> {
+    return await Activity.findByPk(id, {
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+    });
+  }
+
+  // Get activities for a specific project
   async getProjectActivities(
     projectId: number,
     limit?: number,
     offset?: number
   ): Promise<Activity[]> {
-    return await ActivityModel.findByProjectId(projectId, limit, offset);
+    const options: any = {
+      where: { projectId },
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+    };
+
+    if (limit !== undefined) {
+      options.limit = limit;
+      if (offset !== undefined) {
+        options.offset = offset;
+      }
+    }
+
+    return await Activity.findAll(options);
   }
 
-  // Get activities for a task
+  // Get activities for a specific task
   async getTaskActivities(
     taskId: number,
     limit?: number,
     offset?: number
   ): Promise<Activity[]> {
-    return await ActivityModel.findByTaskId(taskId, limit, offset);
+    const options: any = {
+      where: { taskId },
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+    };
+
+    if (limit !== undefined) {
+      options.limit = limit;
+      if (offset !== undefined) {
+        options.offset = offset;
+      }
+    }
+
+    return await Activity.findAll(options);
   }
 
   // Get activities by user
@@ -30,7 +111,24 @@ export class ActivityService {
     limit?: number,
     offset?: number
   ): Promise<Activity[]> {
-    return await ActivityModel.findByUserId(userId, limit, offset);
+    const options: any = {
+      where: { userId },
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+    };
+
+    if (limit !== undefined) {
+      options.limit = limit;
+      if (offset !== undefined) {
+        options.offset = offset;
+      }
+    }
+
+    return await Activity.findAll(options);
   }
 
   // Get recent activities across all projects (admin function)
@@ -38,38 +136,203 @@ export class ActivityService {
     limit: number = 50,
     offset: number = 0
   ): Promise<Activity[]> {
-    return await ActivityModel.findRecent(limit, offset);
+    return await Activity.findAll({
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
   }
 
-  // Get project activity statistics
+  // Get activity summary for a project over a time period
   async getProjectActivityStats(
     projectId: number,
     days: number = 30
   ): Promise<ActivitySummary> {
-    return await ActivityModel.getProjectActivityStats(projectId, days);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const activities = await Activity.findAll({
+      where: {
+        projectId,
+        createdAt: {
+          [require("sequelize").Op.gte]: startDate,
+        },
+      },
+      include: [{ model: User, as: "user" }],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const summary: ActivitySummary = {
+      project_id: projectId,
+      period_days: days,
+      total_activities: activities.length,
+      actions_summary: {},
+      daily_activities: {},
+      most_active_users: [],
+    };
+
+    // Process activities
+    const userActivityCount: Record<string, number> = {};
+
+    activities.forEach((activity) => {
+      // Count actions
+      if (activity.action) {
+        const action = activity.action;
+        summary.actions_summary[action] =
+          (summary.actions_summary[action] || 0) + 1;
+      }
+
+      // Count daily activities
+      if (activity.createdAt) {
+        const date = activity.createdAt.toISOString().split("T")[0];
+        if (date) {
+          summary.daily_activities[date] =
+            (summary.daily_activities[date] || 0) + 1;
+        }
+      }
+
+      // Count user activities
+      if (activity.user?.username) {
+        userActivityCount[activity.user.username] =
+          (userActivityCount[activity.user.username] || 0) + 1;
+      }
+    });
+
+    // Get most active users
+    summary.most_active_users = Object.entries(userActivityCount)
+      .map(([username, activity_count]) => ({ username, activity_count }))
+      .sort((a, b) => b.activity_count - a.activity_count)
+      .slice(0, 10);
+
+    return summary;
   }
 
   // Get user activity summary
   async getUserActivitySummary(userId: number, days: number = 7): Promise<any> {
-    return await ActivityModel.getUserActivitySummary(userId, days);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const activities = await Activity.findAll({
+      where: {
+        userId,
+        createdAt: {
+          [require("sequelize").Op.gte]: startDate,
+        },
+      },
+      include: [
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const summary = {
+      user_id: userId,
+      period_days: days,
+      total_activities: activities.length,
+      actions_summary: {} as Record<string, number>,
+      daily_activities: {} as Record<string, number>,
+    };
+
+    activities.forEach((activity) => {
+      // Count actions
+      if (activity.action) {
+        const action = activity.action;
+        summary.actions_summary[action] =
+          (summary.actions_summary[action] || 0) + 1;
+      }
+
+      // Count daily activities
+      if (activity.createdAt) {
+        const date = activity.createdAt.toISOString().split("T")[0];
+        if (date) {
+          summary.daily_activities[date] =
+            (summary.daily_activities[date] || 0) + 1;
+        }
+      }
+    });
+
+    return summary;
   }
 
-  // Create generic activity log
-  async logActivity(activityData: CreateActivityRequest): Promise<Activity> {
-    return await ActivityModel.create(activityData);
+  // Log common activity types with helper methods
+  async logTaskCreated(
+    projectId: number,
+    taskId: number,
+    userId: number,
+    taskTitle: string
+  ): Promise<Activity> {
+    return await this.createActivity({
+      project_id: projectId,
+      task_id: taskId,
+      user_id: userId,
+      action: "task_created",
+      description: `Task '${taskTitle}' was created`,
+    });
   }
 
-  // Project-related activity logging methods
+  async logTaskAssigned(
+    projectId: number,
+    taskId: number,
+    userId: number,
+    assigneeUsername: string
+  ): Promise<Activity> {
+    return await this.createActivity({
+      project_id: projectId,
+      task_id: taskId,
+      user_id: userId,
+      action: "task_assigned",
+      description: `Task assigned to ${assigneeUsername}`,
+    });
+  }
+
+  async logStatusChanged(
+    projectId: number,
+    taskId: number,
+    userId: number,
+    oldStatus: string,
+    newStatus: string
+  ): Promise<Activity> {
+    return await this.createActivity({
+      project_id: projectId,
+      task_id: taskId,
+      user_id: userId,
+      action: "status_changed",
+      description: `Task status changed from '${oldStatus}' to '${newStatus}'`,
+    });
+  }
+
+  async logCommentAdded(
+    projectId: number,
+    taskId: number,
+    userId: number
+  ): Promise<Activity> {
+    return await this.createActivity({
+      project_id: projectId,
+      task_id: taskId,
+      user_id: userId,
+      action: "comment_added",
+      description: "Comment added to task",
+    });
+  }
+
   async logProjectCreated(
     projectId: number,
     userId: number,
     projectName: string
   ): Promise<Activity> {
-    return await ActivityModel.logProjectCreated(
-      projectId,
-      userId,
-      projectName
-    );
+    return await this.createActivity({
+      project_id: projectId,
+      task_id: undefined,
+      user_id: userId,
+      action: "project_created",
+      description: `Project '${projectName}' was created`,
+    });
   }
 
   async logProjectUpdated(
@@ -77,7 +340,7 @@ export class ActivityService {
     userId: number,
     projectName: string
   ): Promise<Activity> {
-    return await this.logActivity({
+    return await this.createActivity({
       project_id: projectId,
       task_id: undefined,
       user_id: userId,
@@ -91,7 +354,7 @@ export class ActivityService {
     userId: number,
     projectName: string
   ): Promise<Activity> {
-    return await this.logActivity({
+    return await this.createActivity({
       project_id: projectId,
       task_id: undefined,
       user_id: userId,
@@ -100,386 +363,100 @@ export class ActivityService {
     });
   }
 
-  async logProjectArchived(
-    projectId: number,
-    userId: number,
-    projectName: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: undefined,
-      user_id: userId,
-      action: "project_archived",
-      description: `Project '${projectName}' was archived`,
+  // Delete old activities (admin function, for cleanup)
+  async deleteOldActivities(days: number = 365): Promise<number> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const result = await Activity.destroy({
+      where: {
+        createdAt: {
+          [require("sequelize").Op.lt]: cutoffDate,
+        },
+      },
     });
+
+    return result;
   }
 
-  async logProjectDuplicated(
-    newProjectId: number,
-    userId: number,
-    newProjectName: string,
-    originalProjectName: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: newProjectId,
-      task_id: undefined,
-      user_id: userId,
-      action: "project_duplicated",
-      description: `Project '${newProjectName}' was created as a copy of '${originalProjectName}'`,
-    });
-  }
-
-  // Task-related activity logging methods
-  async logTaskCreated(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    taskTitle: string
-  ): Promise<Activity> {
-    return await ActivityModel.logTaskCreated(
-      projectId,
-      taskId,
-      userId,
-      taskTitle
-    );
-  }
-
-  async logTaskAssigned(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    assigneeUsername: string
-  ): Promise<Activity> {
-    return await ActivityModel.logTaskAssigned(
-      projectId,
-      taskId,
-      userId,
-      assigneeUsername
-    );
-  }
-
-  async logTaskUnassigned(
-    projectId: number,
-    taskId: number,
-    userId: number
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "task_unassigned",
-      description: "Task was unassigned",
-    });
-  }
-
-  async logStatusChanged(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    oldStatus: string,
-    newStatus: string
-  ): Promise<Activity> {
-    return await ActivityModel.logStatusChanged(
-      projectId,
-      taskId,
-      userId,
-      oldStatus,
-      newStatus
-    );
-  }
-
-  async logTaskUpdated(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    taskTitle: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "task_updated",
-      description: `Task '${taskTitle}' was updated`,
-    });
-  }
-
-  async logTaskDeleted(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    taskTitle: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "task_deleted",
-      description: `Task '${taskTitle}' was deleted`,
-    });
-  }
-
-  async logTaskMoved(
-    oldProjectId: number,
-    newProjectId: number,
-    taskId: number,
-    userId: number,
-    taskTitle: string
-  ): Promise<void> {
-    // Log in both projects
-    await Promise.all([
-      this.logActivity({
-        project_id: oldProjectId,
-        task_id: taskId,
-        user_id: userId,
-        action: "task_moved",
-        description: `Task '${taskTitle}' was moved to another project`,
-      }),
-      this.logActivity({
-        project_id: newProjectId,
-        task_id: taskId,
-        user_id: userId,
-        action: "task_moved",
-        description: `Task '${taskTitle}' was moved from another project`,
-      }),
-    ]);
-  }
-
-  async logTaskDuplicated(
-    projectId: number,
-    originalTaskId: number,
-    newTaskId: number,
-    userId: number,
-    newTaskTitle: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: newTaskId,
-      user_id: userId,
-      action: "task_duplicated",
-      description: `Task '${newTaskTitle}' was created as a copy`,
-    });
-  }
-
-  // Comment-related activity logging methods
-  async logCommentAdded(
-    projectId: number,
-    taskId: number,
-    userId: number
-  ): Promise<Activity> {
-    return await ActivityModel.logCommentAdded(projectId, taskId, userId);
-  }
-
-  async logCommentUpdated(
-    projectId: number,
-    taskId: number,
-    userId: number
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "comment_updated",
-      description: "Comment was updated",
-    });
-  }
-
-  async logCommentDeleted(
-    projectId: number,
-    taskId: number,
-    userId: number
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "comment_deleted",
-      description: "Comment was deleted",
-    });
-  }
-
-  // User-related activity logging methods
-  async logUserJoinedProject(
-    projectId: number,
-    userId: number,
-    newUserId: number,
-    newUsername: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: undefined,
-      user_id: userId,
-      action: "user_joined",
-      description: `User '${newUsername}' joined the project`,
-    });
-  }
-
-  async logUserLeftProject(
-    projectId: number,
-    userId: number,
-    leftUserId: number,
-    leftUsername: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: undefined,
-      user_id: userId,
-      action: "user_left",
-      description: `User '${leftUsername}' left the project`,
-    });
-  }
-
-  // File/attachment related (for future enhancement)
-  async logFileAttached(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    fileName: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "file_attached",
-      description: `File '${fileName}' was attached`,
-    });
-  }
-
-  async logFileRemoved(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    fileName: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "file_removed",
-      description: `File '${fileName}' was removed`,
-    });
-  }
-
-  // Due date related activities
-  async logDueDateSet(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    dueDate: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "due_date_set",
-      description: `Due date set to ${dueDate}`,
-    });
-  }
-
-  async logDueDateChanged(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    oldDate: string,
-    newDate: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "due_date_changed",
-      description: `Due date changed from ${oldDate} to ${newDate}`,
-    });
-  }
-
-  async logDueDateRemoved(
-    projectId: number,
-    taskId: number,
-    userId: number
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "due_date_removed",
-      description: "Due date was removed",
-    });
-  }
-
-  // Priority related activities
-  async logPriorityChanged(
-    projectId: number,
-    taskId: number,
-    userId: number,
-    oldPriority: string,
-    newPriority: string
-  ): Promise<Activity> {
-    return await this.logActivity({
-      project_id: projectId,
-      task_id: taskId,
-      user_id: userId,
-      action: "priority_changed",
-      description: `Priority changed from '${oldPriority}' to '${newPriority}'`,
-    });
-  }
-
-  // Utility methods
-  async getActivityById(activityId: number): Promise<Activity | null> {
-    return await ActivityModel.findById(activityId);
-  }
-
-  // Clean up old activities (admin function)
-  async cleanupOldActivities(days: number = 365): Promise<number> {
-    return await ActivityModel.deleteOldActivities(days);
-  }
-
-  // Get activity statistics for admin dashboard
+  // Get system-wide activity statistics (admin function)
   async getSystemActivityStats(days: number = 30): Promise<any> {
-    const activities = await this.getRecentActivities(1000, 0); // Get more activities for stats
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
 
-    // Process activities into statistics
+    const activities = await Activity.findAll({
+      where: {
+        createdAt: {
+          [require("sequelize").Op.gte]: startDate,
+        },
+      },
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
     const stats = {
-      total_activities: activities.length,
       period_days: days,
+      total_activities: activities.length,
       actions_summary: {} as Record<string, number>,
       daily_activities: {} as Record<string, number>,
       most_active_users: [] as Array<{
         username: string;
         activity_count: number;
       }>,
+      most_active_projects: [] as Array<{
+        project_name: string;
+        activity_count: number;
+      }>,
     };
 
-    // Calculate action summaries and daily activities
-    const userActivityCount = {} as Record<string, number>;
+    const userActivityCount: Record<string, number> = {};
+    const projectActivityCount: Record<string, number> = {};
 
     activities.forEach((activity) => {
-      // Count by action
-      if (activity.action && !stats.actions_summary[activity.action]) {
-        stats.actions_summary[activity.action] = 0;
-      }
+      // Count actions
       if (activity.action) {
-        stats.actions_summary[activity.action] =
-          (stats.actions_summary[activity.action] || 0) + 1;
+        const action = activity.action;
+        stats.actions_summary[action] =
+          (stats.actions_summary[action] || 0) + 1;
       }
 
-      // Count by date
-      if (activity.created_at) {
-        const date = new Date(activity.created_at).toISOString().split("T")[0];
+      // Count daily activities
+      if (activity.createdAt) {
+        const date = activity.createdAt.toISOString().split("T")[0];
         if (date) {
           stats.daily_activities[date] =
             (stats.daily_activities[date] || 0) + 1;
         }
       }
 
-      // Count by user
-      if (activity.username) {
-        userActivityCount[activity.username] =
-          (userActivityCount[activity.username] || 0) + 1;
+      // Count user activities
+      if (activity.user?.username) {
+        userActivityCount[activity.user.username] =
+          (userActivityCount[activity.user.username] || 0) + 1;
+      }
+
+      // Count project activities
+      if (activity.project?.name) {
+        projectActivityCount[activity.project.name] =
+          (projectActivityCount[activity.project.name] || 0) + 1;
       }
     });
 
     // Get most active users
     stats.most_active_users = Object.entries(userActivityCount)
-      .map(([username, count]) => ({ username, activity_count: count }))
+      .map(([username, activity_count]) => ({ username, activity_count }))
+      .sort((a, b) => b.activity_count - a.activity_count)
+      .slice(0, 10);
+
+    // Get most active projects
+    stats.most_active_projects = Object.entries(projectActivityCount)
+      .map(([project_name, activity_count]) => ({
+        project_name,
+        activity_count,
+      }))
       .sort((a, b) => b.activity_count - a.activity_count)
       .slice(0, 10);
 

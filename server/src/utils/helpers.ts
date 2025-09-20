@@ -7,7 +7,7 @@ export class DateHelper {
   // Format date to ISO string without time
   static toDateOnly(date: Date | string): string {
     const d = new Date(date);
-    return d.toISOString().split('T')[0];
+    return d.toISOString().split("T")[0] || "";
   }
 
   // Check if date is today
@@ -48,22 +48,22 @@ export class DateHelper {
   // Format date for display
   static formatForDisplay(date: Date | string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   }
 
   // Format datetime for display
   static formatDateTimeForDisplay(date: Date | string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 }
@@ -79,15 +79,16 @@ export class StringHelper {
   // Convert to title case
   static toTitleCase(str: string): string {
     if (!str) return str;
-    return str.replace(/\w\S*/g, (txt) =>
-      txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
     );
   }
 
   // Truncate string with ellipsis
   static truncate(str: string, length: number): string {
     if (!str || str.length <= length) return str;
-    return str.substring(0, length) + '...';
+    return str.substring(0, length) + "...";
   }
 
   // Generate slug from string
@@ -95,38 +96,39 @@ export class StringHelper {
     return str
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   // Extract initials from name
   static getInitials(name: string): string {
-    if (!name) return '';
+    if (!name) return "";
     return name
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase())
-      .join('')
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase())
+      .join("")
       .substring(0, 2);
   }
 
   // Sanitize HTML
   static sanitizeHtml(str: string): string {
     const htmlEntities: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#x27;',
-      '/': '&#x2F;'
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#x27;",
+      "/": "&#x2F;",
     };
-    return str.replace(/[&<>"'/]/g, (s) => htmlEntities[s]);
+    return str.replace(/[&<>"'/]/g, (s) => htmlEntities[s] || s);
   }
 
   // Generate random string
   static generateRandomString(length: number = 8): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -154,13 +156,16 @@ export class ArrayHelper {
   }
 
   // Sort array by multiple criteria
-  static sortBy<T>(array: T[], ...criteria: Array<keyof T | ((item: T) => any)>): T[] {
+  static sortBy<T>(
+    array: T[],
+    ...criteria: Array<keyof T | ((item: T) => any)>
+  ): T[] {
     return [...array].sort((a, b) => {
       for (const criterion of criteria) {
         let valueA: any;
         let valueB: any;
 
-        if (typeof criterion === 'function') {
+        if (typeof criterion === "function") {
           valueA = criterion(a);
           valueB = criterion(b);
         } else {
@@ -195,10 +200,11 @@ export class ArrayHelper {
 export class ObjectHelper {
   // Deep clone object
   static deepClone<T>(obj: T): T {
-    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj === null || typeof obj !== "object") return obj;
     if (obj instanceof Date) return new Date(obj.getTime()) as any;
-    if (obj instanceof Array) return obj.map(item => this.deepClone(item)) as any;
-    if (typeof obj === 'object') {
+    if (obj instanceof Array)
+      return obj.map((item) => this.deepClone(item)) as any;
+    if (typeof obj === "object") {
       const clonedObj = {} as any;
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -211,9 +217,12 @@ export class ObjectHelper {
   }
 
   // Pick specific keys from object
-  static pick<T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+  static pick<T extends object, K extends keyof T>(
+    obj: T,
+    keys: K[]
+  ): Pick<T, K> {
     const result = {} as Pick<T, K>;
-    keys.forEach(key => {
+    keys.forEach((key) => {
       if (key in obj) {
         result[key] = obj[key];
       }
@@ -222,9 +231,12 @@ export class ObjectHelper {
   }
 
   // Omit specific keys from object
-  static omit<T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
+  static omit<T extends object, K extends keyof T>(
+    obj: T,
+    keys: K[]
+  ): Omit<T, K> {
     const result = { ...obj };
-    keys.forEach(key => {
+    keys.forEach((key) => {
       delete result[key];
     });
     return result;
@@ -233,19 +245,23 @@ export class ObjectHelper {
   // Check if object is empty
   static isEmpty(obj: any): boolean {
     if (obj == null) return true;
-    if (Array.isArray(obj) || typeof obj === 'string') return obj.length === 0;
+    if (Array.isArray(obj) || typeof obj === "string") return obj.length === 0;
     return Object.keys(obj).length === 0;
   }
 
   // Flatten nested object
-  static flatten(obj: any, prefix: string = ''): Record<string, any> {
+  static flatten(obj: any, prefix: string = ""): Record<string, any> {
     const flattened: Record<string, any> = {};
 
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
         const newKey = prefix ? `${prefix}.${key}` : key;
 
-        if (obj[key] !== null && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+        if (
+          obj[key] !== null &&
+          typeof obj[key] === "object" &&
+          !Array.isArray(obj[key])
+        ) {
           Object.assign(flattened, this.flatten(obj[key], newKey));
         } else {
           flattened[newKey] = obj[key];
@@ -260,16 +276,16 @@ export class ObjectHelper {
 // Number helpers
 export class NumberHelper {
   // Format number as currency
-  static formatCurrency(amount: number, currency: string = 'USD'): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency
+  static formatCurrency(amount: number, currency: string = "USD"): string {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
     }).format(amount);
   }
 
   // Format number with thousand separators
   static formatNumber(num: number): string {
-    return new Intl.NumberFormat('en-US').format(num);
+    return new Intl.NumberFormat("en-US").format(num);
   }
 
   // Calculate percentage
@@ -293,35 +309,35 @@ export class NumberHelper {
 export class FileHelper {
   // Get file extension
   static getExtension(filename: string): string {
-    return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2);
+    return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
   }
 
   // Get filename without extension
   static getNameWithoutExtension(filename: string): string {
-    return filename.replace(/\.[^/.]+$/, '');
+    return filename.replace(/\.[^/.]+$/, "");
   }
 
   // Format file size
   static formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
 
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   // Check if file type is image
   static isImage(filename: string): boolean {
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"];
     const extension = this.getExtension(filename).toLowerCase();
     return imageExtensions.includes(extension);
   }
 
   // Check if file type is document
   static isDocument(filename: string): boolean {
-    const docExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
+    const docExtensions = ["pdf", "doc", "docx", "txt", "rtf", "odt"];
     const extension = this.getExtension(filename).toLowerCase();
     return docExtensions.includes(extension);
   }
@@ -333,7 +349,7 @@ export class UrlHelper {
   static buildQuery(params: Record<string, any>): string {
     const query = new URLSearchParams();
 
-    Object.keys(params).forEach(key => {
+    Object.keys(params).forEach((key) => {
       const value = params[key];
       if (value !== null && value !== undefined) {
         query.append(key, String(value));
@@ -341,12 +357,14 @@ export class UrlHelper {
     });
 
     const queryString = query.toString();
-    return queryString ? `?${queryString}` : '';
+    return queryString ? `?${queryString}` : "";
   }
 
   // Parse query string to object
   static parseQuery(queryString: string): Record<string, string> {
-    const params = new URLSearchParams(queryString.startsWith('?') ? queryString.slice(1) : queryString);
+    const params = new URLSearchParams(
+      queryString.startsWith("?") ? queryString.slice(1) : queryString
+    );
     const result: Record<string, string> = {};
 
     params.forEach((value, key) => {
@@ -375,5 +393,5 @@ export const helpers = {
   object: ObjectHelper,
   number: NumberHelper,
   file: FileHelper,
-  url: UrlHelper
+  url: UrlHelper,
 };

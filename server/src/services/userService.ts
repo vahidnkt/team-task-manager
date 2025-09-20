@@ -1,31 +1,33 @@
 import bcrypt from "bcrypt";
-import { UserModel } from "../models/User";
-import {
-  User,
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "../types/user.types";
-import { environment } from "../config/environment";
+import { User } from "../models/User";
+import { CreateUserRequest, UpdateUserRequest } from "../types/user.types";
+import environment from "../config/environment";
 
 export class UserService {
   // Get all users (admin only)
   async getAllUsers(): Promise<User[]> {
-    return await UserModel.findAll();
+    return await User.findAll({
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   // Get user by ID
   async getUserById(id: number): Promise<User | null> {
-    return await UserModel.findById(id);
+    return await User.findByPk(id);
   }
 
   // Get user by email
   async getUserByEmail(email: string): Promise<User | null> {
-    return await UserModel.findByEmail(email);
+    return await User.findOne({
+      where: { email },
+    });
   }
 
   // Get user by username
   async getUserByUsername(username: string): Promise<User | null> {
-    return await UserModel.findByUsername(username);
+    return await User.findOne({
+      where: { username },
+    });
   }
 
   // Create new user
@@ -44,18 +46,16 @@ export class UserService {
     }
 
     // Hash password
-    const saltRounds = environment.bcryptSaltRounds || 12;
+    const saltRounds = environment.security.bcryptSaltRounds || 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
-    const newUser = await UserModel.create({
+    // Create user using Sequelize
+    return await User.create({
       username,
       email,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       role,
-    });
-
-    return newUser;
+    } as any);
   }
 
   // Update user
@@ -88,11 +88,20 @@ export class UserService {
 
     // Hash password if it's being updated
     if (updateData.password) {
-      const saltRounds = environment.bcryptSaltRounds || 12;
+      const saltRounds = environment.security.bcryptSaltRounds || 12;
       updateData.password = await bcrypt.hash(updateData.password, saltRounds);
     }
 
-    return await UserModel.update(id, updateData);
+    // Update user using Sequelize
+    await User.update(
+      {
+        ...updateData,
+        passwordHash: updateData.password || undefined,
+      },
+      { where: { id } }
+    );
+
+    return await this.getUserById(id);
   }
 
   // Delete user (soft delete)
@@ -102,23 +111,24 @@ export class UserService {
       throw new Error("User not found");
     }
 
-    return await UserModel.delete(id);
+    await User.destroy({ where: { id } });
+    return true;
   }
 
   // Verify user password
   async verifyPassword(email: string, password: string): Promise<User | null> {
-    const user = await UserModel.findByEmailWithPassword(email);
+    const user = await this.getUserByEmail(email);
     if (!user) {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return null;
     }
 
     // Return user without password hash
-    const { password_hash, ...userWithoutPassword } = user;
+    const { passwordHash, ...userWithoutPassword } = user.toJSON();
     return userWithoutPassword as User;
   }
 
@@ -128,7 +138,7 @@ export class UserService {
     currentPassword: string,
     newPassword: string
   ): Promise<boolean> {
-    const user = await UserModel.findByIdWithPassword(userId);
+    const user = await this.getUserById(userId);
     if (!user) {
       throw new Error("User not found");
     }
@@ -136,21 +146,22 @@ export class UserService {
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
-      user.password_hash
+      user.passwordHash
     );
     if (!isCurrentPasswordValid) {
       throw new Error("Current password is incorrect");
     }
 
     // Hash new password
-    const saltRounds = environment.bcryptSaltRounds || 12;
+    const saltRounds = environment.security.bcryptSaltRounds || 12;
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // Update password
-    const updated = await UserModel.update(userId, {
-      password: hashedNewPassword,
-    });
-    return !!updated;
+    await User.update(
+      { passwordHash: hashedNewPassword },
+      { where: { id: userId } }
+    );
+    return true;
   }
 
   // Get user statistics
@@ -168,19 +179,31 @@ export class UserService {
       total_tasks_assigned: 0,
       total_tasks_completed: 0,
       total_comments_made: 0,
-      account_created: user.created_at,
-      last_active: user.updated_at,
+      account_created: user.createdAt,
+      last_active: user.updatedAt,
     };
   }
 
   // Search users by username or email (admin only)
   async searchUsers(searchTerm: string, limit: number = 20): Promise<User[]> {
-    return await UserModel.searchByUsernameOrEmail(searchTerm, limit);
+    return await User.findAll({
+      where: {
+        [require("sequelize").Op.or]: [
+          { username: { [require("sequelize").Op.like]: `%${searchTerm}%` } },
+          { email: { [require("sequelize").Op.like]: `%${searchTerm}%` } },
+        ],
+      },
+      limit,
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   // Get users by role
   async getUsersByRole(role: "user" | "admin"): Promise<User[]> {
-    return await UserModel.findByRole(role);
+    return await User.findAll({
+      where: { role },
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   // Activate/deactivate user (admin only)
@@ -200,7 +223,10 @@ export class UserService {
 
   // Get recent users (admin only)
   async getRecentUsers(limit: number = 10): Promise<User[]> {
-    return await UserModel.findRecent(limit);
+    return await User.findAll({
+      order: [["createdAt", "DESC"]],
+      limit,
+    });
   }
 
   // Validate user permissions
@@ -231,16 +257,30 @@ export class UserService {
 
   // Get user's assigned tasks count
   async getUserTaskCount(userId: number): Promise<number> {
-    // This would require a join with tasks table
-    // Placeholder implementation
-    return 0;
+    return await User.count({
+      include: [
+        {
+          model: require("../models/Task").Task,
+          as: "assignedTasks",
+          required: false,
+        },
+      ],
+      where: { id: userId },
+    });
   }
 
   // Get user's project count
   async getUserProjectCount(userId: number): Promise<number> {
-    // This would require a join with projects table
-    // Placeholder implementation
-    return 0;
+    return await User.count({
+      include: [
+        {
+          model: require("../models/Project").Project,
+          as: "createdProjects",
+          required: false,
+        },
+      ],
+      where: { id: userId },
+    });
   }
 }
 

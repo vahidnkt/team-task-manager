@@ -1,4 +1,5 @@
-import database from "@/config/database";
+import database from "./config/database/database";
+import sequelizeDatabase from "./config/database/sequelize";
 import App from "./app";
 import config from "./config/environment";
 
@@ -17,25 +18,17 @@ class Server {
       await database.connect();
       console.log("✅ Database connected successfully");
 
+      // Connect to Sequelize
+      console.log("🔌 Connecting to Sequelize...");
+      await sequelizeDatabase.connect();
+      console.log("✅ Sequelize connected successfully");
+
       // Start server
       const app = this.app.getApp();
       this.server = app.listen(config.server.port, () => {
         console.log("🚀 Server started successfully");
         console.log(`📡 Server running on port ${config.server.port}`);
         console.log(`🌍 Environment: ${config.server.env}`);
-        console.log(
-          `🔗 API Base URL: http://localhost:${config.server.port}/api`
-        );
-        console.log(
-          `❤️  Health Check: http://localhost:${config.server.port}/health`
-        );
-        console.log("📋 Available endpoints:");
-        console.log("   POST /api/auth/register - Register new user");
-        console.log("   POST /api/auth/login - User login");
-        console.log("   GET  /api/auth/profile - Get user profile");
-        console.log("   POST /api/auth/logout - User logout");
-        console.log("   GET  /api/auth/verify - Verify token");
-        console.log("=====================================");
       });
 
       // Graceful shutdown
@@ -59,9 +52,12 @@ class Server {
           });
         }
 
-        // Close database connection
+        // Close database connections
         await database.disconnect();
         console.log("📴 Database connection closed");
+
+        await sequelizeDatabase.disconnect();
+        console.log("📴 Sequelize connection closed");
 
         console.log("✅ Graceful shutdown completed");
         process.exit(0);
