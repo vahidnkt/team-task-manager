@@ -11,6 +11,21 @@ export class UserService {
     });
   }
 
+  // Get all users with filter and pagination
+  async getAllUsersWithFilter(options: {
+    where?: any;
+    limit?: number;
+    offset?: number;
+    order?: any;
+  }): Promise<{ count: number; rows: User[] }> {
+    return await User.findAndCountAll({
+      where: options.where,
+      limit: options.limit,
+      offset: options.offset,
+      order: options.order || [["createdAt", "DESC"]],
+    });
+  }
+
   // Get user by ID
   async getUserById(id: string): Promise<User | null> {
     return await User.findByPk(id);

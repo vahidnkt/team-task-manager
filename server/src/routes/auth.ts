@@ -51,4 +51,48 @@ router.get(
   authController.verifyToken.bind(authController)
 );
 
+/**
+ * @route   PUT /api/auth/profile
+ * @desc    Update user profile (username, email, password)
+ * @access  Private
+ */
+router.put(
+  "/profile",
+  authenticateToken,
+  authController.updateProfile.bind(authController)
+);
+
+/**
+ * @route   DELETE /api/auth/account
+ * @desc    Delete user account (soft delete)
+ * @access  Private
+ */
+router.delete(
+  "/account",
+  authenticateToken,
+  authController.deleteAccount.bind(authController)
+);
+
+/**
+ * @route   GET /api/auth/users
+ * @desc    Get all users
+ * @access  Private
+ */
+router.get(
+  "/users",
+  authenticateToken,
+  authController.getAllUsers.bind(authController)
+);
+
+/**
+ * @route   GET /api/auth/users/:id
+ * @desc    Get user by ID
+ * @access  Private
+ */
+router.get(
+  "/users/:id",
+  authenticateToken,
+  authController.getUserById.bind(authController)
+);
+
 export default router;
