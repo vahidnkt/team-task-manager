@@ -126,7 +126,7 @@ export class UserValidators {
   // Validate username uniqueness (async)
   static async validateUsernameUniqueness(
     username: string,
-    excludeUserId?: number
+    excludeUserId?: string
   ): Promise<ValidationResult> {
     try {
       const existingUser = await userService.getUserByUsername(username);
@@ -149,7 +149,7 @@ export class UserValidators {
   // Validate email uniqueness (async)
   static async validateEmailUniqueness(
     email: string,
-    excludeUserId?: number
+    excludeUserId?: string
   ): Promise<ValidationResult> {
     try {
       const existingUser = await userService.getUserByEmail(email);
@@ -218,7 +218,7 @@ export class ProjectValidators {
 
   // Validate project creator exists (async)
   static async validateCreatorExists(
-    creatorId: number
+    creatorId: string
   ): Promise<ValidationResult> {
     try {
       const creator = await userService.getUserById(creatorId);
@@ -239,7 +239,7 @@ export class ProjectValidators {
 
   // Validate project exists (async)
   static async validateProjectExists(
-    projectId: number
+    projectId: string
   ): Promise<ValidationResult> {
     try {
       const project = await projectService.getProjectById(projectId);
@@ -351,7 +351,7 @@ export class TaskValidators {
 
   // Validate assignee exists (async)
   static async validateAssigneeExists(
-    assigneeId: number | null
+    assigneeId: string | null
   ): Promise<ValidationResult> {
     if (assigneeId === null) {
       return createValidationResult(true); // Null assignee is valid (unassigned task)
@@ -371,7 +371,7 @@ export class TaskValidators {
   }
 
   // Validate task exists (async)
-  static async validateTaskExists(taskId: number): Promise<ValidationResult> {
+  static async validateTaskExists(taskId: string): Promise<ValidationResult> {
     try {
       const task = await taskService.getTaskById(taskId);
 
@@ -421,17 +421,17 @@ export class CommentValidators {
 
 // General validation functions
 export class GeneralValidators {
-  // Validate ID parameter
+  // Validate ID parameter (UUID format)
   static validateId(id: any): ValidationResult {
     const errors: string[] = [];
 
     if (id === null || id === undefined) {
       errors.push("ID is required");
     } else {
-      const numId = Number(id);
+      const stringId = String(id);
 
-      if (isNaN(numId) || !Number.isInteger(numId) || numId <= 0) {
-        errors.push("ID must be a positive integer");
+      if (!REGEX.UUID.test(stringId)) {
+        errors.push("ID must be a valid UUID");
       }
     }
 
@@ -564,8 +564,8 @@ export class CompositeValidators {
   static async validateTaskCreation(taskData: {
     title: string;
     description?: string;
-    project_id: number;
-    assignee_id?: number;
+    project_id: string;
+    assignee_id?: string;
     status?: string;
     priority?: string;
     due_date?: string;

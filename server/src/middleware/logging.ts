@@ -10,7 +10,7 @@ interface LogEntry {
   responseTime?: number;
   userAgent?: string;
   ip: string;
-  userId?: number;
+  userId?: string;
   email?: string;
   error?: string;
 }
@@ -45,7 +45,7 @@ class Logger {
     return limit ? this.logs.slice(-limit) : this.logs;
   }
 
-  getLogsByUser(userId: number, limit?: number): LogEntry[] {
+  getLogsByUser(userId: string, limit?: number): LogEntry[] {
     const userLogs = this.logs.filter((log) => log.userId === userId);
     return limit ? userLogs.slice(-limit) : userLogs;
   }
@@ -180,7 +180,7 @@ export const logActivity = (
   req: AuthRequest,
   action: string,
   resource: string,
-  resourceId?: number,
+  resourceId?: string,
   details?: string
 ): void => {
   const timestamp = new Date().toISOString();
@@ -245,7 +245,7 @@ export const performanceLogger = (
 // Get logs endpoint helper
 export const getLogsData = (
   type?: "all" | "errors" | "user",
-  userId?: number,
+  userId?: string,
   limit?: number
 ) => {
   switch (type) {

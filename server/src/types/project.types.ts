@@ -1,9 +1,9 @@
 // Project Types
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description?: string;
-  created_by: number;
+  created_by: string;
   created_at: Date;
   updated_at: Date;
   deleted_at?: Date;

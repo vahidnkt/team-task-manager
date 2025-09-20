@@ -4,12 +4,13 @@ import {
   Model,
   DataType,
   PrimaryKey,
-  AutoIncrement,
+  Default,
   CreatedAt,
   UpdatedAt,
   DeletedAt,
   HasMany,
 } from "sequelize-typescript";
+import { v4 as uuidv4 } from "uuid";
 import { Project } from "./Project";
 import { Task } from "./Task";
 import { Comment } from "./Comment";
@@ -22,9 +23,9 @@ import { Activity } from "./Activity";
 })
 export class User extends Model<User> {
   @PrimaryKey
-  @AutoIncrement
-  @Column(DataType.INTEGER)
-  override id!: number;
+  @Default(() => uuidv4())
+  @Column(DataType.UUID)
+  override id!: string;
 
   @Column({
     type: DataType.STRING(50),

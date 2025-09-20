@@ -6,7 +6,7 @@ export class TaskService {
   // Create a new task
   async createTask(
     taskData: CreateTaskRequest,
-    projectId: number
+    projectId: string
   ): Promise<Task> {
     const { title, description, assignee_id, priority, due_date } = taskData;
 
@@ -29,7 +29,7 @@ export class TaskService {
 
   // Get all tasks in a project
   async getTasksByProject(
-    projectId: number,
+    projectId: string,
     page: number = 1,
     limit: number = 10
   ): Promise<Task[]> {
@@ -47,7 +47,7 @@ export class TaskService {
   }
 
   // Get task by ID
-  async getTaskById(id: number): Promise<Task | null> {
+  async getTaskById(id: string): Promise<Task | null> {
     return await Task.findByPk(id, {
       include: [
         { model: require("../models/User").User, as: "assignee" },
@@ -59,7 +59,7 @@ export class TaskService {
 
   // Get tasks assigned to a user
   async getTasksByAssignee(
-    assigneeId: number,
+    assigneeId: string,
     page: number = 1,
     limit: number = 10
   ): Promise<Task[]> {
@@ -74,7 +74,7 @@ export class TaskService {
   }
 
   // Get tasks by status
-  async getTasksByStatus(status: string, projectId?: number): Promise<Task[]> {
+  async getTasksByStatus(status: string, projectId?: string): Promise<Task[]> {
     const whereCondition: any = { status };
     if (projectId) {
       whereCondition.projectId = projectId;
@@ -92,7 +92,7 @@ export class TaskService {
 
   // Update task
   async updateTask(
-    id: number,
+    id: string,
     updateData: UpdateTaskRequest
   ): Promise<Task | null> {
     const task = await this.getTaskById(id);
@@ -105,7 +105,7 @@ export class TaskService {
   }
 
   // Update task status
-  async updateTaskStatus(id: number, status: string): Promise<Task | null> {
+  async updateTaskStatus(id: string, status: string): Promise<Task | null> {
     const task = await this.getTaskById(id);
     if (!task) {
       throw new Error("Task not found");
@@ -117,8 +117,8 @@ export class TaskService {
 
   // Assign task to user
   async assignTask(
-    id: number,
-    assigneeId: number | null
+    id: string,
+    assigneeId: string | null
   ): Promise<Task | null> {
     const task = await this.getTaskById(id);
     if (!task) {
@@ -130,7 +130,7 @@ export class TaskService {
   }
 
   // Delete task (soft delete)
-  async deleteTask(id: number): Promise<boolean> {
+  async deleteTask(id: string): Promise<boolean> {
     const task = await this.getTaskById(id);
     if (!task) {
       throw new Error("Task not found");
@@ -300,7 +300,7 @@ export class TaskService {
   }
 
   // Check if task exists
-  async taskExists(id: number): Promise<boolean> {
+  async taskExists(id: string): Promise<boolean> {
     const task = await this.getTaskById(id);
     return !!task;
   }

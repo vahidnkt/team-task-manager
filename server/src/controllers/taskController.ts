@@ -8,6 +8,7 @@ import {
   TaskStatus,
   TaskPriority,
 } from "../types/task.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class TaskController {
   // Get all tasks in a project
@@ -16,23 +17,23 @@ export class TaskController {
       const { projectId } = req.params;
 
       if (!projectId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
         return;
       }
 
-      const tasks = await taskService.getTasksByProject(parseInt(projectId));
+      const tasks = await taskService.getTasksByProject(projectId);
 
       const response: ApiResponse = {
         success: true,
         data: tasks,
         message: "Tasks retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to retrieve tasks",
@@ -46,7 +47,7 @@ export class TaskController {
       const { projectId } = req.params;
 
       if (!projectId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
@@ -55,19 +56,19 @@ export class TaskController {
 
       const taskData: CreateTaskRequest = {
         ...req.body,
-        project_id: parseInt(projectId),
+        project_id: projectId,
       };
 
-      const newTask = await taskService.createTask(taskData);
+      const newTask = await taskService.createTask(taskData, projectId);
 
       const response: ApiResponse = {
         success: true,
         data: newTask,
         message: "Task created successfully",
       };
-      res.status(201).json(response);
+      res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to create task",
@@ -81,17 +82,17 @@ export class TaskController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
         return;
       }
 
-      const task = await taskService.getTaskById(parseInt(id));
+      const task = await taskService.getTaskById(id);
 
       if (!task) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Task not found",
         });
@@ -103,9 +104,9 @@ export class TaskController {
         data: task,
         message: "Task retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to retrieve task",
@@ -120,20 +121,17 @@ export class TaskController {
       const updateData: UpdateTaskRequest = req.body;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
         return;
       }
 
-      const updatedTask = await taskService.updateTask(
-        parseInt(id),
-        updateData
-      );
+      const updatedTask = await taskService.updateTask(id, updateData);
 
       if (!updatedTask) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Task not found",
         });
@@ -145,9 +143,9 @@ export class TaskController {
         data: updatedTask,
         message: "Task updated successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to update task",
@@ -161,17 +159,17 @@ export class TaskController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
         return;
       }
 
-      const deleted = await taskService.deleteTask(parseInt(id));
+      const deleted = await taskService.deleteTask(id);
 
       if (!deleted) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Task not found",
         });
@@ -182,9 +180,9 @@ export class TaskController {
         success: true,
         message: "Task deleted successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to delete task",
@@ -199,7 +197,7 @@ export class TaskController {
       const { status }: { status: TaskStatus } = req.body;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
@@ -207,20 +205,17 @@ export class TaskController {
       }
 
       if (!["todo", "in-progress", "done"].includes(status)) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Invalid status. Must be: todo, in-progress, or done",
         });
         return;
       }
 
-      const updatedTask = await taskService.updateTaskStatus(
-        parseInt(id),
-        status
-      );
+      const updatedTask = await taskService.updateTaskStatus(id, status);
 
       if (!updatedTask) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Task not found",
         });
@@ -232,9 +227,9 @@ export class TaskController {
         data: updatedTask,
         message: "Task status updated successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -251,7 +246,7 @@ export class TaskController {
       const { assignee_id }: { assignee_id: number | null } = req.body;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
@@ -259,12 +254,12 @@ export class TaskController {
       }
 
       const updatedTask = await taskService.assignTask(
-        parseInt(id),
-        assignee_id
+        id,
+        assignee_id?.toString() || null
       );
 
       if (!updatedTask) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Task not found",
         });
@@ -278,9 +273,9 @@ export class TaskController {
           ? "Task assigned successfully"
           : "Task unassigned successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to assign task",
@@ -292,7 +287,7 @@ export class TaskController {
   async getMyTasks(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           message: "User not authenticated",
         });
@@ -306,9 +301,9 @@ export class TaskController {
         data: tasks,
         message: "User tasks retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -325,7 +320,7 @@ export class TaskController {
       const { projectId } = req.params;
 
       if (!projectId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
@@ -336,7 +331,7 @@ export class TaskController {
         !status ||
         !["todo", "in-progress", "done"].includes(status as string)
       ) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Invalid or missing status parameter",
         });
@@ -344,7 +339,7 @@ export class TaskController {
       }
 
       const tasks = await taskService.getTasksByStatus(
-        parseInt(projectId),
+        projectId,
         status as TaskStatus
       );
 
@@ -353,9 +348,9 @@ export class TaskController {
         data: tasks,
         message: "Tasks retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error

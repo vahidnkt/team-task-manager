@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { activityService } from "../services/activityService";
 import { AuthRequest } from "../types/auth.types";
 import { ApiResponse } from "../types/api.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class ActivityController {
   // Get project activity history
@@ -11,7 +12,7 @@ export class ActivityController {
       const { limit, offset } = req.query;
 
       if (!projectId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
@@ -19,7 +20,7 @@ export class ActivityController {
       }
 
       const activities = await activityService.getProjectActivities(
-        parseInt(projectId),
+        projectId,
         limit ? parseInt(limit as string) : undefined,
         offset ? parseInt(offset as string) : undefined
       );
@@ -29,9 +30,9 @@ export class ActivityController {
         data: activities,
         message: "Project activities retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -45,7 +46,7 @@ export class ActivityController {
   async getRecentActivities(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (req.user?.role !== "admin") {
-        res.status(403).json({
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
           message: "Admin access required",
         });
@@ -64,9 +65,9 @@ export class ActivityController {
         data: activities,
         message: "Recent activities retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -83,7 +84,7 @@ export class ActivityController {
       const { limit, offset } = req.query;
 
       if (!userId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "User ID is required",
         });
@@ -91,8 +92,8 @@ export class ActivityController {
       }
 
       // Check if user can view these activities
-      if (req.user?.role !== "admin" && req.user?.userId !== parseInt(userId)) {
-        res.status(403).json({
+      if (req.user?.role !== "admin" && req.user?.userId !== userId) {
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
           message: "Not authorized to view these activities",
         });
@@ -100,7 +101,7 @@ export class ActivityController {
       }
 
       const activities = await activityService.getUserActivities(
-        parseInt(userId),
+        userId,
         limit ? parseInt(limit as string) : undefined,
         offset ? parseInt(offset as string) : undefined
       );
@@ -110,9 +111,9 @@ export class ActivityController {
         data: activities,
         message: "User activities retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -129,7 +130,7 @@ export class ActivityController {
       const { limit, offset } = req.query;
 
       if (!taskId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
@@ -137,7 +138,7 @@ export class ActivityController {
       }
 
       const activities = await activityService.getTaskActivities(
-        parseInt(taskId),
+        taskId,
         limit ? parseInt(limit as string) : undefined,
         offset ? parseInt(offset as string) : undefined
       );
@@ -147,9 +148,9 @@ export class ActivityController {
         data: activities,
         message: "Task activities retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -169,7 +170,7 @@ export class ActivityController {
       const { days } = req.query;
 
       if (!projectId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
@@ -177,7 +178,7 @@ export class ActivityController {
       }
 
       const stats = await activityService.getProjectActivityStats(
-        parseInt(projectId),
+        projectId,
         days ? parseInt(days as string) : 30
       );
 
@@ -186,9 +187,9 @@ export class ActivityController {
         data: stats,
         message: "Project activity statistics retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -202,7 +203,7 @@ export class ActivityController {
   async getUserActivitySummary(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           message: "User not authenticated",
         });
@@ -221,9 +222,9 @@ export class ActivityController {
         data: summary,
         message: "User activity summary retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error

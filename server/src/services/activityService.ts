@@ -43,7 +43,7 @@ export class ActivityService {
   }
 
   // Find activity by ID
-  async getActivityById(id: number): Promise<Activity | null> {
+  async getActivityById(id: string): Promise<Activity | null> {
     return await Activity.findByPk(id, {
       include: [
         { model: User, as: "user" },
@@ -55,7 +55,7 @@ export class ActivityService {
 
   // Get activities for a specific project
   async getProjectActivities(
-    projectId: number,
+    projectId: string,
     limit?: number,
     offset?: number
   ): Promise<Activity[]> {
@@ -81,7 +81,7 @@ export class ActivityService {
 
   // Get activities for a specific task
   async getTaskActivities(
-    taskId: number,
+    taskId: string,
     limit?: number,
     offset?: number
   ): Promise<Activity[]> {
@@ -107,7 +107,7 @@ export class ActivityService {
 
   // Get activities by user
   async getUserActivities(
-    userId: number,
+    userId: string,
     limit?: number,
     offset?: number
   ): Promise<Activity[]> {
@@ -150,7 +150,7 @@ export class ActivityService {
 
   // Get activity summary for a project over a time period
   async getProjectActivityStats(
-    projectId: number,
+    projectId: string,
     days: number = 30
   ): Promise<ActivitySummary> {
     const startDate = new Date();
@@ -213,7 +213,7 @@ export class ActivityService {
   }
 
   // Get user activity summary
-  async getUserActivitySummary(userId: number, days: number = 7): Promise<any> {
+  async getUserActivitySummary(userId: string, days: number = 7): Promise<any> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
@@ -262,9 +262,9 @@ export class ActivityService {
 
   // Log common activity types with helper methods
   async logTaskCreated(
-    projectId: number,
-    taskId: number,
-    userId: number,
+    projectId: string,
+    taskId: string,
+    userId: string,
     taskTitle: string
   ): Promise<Activity> {
     return await this.createActivity({
@@ -277,9 +277,9 @@ export class ActivityService {
   }
 
   async logTaskAssigned(
-    projectId: number,
-    taskId: number,
-    userId: number,
+    projectId: string,
+    taskId: string,
+    userId: string,
     assigneeUsername: string
   ): Promise<Activity> {
     return await this.createActivity({
@@ -292,9 +292,9 @@ export class ActivityService {
   }
 
   async logStatusChanged(
-    projectId: number,
-    taskId: number,
-    userId: number,
+    projectId: string,
+    taskId: string,
+    userId: string,
     oldStatus: string,
     newStatus: string
   ): Promise<Activity> {
@@ -308,9 +308,9 @@ export class ActivityService {
   }
 
   async logCommentAdded(
-    projectId: number,
-    taskId: number,
-    userId: number
+    projectId: string,
+    taskId: string,
+    userId: string
   ): Promise<Activity> {
     return await this.createActivity({
       project_id: projectId,
@@ -322,8 +322,8 @@ export class ActivityService {
   }
 
   async logProjectCreated(
-    projectId: number,
-    userId: number,
+    projectId: string,
+    userId: string,
     projectName: string
   ): Promise<Activity> {
     return await this.createActivity({
@@ -336,8 +336,8 @@ export class ActivityService {
   }
 
   async logProjectUpdated(
-    projectId: number,
-    userId: number,
+    projectId: string,
+    userId: string,
     projectName: string
   ): Promise<Activity> {
     return await this.createActivity({
@@ -350,8 +350,8 @@ export class ActivityService {
   }
 
   async logProjectDeleted(
-    projectId: number,
-    userId: number,
+    projectId: string,
+    userId: string,
     projectName: string
   ): Promise<Activity> {
     return await this.createActivity({

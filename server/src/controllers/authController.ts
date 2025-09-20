@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import authService from "../services/authService";
 import { CreateUserRequest, LoginRequest, AuthResponse } from "../types";
-import { AppError, ApiResponse } from "../types";
+import { ApiResponse } from "../types";
+import { HTTP_STATUS } from "../utils/constants";
+import { AppError } from "@/types/common.types";
 
 class AuthController {
   /**
@@ -21,7 +23,7 @@ class AuthController {
         const error: AppError = new Error(
           "Email, username, and password are required"
         ) as AppError;
-        error.statusCode = 400;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
         error.isOperational = true;
         throw error;
       }
@@ -30,7 +32,7 @@ class AuthController {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(userData.email)) {
         const error: AppError = new Error("Invalid email format") as AppError;
-        error.statusCode = 400;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
         error.isOperational = true;
         throw error;
       }
@@ -40,7 +42,7 @@ class AuthController {
         const error: AppError = new Error(
           "Password must be at least 6 characters long"
         ) as AppError;
-        error.statusCode = 400;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
         error.isOperational = true;
         throw error;
       }
@@ -50,7 +52,7 @@ class AuthController {
         const error: AppError = new Error(
           "Username must be at least 3 characters long"
         ) as AppError;
-        error.statusCode = 400;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
         error.isOperational = true;
         throw error;
       }
@@ -64,7 +66,7 @@ class AuthController {
         data: result,
       };
 
-      res.status(201).json(response);
+      res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
       next(error);
     }
@@ -87,7 +89,7 @@ class AuthController {
         const error: AppError = new Error(
           "Email and password are required"
         ) as AppError;
-        error.statusCode = 400;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
         error.isOperational = true;
         throw error;
       }
@@ -96,7 +98,7 @@ class AuthController {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(loginData.email)) {
         const error: AppError = new Error("Invalid email format") as AppError;
-        error.statusCode = 400;
+        error.statusCode = HTTP_STATUS.BAD_REQUEST;
         error.isOperational = true;
         throw error;
       }
@@ -110,7 +112,7 @@ class AuthController {
         data: result,
       };
 
-      res.status(200).json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
       next(error);
     }
@@ -130,7 +132,7 @@ class AuthController {
 
       if (!userId) {
         const error: AppError = new Error("User not authenticated") as AppError;
-        error.statusCode = 401;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
         error.isOperational = true;
         throw error;
       }
@@ -139,7 +141,7 @@ class AuthController {
 
       if (!user) {
         const error: AppError = new Error("User not found") as AppError;
-        error.statusCode = 404;
+        error.statusCode = HTTP_STATUS.NOT_FOUND;
         error.isOperational = true;
         throw error;
       }
@@ -150,7 +152,7 @@ class AuthController {
         data: user,
       };
 
-      res.status(200).json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
       next(error);
     }
@@ -175,7 +177,7 @@ class AuthController {
         data: null,
       };
 
-      res.status(200).json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
       next(error);
     }
@@ -195,7 +197,7 @@ class AuthController {
 
       if (!userId) {
         const error: AppError = new Error("Invalid token") as AppError;
-        error.statusCode = 401;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
         error.isOperational = true;
         throw error;
       }
@@ -204,7 +206,7 @@ class AuthController {
 
       if (!user) {
         const error: AppError = new Error("User not found") as AppError;
-        error.statusCode = 404;
+        error.statusCode = HTTP_STATUS.NOT_FOUND;
         error.isOperational = true;
         throw error;
       }
@@ -215,7 +217,7 @@ class AuthController {
         data: user,
       };
 
-      res.status(200).json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
       next(error);
     }

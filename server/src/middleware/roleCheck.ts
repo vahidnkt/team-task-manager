@@ -23,10 +23,8 @@ export const requireOwnershipOrAdmin = (userIdParam: string = "id") => {
         throw error;
       }
 
-      const resourceUserId = parseInt(resourceUserIdParam);
-
       // Allow access if user is admin or owns the resource
-      if (req.user.role === "admin" || req.user.userId === resourceUserId) {
+      if (req.user.role === "admin" || req.user.userId === resourceUserIdParam) {
         next();
         return;
       }

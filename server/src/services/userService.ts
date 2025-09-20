@@ -12,7 +12,7 @@ export class UserService {
   }
 
   // Get user by ID
-  async getUserById(id: number): Promise<User | null> {
+  async getUserById(id: string): Promise<User | null> {
     return await User.findByPk(id);
   }
 
@@ -60,7 +60,7 @@ export class UserService {
 
   // Update user
   async updateUser(
-    id: number,
+    id: string,
     updateData: UpdateUserRequest
   ): Promise<User | null> {
     const existingUser = await this.getUserById(id);
@@ -105,7 +105,7 @@ export class UserService {
   }
 
   // Delete user (soft delete)
-  async deleteUser(id: number): Promise<boolean> {
+  async deleteUser(id: string): Promise<boolean> {
     const user = await this.getUserById(id);
     if (!user) {
       throw new Error("User not found");
@@ -134,7 +134,7 @@ export class UserService {
 
   // Change user password
   async changePassword(
-    userId: number,
+    userId: string,
     currentPassword: string,
     newPassword: string
   ): Promise<boolean> {
@@ -165,7 +165,7 @@ export class UserService {
   }
 
   // Get user statistics
-  async getUserStats(userId: number): Promise<any> {
+  async getUserStats(userId: string): Promise<any> {
     const user = await this.getUserById(userId);
     if (!user) {
       throw new Error("User not found");
@@ -208,7 +208,7 @@ export class UserService {
 
   // Activate/deactivate user (admin only)
   async toggleUserStatus(
-    userId: number,
+    userId: string,
     isActive: boolean
   ): Promise<User | null> {
     const user = await this.getUserById(userId);
@@ -232,7 +232,7 @@ export class UserService {
   // Validate user permissions
   validateUserPermissions(
     currentUser: User,
-    targetUserId: number,
+    targetUserId: string,
     requiredRole?: "admin"
   ): boolean {
     // Admin can access all users
@@ -250,13 +250,13 @@ export class UserService {
   }
 
   // Check if user exists
-  async userExists(userId: number): Promise<boolean> {
+  async userExists(userId: string): Promise<boolean> {
     const user = await this.getUserById(userId);
     return !!user;
   }
 
   // Get user's assigned tasks count
-  async getUserTaskCount(userId: number): Promise<number> {
+  async getUserTaskCount(userId: string): Promise<number> {
     return await User.count({
       include: [
         {
@@ -270,7 +270,7 @@ export class UserService {
   }
 
   // Get user's project count
-  async getUserProjectCount(userId: number): Promise<number> {
+  async getUserProjectCount(userId: string): Promise<number> {
     return await User.count({
       include: [
         {

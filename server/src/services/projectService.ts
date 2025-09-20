@@ -9,7 +9,7 @@ export class ProjectService {
   // Create a new project
   async createProject(
     projectData: CreateProjectRequest,
-    createdBy: number
+    createdBy: string
   ): Promise<Project> {
     const { name, description } = projectData;
 
@@ -35,7 +35,7 @@ export class ProjectService {
   }
 
   // Get project by ID
-  async getProjectById(id: number): Promise<Project | null> {
+  async getProjectById(id: string): Promise<Project | null> {
     return await Project.findByPk(id, {
       include: [
         { model: require("../models/User").User, as: "creator" },
@@ -47,7 +47,7 @@ export class ProjectService {
 
   // Get projects by creator
   async getProjectsByCreator(
-    createdBy: number,
+    createdBy: string,
     page: number = 1,
     limit: number = 10
   ): Promise<Project[]> {
@@ -62,7 +62,7 @@ export class ProjectService {
 
   // Update project
   async updateProject(
-    id: number,
+    id: string,
     updateData: UpdateProjectRequest
   ): Promise<Project | null> {
     const project = await this.getProjectById(id);
@@ -75,7 +75,7 @@ export class ProjectService {
   }
 
   // Delete project (soft delete)
-  async deleteProject(id: number): Promise<boolean> {
+  async deleteProject(id: string): Promise<boolean> {
     const project = await this.getProjectById(id);
     if (!project) {
       throw new Error("Project not found");
@@ -86,7 +86,7 @@ export class ProjectService {
   }
 
   // Get project statistics
-  async getProjectStats(projectId: number): Promise<any> {
+  async getProjectStats(projectId: string): Promise<any> {
     const project = await this.getProjectById(projectId);
     if (!project) {
       throw new Error("Project not found");
@@ -147,7 +147,7 @@ export class ProjectService {
   }
 
   // Check if project exists
-  async projectExists(id: number): Promise<boolean> {
+  async projectExists(id: string): Promise<boolean> {
     const project = await this.getProjectById(id);
     return !!project;
   }

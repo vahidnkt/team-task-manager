@@ -1,8 +1,8 @@
 // Comment Types
 export interface Comment {
-  id: number;
-  task_id: number;
-  commenter_id: number;
+  id: string;
+  task_id: string;
+  commenter_id: string;
   text: string;
   created_at: Date;
   updated_at: Date;
@@ -12,8 +12,8 @@ export interface Comment {
 }
 
 export interface CreateCommentRequest {
-  task_id: number;
-  commenter_id: number;
+  task_id: string;
+  commenter_id: string;
   text: string;
 }
 
@@ -23,12 +23,12 @@ export interface UpdateCommentRequest {
 
 export interface CommentWithDetails extends Comment {
   commenter?: {
-    id: number;
+    id: string;
     username: string;
     email: string;
   };
   task?: {
-    id: number;
+    id: string;
     title: string;
   };
 }
