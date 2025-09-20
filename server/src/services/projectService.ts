@@ -13,6 +13,20 @@ export class ProjectService {
   ): Promise<Project> {
     const { name, description } = projectData;
 
+    // Check if project with same name already exists
+    const existingProject = await Project.findOne({
+      where: { name: name.trim() },
+    });
+
+    if (existingProject) {
+      const error = new Error(
+        `Project with name "${name.trim()}" already exists`
+      ) as any;
+      error.statusCode = 409; // Conflict
+      error.isOperational = true;
+      throw error;
+    }
+
     // Create project using Sequelize
     return await Project.create({
       name: name.trim(),
@@ -21,17 +35,69 @@ export class ProjectService {
     } as any);
   }
 
-  // Get all projects
+  // Get all projects with search and filter
   async getAllProjects(
-    page: number = 1,
-    limit: number = 10
-  ): Promise<Project[]> {
-    const offset = (page - 1) * limit;
-    return await Project.findAll({
-      order: [["createdAt", "DESC"]],
+    options: {
+      search?: string;
+      status?: string;
+      priority?: string;
+      limit?: number;
+      offset?: number;
+      sortBy?: "name" | "status" | "priority" | "created_at" | "updated_at";
+      sortOrder?: "ASC" | "DESC";
+    } = {}
+  ): Promise<{
+    projects: Project[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const {
+      search = "",
+      status,
+      priority,
+      limit = 10,
+      offset = 0,
+      sortBy = "created_at",
+      sortOrder = "DESC",
+    } = options;
+
+    // Build search conditions
+    const searchConditions: any = {};
+
+    if (search) {
+      searchConditions[require("sequelize").Op.or] = [
+        { name: { [require("sequelize").Op.like]: `%${search}%` } },
+        { description: { [require("sequelize").Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (status) {
+      searchConditions.status = status;
+    }
+
+    if (priority) {
+      searchConditions.priority = priority;
+    }
+
+    // Get projects with search and filter
+    const { count, rows: projects } = await Project.findAndCountAll({
+      where: searchConditions,
+      include: [
+        { model: require("../models/User").User, as: "creator" },
+        { model: Task, as: "tasks" },
+      ],
+      limit: Math.min(limit, 100), // Max 100 projects per request
+      offset,
+      order: [[sortBy, sortOrder]],
+    });
+
+    return {
+      projects,
+      total: count,
       limit,
       offset,
-    });
+    };
   }
 
   // Get project by ID
@@ -68,6 +134,22 @@ export class ProjectService {
     const project = await this.getProjectById(id);
     if (!project) {
       throw new Error("Project not found");
+    }
+
+    // Check if name is being updated and if it conflicts with existing project
+    if (updateData.name && updateData.name.trim() !== project.name) {
+      const existingProject = await Project.findOne({
+        where: { name: updateData.name.trim() },
+      });
+
+      if (existingProject && existingProject.id !== id) {
+        const error = new Error(
+          `Project with name "${updateData.name.trim()}" already exists`
+        ) as any;
+        error.statusCode = 409; // Conflict
+        error.isOperational = true;
+        throw error;
+      }
     }
 
     await Project.update(updateData, { where: { id } });
