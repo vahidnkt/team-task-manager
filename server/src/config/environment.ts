@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import path from "path";
 import {
   DatabaseConfig,
   JWTConfig,
@@ -7,9 +8,10 @@ import {
   ServerConfig,
   AppConfig,
   Environment,
-} from "@/types";
+} from "../types";
 
-dotenv.config();
+// Load environment variables from .env file in server root
+dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 interface CORSConfig {
   origin: string;
@@ -44,9 +46,6 @@ const config: Config = {
     password: process.env.DB_PASSWORD || "",
     charset: "utf8mb4",
     timezone: "+00:00",
-    acquireTimeout: 60000,
-    timeout: 60000,
-    reconnect: true,
   },
 
   // JWT Configuration
@@ -56,13 +55,17 @@ const config: Config = {
       "fallback_secret_key_please_change_in_production",
     expiresIn: process.env.JWT_EXPIRES_IN || "24h",
     algorithm: "HS256",
+    refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   },
 
   // Security Configuration
   security: {
-    bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12,
-    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || "12"),
+    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes
+    rateLimitMaxRequests: parseInt(
+      process.env.RATE_LIMIT_MAX_REQUESTS || "100"
+    ),
+    corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
   },
 
   // CORS Configuration
@@ -75,7 +78,8 @@ const config: Config = {
 
   // Logging Configuration
   logging: {
-    level: process.env.LOG_LEVEL || "info",
+    level:
+      (process.env.LOG_LEVEL as "error" | "warn" | "info" | "debug") || "info",
     file: process.env.LOG_FILE || "logs/app.log",
     maxSize: "10m",
     maxFiles: 5,
@@ -92,7 +96,7 @@ const config: Config = {
 };
 
 // Validation function to check required environment variables
-const validateConfig = () => {
+const validateConfig = (): void => {
   const required = ["DB_HOST", "DB_NAME", "DB_USER", "JWT_SECRET"];
 
   const missing = required.filter((key) => !process.env[key]);

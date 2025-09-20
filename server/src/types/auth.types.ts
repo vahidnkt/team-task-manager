@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 // Authentication Types
 export interface JWTPayload {
   userId: number;
@@ -5,6 +7,10 @@ export interface JWTPayload {
   role: "user" | "admin";
   iat?: number;
   exp?: number;
+}
+
+export interface AuthRequest extends Request {
+  user?: JWTPayload;
 }
 
 export interface TokenResponse {
