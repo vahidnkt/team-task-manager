@@ -7,9 +7,6 @@ export interface DatabaseConnection {
   database: string;
   charset?: string;
   timezone?: string;
-  acquireTimeout?: number;
-  timeout?: number;
-  reconnect?: boolean;
 }
 
 export interface QueryOptions {
@@ -29,9 +26,6 @@ export interface DatabaseConfig {
   password: string;
   charset: string;
   timezone: string;
-  acquireTimeout: number;
-  timeout: number;
-  reconnect: boolean;
 }
 
 export interface PaginationOptions {

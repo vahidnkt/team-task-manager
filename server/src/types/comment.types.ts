@@ -6,9 +6,14 @@ export interface Comment {
   text: string;
   created_at: Date;
   updated_at: Date;
+  commenter_username?: string;
+  task_title?: string;
+  project_name?: string;
 }
 
 export interface CreateCommentRequest {
+  task_id: number;
+  commenter_id: number;
   text: string;
 }
 
