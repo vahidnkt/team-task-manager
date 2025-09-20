@@ -6,6 +6,7 @@ import {
   CreateActivityRequest,
   ActivitySummary,
 } from "../types/activity.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class ActivityService {
   // Create a new activity log entry

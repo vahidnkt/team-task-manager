@@ -3,10 +3,11 @@ import { userController } from "../controllers/userController";
 import { authenticateToken, requireAdmin } from "../middleware/auth";
 import { requireOwnershipOrAdmin } from "../middleware/roleCheck";
 import {
-  validateUserUpdate,
-  validateIdParam,
-  handleValidationErrors,
-} from "../middleware/validation";
+  validateDto,
+  validateQueryDto,
+  validateParamDto,
+} from "../middleware/dtoValidation";
+import { UpdateProfileDto, GetAllUsersQueryDto, IdParamDto } from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
 const router = Router();
@@ -23,6 +24,7 @@ router.use(requestLogger);
 router.get(
   "/",
   requireAdmin,
+  validateQueryDto(GetAllUsersQueryDto),
   apiAccessLogger("users-list"),
   userController.getAllUsers.bind(userController)
 );
@@ -45,7 +47,7 @@ router.get(
  */
 router.get(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   requireOwnershipOrAdmin("id"),
   apiAccessLogger("user-details"),
   userController.getUserById.bind(userController)
@@ -58,8 +60,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validateIdParam,
-  validateUserUpdate,
+  validateParamDto(IdParamDto),
+  validateDto(UpdateProfileDto),
   requireOwnershipOrAdmin("id"),
   apiAccessLogger("user-update"),
   userController.updateUser.bind(userController)
@@ -72,7 +74,7 @@ router.put(
  */
 router.delete(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   requireAdmin,
   apiAccessLogger("user-delete"),
   userController.deleteUser.bind(userController)

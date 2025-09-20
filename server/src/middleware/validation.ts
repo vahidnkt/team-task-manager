@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { body, param, query, validationResult } from "express-validator";
 
-// Middleware to handle validation errors
+/**
+ * @deprecated This file is being phased out in favor of DTO-based validation.
+ * Most validation is now handled by DTOs in the /dto folder.
+ * Only keeping essential validation functions that are still used.
+ */
+
+// Middleware to handle validation errors (legacy support)
 export const handleValidationErrors = (
   req: Request,
   res: Response,
@@ -21,239 +27,24 @@ export const handleValidationErrors = (
   next();
 };
 
-// User validation rules
-export const validateUserRegistration = [
-  body("username")
-    .isLength({ min: 3, max: 50 })
-    .withMessage("Username must be between 3 and 50 characters")
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage("Username can only contain letters, numbers, and underscores"),
+// Legacy validation functions - kept for backward compatibility
+// These should be replaced with DTO validation in future updates
 
-  body("email")
-    .isEmail()
-    .withMessage("Please provide a valid email address")
-    .normalizeEmail(),
-
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long")
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage(
-      "Password must contain at least one lowercase letter, one uppercase letter, and one number"
-    ),
-
-  body("role")
-    .optional()
-    .isIn(["user", "admin"])
-    .withMessage('Role must be either "user" or "admin"'),
-
-  handleValidationErrors,
-];
-
-export const validateUserLogin = [
-  body("email")
-    .isEmail()
-    .withMessage("Please provide a valid email address")
-    .normalizeEmail(),
-
-  body("password").notEmpty().withMessage("Password is required"),
-
-  handleValidationErrors,
-];
-
-export const validateUserUpdate = [
-  body("username")
-    .optional()
-    .isLength({ min: 3, max: 50 })
-    .withMessage("Username must be between 3 and 50 characters")
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage("Username can only contain letters, numbers, and underscores"),
-
-  body("email")
-    .optional()
-    .isEmail()
-    .withMessage("Please provide a valid email address")
-    .normalizeEmail(),
-
-  body("password")
-    .optional()
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
-
-  body("role")
-    .optional()
-    .isIn(["user", "admin"])
-    .withMessage('Role must be either "user" or "admin"'),
-
-  handleValidationErrors,
-];
-
-// Project validation rules
-export const validateProjectCreation = [
-  body("name")
-    .isLength({ min: 1, max: 255 })
-    .withMessage(
-      "Project name is required and must be less than 255 characters"
-    )
-    .trim(),
-
-  body("description")
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage("Description must be less than 1000 characters")
-    .trim(),
-
-  handleValidationErrors,
-];
-
-export const validateProjectUpdate = [
-  body("name")
-    .optional()
-    .isLength({ min: 1, max: 255 })
-    .withMessage("Project name must be less than 255 characters")
-    .trim(),
-
-  body("description")
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage("Description must be less than 1000 characters")
-    .trim(),
-
-  handleValidationErrors,
-];
-
-// Task validation rules
-export const validateTaskCreation = [
-  body("title")
-    .isLength({ min: 1, max: 255 })
-    .withMessage("Task title is required and must be less than 255 characters")
-    .trim(),
-
-  body("description")
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage("Description must be less than 1000 characters")
-    .trim(),
-
-  body("assignee_id")
-    .optional()
-    .isUUID()
-    .withMessage("Assignee ID must be a valid UUID"),
-
-  body("status")
-    .optional()
-    .isIn(["todo", "in-progress", "done"])
-    .withMessage('Status must be "todo", "in-progress", or "done"'),
-
-  body("priority")
-    .optional()
-    .isIn(["low", "medium", "high"])
-    .withMessage('Priority must be "low", "medium", or "high"'),
-
-  body("due_date")
-    .optional()
-    .isISO8601()
-    .withMessage("Due date must be a valid date in ISO 8601 format"),
-
-  handleValidationErrors,
-];
-
-export const validateTaskUpdate = [
-  body("title")
-    .optional()
-    .isLength({ min: 1, max: 255 })
-    .withMessage("Task title must be less than 255 characters")
-    .trim(),
-
-  body("description")
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage("Description must be less than 1000 characters")
-    .trim(),
-
-  body("assignee_id")
-    .optional()
-    .isUUID()
-    .withMessage("Assignee ID must be a valid UUID"),
-
-  body("status")
-    .optional()
-    .isIn(["todo", "in-progress", "done"])
-    .withMessage('Status must be "todo", "in-progress", or "done"'),
-
-  body("priority")
-    .optional()
-    .isIn(["low", "medium", "high"])
-    .withMessage('Priority must be "low", "medium", or "high"'),
-
-  body("due_date")
-    .optional()
-    .isISO8601()
-    .withMessage("Due date must be a valid date in ISO 8601 format"),
-
-  handleValidationErrors,
-];
-
-export const validateTaskStatusUpdate = [
-  body("status")
-    .isIn(["todo", "in-progress", "done"])
-    .withMessage('Status must be "todo", "in-progress", or "done"'),
-
-  handleValidationErrors,
-];
-
-export const validateTaskAssignment = [
-  body("assignee_id")
-    .optional({ nullable: true })
-    .isUUID()
-    .withMessage("Assignee ID must be a valid UUID or null"),
-
-  handleValidationErrors,
-];
-
-// Comment validation rules
-export const validateCommentCreation = [
-  body("text")
-    .isLength({ min: 1, max: 1000 })
-    .withMessage(
-      "Comment text is required and must be less than 1000 characters"
-    )
-    .trim(),
-
-  handleValidationErrors,
-];
-
-export const validateCommentUpdate = [
-  body("text")
-    .isLength({ min: 1, max: 1000 })
-    .withMessage(
-      "Comment text is required and must be less than 1000 characters"
-    )
-    .trim(),
-
-  handleValidationErrors,
-];
-
-// Parameter validation rules
 export const validateIdParam = [
   param("id").isUUID().withMessage("ID must be a valid UUID"),
-
   handleValidationErrors,
 ];
 
 export const validateProjectIdParam = [
   param("projectId").isUUID().withMessage("Project ID must be a valid UUID"),
-
   handleValidationErrors,
 ];
 
 export const validateTaskIdParam = [
   param("taskId").isUUID().withMessage("Task ID must be a valid UUID"),
-
   handleValidationErrors,
 ];
 
-// Query validation rules
 export const validatePagination = [
   query("limit")
     .optional()
@@ -267,3 +58,10 @@ export const validatePagination = [
 
   handleValidationErrors,
 ];
+
+// Note: All other validation functions have been moved to DTOs:
+// - User validation → CreateUserDto, LoginDto, UpdateProfileDto
+// - Project validation → CreateProjectDto, UpdateProjectDto
+// - Task validation → CreateTaskDto, UpdateTaskDto, AssignTaskDto
+// - Comment validation → CreateCommentDto, UpdateCommentDto
+// - Query validation → GetAllUsersQueryDto, GetAllTasksQueryDto, etc.

@@ -2,13 +2,17 @@ import { Router } from "express";
 import { commentController } from "../controllers/commentController";
 import { authenticateToken, requireUser } from "../middleware/auth";
 import {
-  validateCommentCreation,
-  validateCommentUpdate,
-  validateIdParam,
-  validateTaskIdParam,
-  validatePagination,
-  handleValidationErrors,
-} from "../middleware/validation";
+  validateDto,
+  validateQueryDto,
+  validateParamDto,
+} from "../middleware/dtoValidation";
+import {
+  CreateCommentDto,
+  UpdateCommentDto,
+  IdParamDto,
+  TaskIdParamDto,
+  PaginationQueryDto,
+} from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
 const router = Router();
@@ -25,7 +29,7 @@ router.use(requireUser); // All comment routes require at least user role
  */
 router.get(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   apiAccessLogger("comment-details"),
   commentController.getCommentById.bind(commentController)
 );
@@ -37,8 +41,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validateIdParam,
-  validateCommentUpdate,
+  validateParamDto(IdParamDto),
+  validateDto(UpdateCommentDto),
   apiAccessLogger("comment-update"),
   commentController.updateComment.bind(commentController)
 );
@@ -50,7 +54,7 @@ router.put(
  */
 router.delete(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   apiAccessLogger("comment-delete"),
   commentController.deleteComment.bind(commentController)
 );
@@ -62,7 +66,7 @@ router.delete(
  */
 router.get(
   "/my",
-  validatePagination,
+  validateQueryDto(PaginationQueryDto),
   apiAccessLogger("user-comments"),
   commentController.getUserComments.bind(commentController)
 );
@@ -75,8 +79,8 @@ router.get(
  */
 router.get(
   "/tasks/:taskId/comments",
-  validateTaskIdParam,
-  validatePagination,
+  validateParamDto(TaskIdParamDto),
+  validateQueryDto(PaginationQueryDto),
   apiAccessLogger("task-comments"),
   commentController.getCommentsByTask.bind(commentController)
 );
@@ -88,8 +92,8 @@ router.get(
  */
 router.post(
   "/tasks/:taskId/comments",
-  validateTaskIdParam,
-  validateCommentCreation,
+  validateParamDto(TaskIdParamDto),
+  validateDto(CreateCommentDto),
   apiAccessLogger("comment-create"),
   commentController.createComment.bind(commentController)
 );

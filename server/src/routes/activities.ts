@@ -7,12 +7,15 @@ import {
 } from "../middleware/auth";
 import { requireOwnershipOrAdmin } from "../middleware/roleCheck";
 import {
-  validateIdParam,
-  validateProjectIdParam,
-  validateTaskIdParam,
-  validatePagination,
-  handleValidationErrors,
-} from "../middleware/validation";
+  validateQueryDto,
+  validateParamDto,
+} from "../middleware/dtoValidation";
+import {
+  IdParamDto,
+  ProjectIdParamDto,
+  TaskIdParamDto,
+  PaginationQueryDto,
+} from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
 const router = Router();
@@ -30,7 +33,7 @@ router.use(requireUser); // All activity routes require at least user role
 router.get(
   "/recent",
   requireAdmin,
-  validatePagination,
+  validateQueryDto(PaginationQueryDto),
   apiAccessLogger("activities-recent"),
   activityController.getRecentActivities.bind(activityController)
 );
@@ -53,8 +56,8 @@ router.get(
  */
 router.get(
   "/users/:userId",
-  validateIdParam,
-  validatePagination,
+  validateParamDto(IdParamDto),
+  validateQueryDto(PaginationQueryDto),
   requireOwnershipOrAdmin("userId"),
   apiAccessLogger("user-activities"),
   activityController.getUserActivities.bind(activityController)
@@ -68,8 +71,8 @@ router.get(
  */
 router.get(
   "/projects/:projectId/activities",
-  validateProjectIdParam,
-  validatePagination,
+  validateParamDto(ProjectIdParamDto),
+  validateQueryDto(PaginationQueryDto),
   apiAccessLogger("project-activities"),
   activityController.getProjectActivities.bind(activityController)
 );
@@ -81,7 +84,7 @@ router.get(
  */
 router.get(
   "/projects/:projectId/activities/stats",
-  validateProjectIdParam,
+  validateParamDto(ProjectIdParamDto),
   apiAccessLogger("project-activity-stats"),
   activityController.getProjectActivityStats.bind(activityController)
 );
@@ -94,8 +97,8 @@ router.get(
  */
 router.get(
   "/tasks/:taskId/activities",
-  validateTaskIdParam,
-  validatePagination,
+  validateParamDto(TaskIdParamDto),
+  validateQueryDto(PaginationQueryDto),
   apiAccessLogger("task-activities"),
   activityController.getTaskActivities.bind(activityController)
 );
