@@ -22,8 +22,8 @@ router.use(requestLogger);
 router.use(requireUser); // All project routes require at least user role
 
 /**
- * @route   GET /api/projects
- * @desc    Get all projects
+ * @route   GET /api/projects?search=web&status=active&priority=high&limit=10&offset=0&sortBy=name&sortOrder=ASC
+ * @desc    Get all projects with search, filter, and pagination
  * @access  Private (User+)
  */
 router.get(
@@ -76,6 +76,7 @@ router.get(
  */
 router.put(
   "/:id",
+  requireAdmin,
   validateIdParam,
   validateProjectUpdate,
   requireProjectAccess,
@@ -90,6 +91,7 @@ router.put(
  */
 router.delete(
   "/:id",
+  requireAdmin,
   validateIdParam,
   requireProjectAccess,
   apiAccessLogger("project-delete"),

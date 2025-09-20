@@ -9,13 +9,104 @@ import {
 import { HTTP_STATUS } from "../utils/constants";
 
 export class ProjectController {
-  // Get all projects
+  // Get all projects with search and filter
   async getAllProjects(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const projects = await projectService.getAllProjects();
+      const {
+        search,
+        status,
+        priority,
+        limit = "10",
+        offset = "0",
+        sortBy = "created_at",
+        sortOrder = "DESC",
+      } = req.query;
+
+      // Validate and parse query parameters
+      const parsedLimit = parseInt(limit as string, 10);
+      const parsedOffset = parseInt(offset as string, 10);
+
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Limit must be a number between 1 and 100",
+        });
+        return;
+      }
+
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Offset must be a non-negative number",
+        });
+        return;
+      }
+
+      if (
+        status &&
+        !["active", "inactive", "completed", "on_hold"].includes(
+          status as string
+        )
+      ) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message:
+            "Status must be one of: active, inactive, completed, on_hold",
+        });
+        return;
+      }
+
+      if (
+        priority &&
+        !["low", "medium", "high", "urgent"].includes(priority as string)
+      ) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Priority must be one of: low, medium, high, urgent",
+        });
+        return;
+      }
+
+      if (
+        sortBy &&
+        !["name", "status", "priority", "created_at", "updated_at"].includes(
+          sortBy as string
+        )
+      ) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message:
+            "sortBy must be one of: name, status, priority, created_at, updated_at",
+        });
+        return;
+      }
+
+      if (sortOrder && !["ASC", "DESC"].includes(sortOrder as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "sortOrder must be either 'ASC' or 'DESC'",
+        });
+        return;
+      }
+
+      const result = await projectService.getAllProjects({
+        search: search as string,
+        status: status as string,
+        priority: priority as string,
+        limit: parsedLimit,
+        offset: parsedOffset,
+        sortBy: sortBy as
+          | "name"
+          | "status"
+          | "priority"
+          | "created_at"
+          | "updated_at",
+        sortOrder: sortOrder as "ASC" | "DESC",
+      });
+
       const response: ApiResponse = {
         success: true,
-        data: projects,
+        data: result,
         message: "Projects retrieved successfully",
       };
       res.status(HTTP_STATUS.OK).json(response);
