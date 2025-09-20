@@ -4,16 +4,16 @@ import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-import config from "@/config/environment";
-import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
+import config from "./config/environment";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 // Import routes
-import authRoutes from "@/routes/auth";
-import userRoutes from "@/routes/users";
-import projectRoutes from "@/routes/projects";
-import taskRoutes from "@/routes/tasks";
-import commentRoutes from "@/routes/comments";
-import activityRoutes from "@/routes/activities";
+import authRoutes from "./routes/auth";
+import userRoutes from "./routes/users";
+import projectRoutes from "./routes/projects";
+import taskRoutes from "./routes/tasks";
+import commentRoutes from "./routes/comments";
+import activityRoutes from "./routes/activities";
 
 class App {
   public app: express.Application;

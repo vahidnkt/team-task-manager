@@ -1,6 +1,6 @@
 import mysql from "mysql2/promise";
-import config from "./environment";
-import { DatabaseConnection } from "../types/database.types";
+import config from "../environment";
+import { DatabaseConnection } from "../../types/database.types";
 
 class Database {
   private static instance: Database;

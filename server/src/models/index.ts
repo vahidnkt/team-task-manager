@@ -1,6 +1,6 @@
 // Export all models
-export { UserModel } from "./User";
-export { ProjectModel } from "./Project";
-export { TaskModel } from "./Task";
-export { CommentModel } from "./Comment";
-export { ActivityModel } from "./Activity";
+export { User } from "./User";
+export { Project } from "./Project";
+export { Task } from "./Task";
+export { Comment } from "./Comment";
+export { Activity } from "./Activity";

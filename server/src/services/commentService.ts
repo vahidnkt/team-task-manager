@@ -1,60 +1,195 @@
-import { CommentModel } from '../models/Comment';
-import { Comment, CreateCommentRequest, UpdateCommentRequest } from '../types/comment.types';
+import { Comment } from "../models/Comment";
+import { Task } from "../models/Task";
+import { User } from "../models/User";
+import {
+  CreateCommentRequest,
+  UpdateCommentRequest,
+} from "../types/comment.types";
 
 export class CommentService {
   // Create a new comment
   async createComment(commentData: CreateCommentRequest): Promise<Comment> {
-    return await CommentModel.create(commentData);
+    const { task_id, commenter_id, text } = commentData;
+
+    // Verify task exists
+    const task = await Task.findByPk(task_id);
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    // Verify user exists
+    const user = await User.findByPk(commenter_id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Create comment using Sequelize
+    return await Comment.create({
+      taskId: task_id,
+      commenterId: commenter_id,
+      text: text.trim(),
+    } as any);
   }
 
   // Get comment by ID
   async getCommentById(id: number): Promise<Comment | null> {
-    return await CommentModel.findById(id);
+    return await Comment.findByPk(id, {
+      include: [
+        { model: User, as: "commenter" },
+        { model: Task, as: "task" },
+      ],
+    });
   }
 
   // Get all comments for a task
   async getCommentsByTask(taskId: number): Promise<Comment[]> {
-    return await CommentModel.findByTaskId(taskId);
+    return await Comment.findAll({
+      where: { taskId },
+      include: [{ model: User, as: "commenter" }],
+      order: [["createdAt", "ASC"]],
+    });
   }
 
   // Get comments by user
-  async getCommentsByUser(userId: number, limit?: number, offset?: number): Promise<Comment[]> {
-    return await CommentModel.findByUserId(userId, limit, offset);
+  async getCommentsByUser(
+    userId: number,
+    limit?: number,
+    offset?: number
+  ): Promise<Comment[]> {
+    const options: any = {
+      where: { commenterId: userId },
+      include: [
+        { model: User, as: "commenter" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+    };
+
+    if (limit !== undefined) {
+      options.limit = limit;
+      if (offset !== undefined) {
+        options.offset = offset;
+      }
+    }
+
+    return await Comment.findAll(options);
   }
 
   // Update comment
-  async updateComment(id: number, updateData: UpdateCommentRequest): Promise<Comment | null> {
-    return await CommentModel.update(id, updateData);
+  async updateComment(
+    id: number,
+    updateData: UpdateCommentRequest
+  ): Promise<Comment | null> {
+    const comment = await this.getCommentById(id);
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+
+    await Comment.update(updateData, { where: { id } });
+    return await this.getCommentById(id);
   }
 
   // Delete comment
   async deleteComment(id: number): Promise<boolean> {
-    return await CommentModel.delete(id);
+    const comment = await this.getCommentById(id);
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+
+    await Comment.destroy({ where: { id } });
+    return true;
   }
 
   // Get recent comments (admin function)
-  async getRecentComments(limit: number = 50, offset: number = 0): Promise<Comment[]> {
-    return await CommentModel.findRecent(limit, offset);
+  async getRecentComments(
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<Comment[]> {
+    return await Comment.findAll({
+      include: [
+        { model: User, as: "commenter" },
+        {
+          model: Task,
+          as: "task",
+          include: [
+            { model: require("../models/Project").Project, as: "project" },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
   }
 
   // Get comment count for a task
   async getTaskCommentCount(taskId: number): Promise<number> {
-    return await CommentModel.getTaskCommentCount(taskId);
+    return await Comment.count({
+      where: { taskId },
+    });
   }
 
   // Get comment count by user
   async getUserCommentCount(userId: number): Promise<number> {
-    return await CommentModel.getUserCommentCount(userId);
+    return await Comment.count({
+      where: { commenterId: userId },
+    });
   }
 
   // Search comments by text
-  async searchCommentsByText(searchTerm: string, limit: number = 50, offset: number = 0): Promise<Comment[]> {
-    return await CommentModel.searchByText(searchTerm, limit, offset);
+  async searchCommentsByText(
+    searchTerm: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<Comment[]> {
+    return await Comment.findAll({
+      where: {
+        text: {
+          [require("sequelize").Op.like]: `%${searchTerm}%`,
+        },
+      },
+      include: [
+        { model: User, as: "commenter" },
+        { model: Task, as: "task" },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
   }
 
   // Check if user can modify comment
-  async canUserModifyComment(commentId: number, userId: number, userRole: string): Promise<boolean> {
-    return await CommentModel.canUserModifyComment(commentId, userId, userRole);
+  async canUserModifyComment(
+    commentId: number,
+    userId: number,
+    userRole: string
+  ): Promise<boolean> {
+    if (userRole === "admin") {
+      return true;
+    }
+
+    const comment = await this.getCommentById(commentId);
+    if (!comment) {
+      return false;
+    }
+
+    return comment.commenterId === userId;
+  }
+
+  // Get comment with full details
+  async getCommentWithDetails(id: number): Promise<any> {
+    return await Comment.findByPk(id, {
+      include: [
+        { model: User, as: "commenter" },
+        {
+          model: Task,
+          as: "task",
+          include: [
+            { model: require("../models/Project").Project, as: "project" },
+          ],
+        },
+      ],
+    });
   }
 }
 

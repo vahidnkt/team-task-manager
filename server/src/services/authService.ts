@@ -1,8 +1,7 @@
 import bcrypt from "bcrypt";
 import jwtService from "../config/jwt";
-import { UserModel } from "../models";
+import { userService } from "./userService";
 import {
-  User,
   CreateUserRequest,
   LoginRequest,
   AuthResponse,
@@ -23,7 +22,7 @@ class AuthService {
   public async register(userData: CreateUserRequest): Promise<AuthResponse> {
     try {
       // Check if user already exists
-      const existingUser = await UserModel.findByEmail(userData.email);
+      const existingUser = await userService.getUserByEmail(userData.email);
       if (existingUser) {
         const error: AppError = new Error(
           "User with this email already exists"
@@ -34,7 +33,7 @@ class AuthService {
       }
 
       // Check if username already exists
-      const existingUsername = await UserModel.findByUsername(
+      const existingUsername = await userService.getUserByUsername(
         userData.username
       );
       if (existingUsername) {
@@ -44,17 +43,8 @@ class AuthService {
         throw error;
       }
 
-      // Hash password
-      const passwordHash = await bcrypt.hash(
-        userData.password,
-        this.saltRounds
-      );
-
-      // Create user using model
-      const newUser = await UserModel.create({
-        ...userData,
-        password_hash: passwordHash,
-      });
+      // Create user using userService
+      const newUser = await userService.createUser(userData);
 
       // Generate token
       const token = jwtService.generateToken({
@@ -69,9 +59,9 @@ class AuthService {
         username: newUser.username,
         email: newUser.email,
         role: newUser.role,
-        created_at: newUser.created_at,
-        updated_at: newUser.updated_at,
-        deleted_at: newUser.deleted_at,
+        created_at: newUser.createdAt,
+        updated_at: newUser.updatedAt,
+        deleted_at: newUser.deletedAt,
       };
 
       return {
@@ -93,7 +83,7 @@ class AuthService {
   public async login(loginData: LoginRequest): Promise<AuthResponse> {
     try {
       // Find user by email
-      const user = await UserModel.findByEmail(loginData.email);
+      const user = await userService.getUserByEmail(loginData.email);
       if (!user) {
         const error: AppError = new Error(
           "Invalid email or password"
@@ -104,7 +94,7 @@ class AuthService {
       }
 
       // Check if user is soft deleted
-      if (user.deleted_at) {
+      if (user.deletedAt) {
         const error: AppError = new Error(
           "Account has been deactivated"
         ) as AppError;
@@ -116,7 +106,7 @@ class AuthService {
       // Verify password
       const isPasswordValid = await bcrypt.compare(
         loginData.password,
-        user.password_hash
+        user.passwordHash
       );
       if (!isPasswordValid) {
         const error: AppError = new Error(
@@ -140,9 +130,9 @@ class AuthService {
         username: user.username,
         email: user.email,
         role: user.role,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        deleted_at: user.deleted_at,
+        created_at: user.createdAt,
+        updated_at: user.updatedAt,
+        deleted_at: user.deletedAt,
       };
 
       return {
@@ -165,7 +155,7 @@ class AuthService {
     userId: number
   ): Promise<UserWithoutPassword | null> {
     try {
-      const user = await UserModel.findById(userId);
+      const user = await userService.getUserById(userId);
       if (!user) {
         return null;
       }
@@ -175,9 +165,9 @@ class AuthService {
         username: user.username,
         email: user.email,
         role: user.role,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        deleted_at: user.deleted_at,
+        created_at: user.createdAt,
+        updated_at: user.updatedAt,
+        deleted_at: user.deletedAt,
       };
     } catch (error) {
       console.error("Get user profile error:", error);

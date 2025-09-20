@@ -3,17 +3,17 @@
  * This provides structured logging with different levels and formats
  */
 
-import fs from 'fs';
-import path from 'path';
-import { environment } from '../config/environment';
-import { LOG_LEVELS } from './constants';
+import fs from "fs";
+import path from "path";
+import environment from "../config/environment";
+import { LOG_LEVELS } from "./constants";
 
 // Log level enum
 export enum LogLevel {
   ERROR = 0,
   WARN = 1,
   INFO = 2,
-  DEBUG = 3
+  DEBUG = 3,
 }
 
 // Log entry interface
@@ -45,12 +45,12 @@ export class Logger {
   constructor(config?: Partial<LoggerConfig>) {
     this.config = {
       level: this.getLogLevelFromEnv(),
-      enableConsole: environment.nodeEnv !== 'production',
+      enableConsole: environment.server.env !== "production",
       enableFile: true,
-      logDir: path.join(process.cwd(), 'logs'),
+      logDir: path.join(process.cwd(), "logs"),
       maxFileSize: 10 * 1024 * 1024, // 10MB
       maxFiles: 5,
-      ...config
+      ...config,
     };
 
     this.logDir = this.config.logDir;
@@ -59,13 +59,18 @@ export class Logger {
 
   // Get log level from environment
   private getLogLevelFromEnv(): LogLevel {
-    const envLevel = environment.logLevel?.toLowerCase() || 'info';
+    const envLevel = environment.logging.level?.toLowerCase() || "info";
     switch (envLevel) {
-      case 'error': return LogLevel.ERROR;
-      case 'warn': return LogLevel.WARN;
-      case 'info': return LogLevel.INFO;
-      case 'debug': return LogLevel.DEBUG;
-      default: return LogLevel.INFO;
+      case "error":
+        return LogLevel.ERROR;
+      case "warn":
+        return LogLevel.WARN;
+      case "info":
+        return LogLevel.INFO;
+      case "debug":
+        return LogLevel.DEBUG;
+      default:
+        return LogLevel.INFO;
     }
   }
 
@@ -77,7 +82,12 @@ export class Logger {
   }
 
   // Create log entry
-  private createLogEntry(level: string, message: string, metadata?: any, error?: Error): LogEntry {
+  private createLogEntry(
+    level: string,
+    message: string,
+    metadata?: any,
+    error?: Error
+  ): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level: level.toUpperCase(),
@@ -86,7 +96,7 @@ export class Logger {
       stack: error?.stack,
       requestId: this.getRequestId(),
       userId: this.getCurrentUserId(),
-      ip: this.getCurrentIP()
+      ip: this.getCurrentIP(),
     };
   }
 
@@ -119,15 +129,15 @@ export class Logger {
   // Format log entry for console
   private formatForConsole(entry: LogEntry): string {
     const colors = {
-      ERROR: '\x1b[31m', // Red
-      WARN: '\x1b[33m',  // Yellow
-      INFO: '\x1b[36m',  // Cyan
-      DEBUG: '\x1b[37m', // White
-      RESET: '\x1b[0m'
+      ERROR: "\x1b[31m", // Red
+      WARN: "\x1b[33m", // Yellow
+      INFO: "\x1b[36m", // Cyan
+      DEBUG: "\x1b[37m", // White
+      RESET: "\x1b[0m",
     };
 
     const color = colors[entry.level as keyof typeof colors] || colors.INFO;
-    const timestamp = entry.timestamp.replace('T', ' ').replace('Z', '');
+    const timestamp = entry.timestamp.replace("T", " ").replace("Z", "");
 
     let output = `${color}[${timestamp}] ${entry.level}${colors.RESET}: ${entry.message}`;
 
@@ -156,7 +166,7 @@ export class Logger {
 
   // Format log entry for file
   private formatForFile(entry: LogEntry): string {
-    return JSON.stringify(entry) + '\n';
+    return JSON.stringify(entry) + "\n";
   }
 
   // Write to console
@@ -165,9 +175,9 @@ export class Logger {
 
     const formatted = this.formatForConsole(entry);
 
-    if (entry.level === 'ERROR') {
+    if (entry.level === "ERROR") {
       console.error(formatted);
-    } else if (entry.level === 'WARN') {
+    } else if (entry.level === "WARN") {
       console.warn(formatted);
     } else {
       console.log(formatted);
@@ -186,15 +196,15 @@ export class Logger {
       // Check file size and rotate if necessary
       this.rotateLogIfNeeded(filepath);
 
-      fs.appendFileSync(filepath, formatted, 'utf8');
+      fs.appendFileSync(filepath, formatted, "utf8");
     } catch (error) {
-      console.error('Failed to write to log file:', error);
+      console.error("Failed to write to log file:", error);
     }
   }
 
   // Get log filename (e.g., app-2023-10-01.log)
   private getLogFilename(): string {
-    const date = new Date().toISOString().split('T')[0];
+    const date = new Date().toISOString().split("T")[0];
     return `app-${date}.log`;
   }
 
@@ -207,43 +217,50 @@ export class Logger {
       if (stats.size < this.config.maxFileSize) return;
 
       // Rotate current file
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const rotatedPath = filepath.replace('.log', `-${timestamp}.log`);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const rotatedPath = filepath.replace(".log", `-${timestamp}.log`);
       fs.renameSync(filepath, rotatedPath);
 
       // Clean up old files
       this.cleanupOldLogFiles();
     } catch (error) {
-      console.error('Failed to rotate log file:', error);
+      console.error("Failed to rotate log file:", error);
     }
   }
 
   // Clean up old log files
   private cleanupOldLogFiles(): void {
     try {
-      const files = fs.readdirSync(this.logDir)
-        .filter(file => file.endsWith('.log'))
-        .map(file => ({
+      const files = fs
+        .readdirSync(this.logDir)
+        .filter((file) => file.endsWith(".log"))
+        .map((file) => ({
           name: file,
           path: path.join(this.logDir, file),
-          mtime: fs.statSync(path.join(this.logDir, file)).mtime
+          mtime: fs.statSync(path.join(this.logDir, file)).mtime,
         }))
         .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
 
       // Keep only the most recent files
       if (files.length > this.config.maxFiles) {
         const filesToDelete = files.slice(this.config.maxFiles);
-        filesToDelete.forEach(file => {
+        filesToDelete.forEach((file) => {
           fs.unlinkSync(file.path);
         });
       }
     } catch (error) {
-      console.error('Failed to cleanup old log files:', error);
+      console.error("Failed to cleanup old log files:", error);
     }
   }
 
   // Core logging method
-  private log(level: LogLevel, levelName: string, message: string, metadata?: any, error?: Error): void {
+  private log(
+    level: LogLevel,
+    levelName: string,
+    message: string,
+    metadata?: any,
+    error?: Error
+  ): void {
     if (!this.shouldLog(level)) return;
 
     const entry = this.createLogEntry(levelName, message, metadata, error);
@@ -254,30 +271,38 @@ export class Logger {
 
   // Public logging methods
   error(message: string, error?: Error, metadata?: any): void {
-    this.log(LogLevel.ERROR, 'error', message, metadata, error);
+    this.log(LogLevel.ERROR, "error", message, metadata, error);
   }
 
   warn(message: string, metadata?: any): void {
-    this.log(LogLevel.WARN, 'warn', message, metadata);
+    this.log(LogLevel.WARN, "warn", message, metadata);
   }
 
   info(message: string, metadata?: any): void {
-    this.log(LogLevel.INFO, 'info', message, metadata);
+    this.log(LogLevel.INFO, "info", message, metadata);
   }
 
   debug(message: string, metadata?: any): void {
-    this.log(LogLevel.DEBUG, 'debug', message, metadata);
+    this.log(LogLevel.DEBUG, "debug", message, metadata);
   }
 
   // HTTP request logging
-  http(method: string, url: string, statusCode: number, responseTime: number, metadata?: any): void {
+  http(
+    method: string,
+    url: string,
+    statusCode: number,
+    responseTime: number,
+    metadata?: any
+  ): void {
     const message = `${method} ${url} ${statusCode} ${responseTime}ms`;
     this.info(message, metadata);
   }
 
   // Database query logging
   query(sql: string, duration: number, metadata?: any): void {
-    const message = `DB Query: ${sql.substring(0, 100)}${sql.length > 100 ? '...' : ''} (${duration}ms)`;
+    const message = `DB Query: ${sql.substring(0, 100)}${
+      sql.length > 100 ? "..." : ""
+    } (${duration}ms)`;
     this.debug(message, metadata);
   }
 
@@ -289,10 +314,10 @@ export class Logger {
 
   // Performance logging
   performance(operation: string, duration: number, metadata?: any): void {
-    const level = duration > 1000 ? 'warn' : 'info';
+    const level = duration > 1000 ? "warn" : "info";
     const message = `PERFORMANCE: ${operation} took ${duration}ms`;
 
-    if (level === 'warn') {
+    if (level === "warn") {
       this.warn(message, metadata);
     } else {
       this.info(message, metadata);
@@ -305,7 +330,12 @@ export class Logger {
 
     // Override the createLogEntry method to include context
     const originalCreateLogEntry = childLogger.createLogEntry.bind(childLogger);
-    childLogger.createLogEntry = (level: string, message: string, metadata?: any, error?: Error) => {
+    childLogger.createLogEntry = (
+      level: string,
+      message: string,
+      metadata?: any,
+      error?: Error
+    ) => {
       const entry = originalCreateLogEntry(level, message, metadata, error);
       entry.metadata = { ...context, ...entry.metadata };
       return entry;
@@ -322,20 +352,20 @@ export class Logger {
 
       if (!fs.existsSync(filepath)) return [];
 
-      const content = fs.readFileSync(filepath, 'utf8');
-      const lines = content.trim().split('\n').slice(-count);
+      const content = fs.readFileSync(filepath, "utf8");
+      const lines = content.trim().split("\n").slice(-count);
 
       return lines
-        .map(line => {
+        .map((line) => {
           try {
             return JSON.parse(line) as LogEntry;
           } catch {
             return null;
           }
         })
-        .filter(entry => entry !== null) as LogEntry[];
+        .filter((entry) => entry !== null) as LogEntry[];
     } catch (error) {
-      console.error('Failed to read log file:', error);
+      console.error("Failed to read log file:", error);
       return [];
     }
   }
@@ -345,15 +375,19 @@ export class Logger {
     try {
       const logs = this.getRecentLogs(1000);
 
-      return logs.filter(entry => {
-        const matchesQuery = entry.message.toLowerCase().includes(query.toLowerCase()) ||
-                           JSON.stringify(entry.metadata || {}).toLowerCase().includes(query.toLowerCase());
-        const matchesLevel = !level || entry.level.toLowerCase() === level.toLowerCase();
+      return logs.filter((entry) => {
+        const matchesQuery =
+          entry.message.toLowerCase().includes(query.toLowerCase()) ||
+          JSON.stringify(entry.metadata || {})
+            .toLowerCase()
+            .includes(query.toLowerCase());
+        const matchesLevel =
+          !level || entry.level.toLowerCase() === level.toLowerCase();
 
         return matchesQuery && matchesLevel;
       });
     } catch (error) {
-      console.error('Failed to search logs:', error);
+      console.error("Failed to search logs:", error);
       return [];
     }
   }
@@ -363,6 +397,7 @@ export class Logger {
 export const logger = new Logger();
 
 // Export helper functions
-export const createLogger = (config?: Partial<LoggerConfig>) => new Logger(config);
+export const createLogger = (config?: Partial<LoggerConfig>) =>
+  new Logger(config);
 
 export default logger;
