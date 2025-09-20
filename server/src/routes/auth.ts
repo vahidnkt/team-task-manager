@@ -1,6 +1,18 @@
 import { Router } from "express";
 import authController from "../controllers/authController";
 import { authenticateToken, optionalAuth } from "../middleware/auth";
+import {
+  validateDto,
+  validateQueryDto,
+  validateParamDto,
+} from "../middleware/dtoValidation";
+import {
+  CreateUserDto,
+  LoginDto,
+  UpdateProfileDto,
+  GetAllUsersQueryDto,
+  IdParamDto,
+} from "../dto";
 
 const router = Router();
 
@@ -9,14 +21,22 @@ const router = Router();
  * @desc    Register a new user
  * @access  Public
  */
-router.post("/register", authController.register.bind(authController));
+router.post(
+  "/register",
+  validateDto(CreateUserDto),
+  authController.register.bind(authController)
+);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Login user
  * @access  Public
  */
-router.post("/login", authController.login.bind(authController));
+router.post(
+  "/login",
+  validateDto(LoginDto),
+  authController.login.bind(authController)
+);
 
 /**
  * @route   POST /api/auth/logout
@@ -59,6 +79,7 @@ router.get(
 router.put(
   "/profile",
   authenticateToken,
+  validateDto(UpdateProfileDto),
   authController.updateProfile.bind(authController)
 );
 
@@ -81,6 +102,7 @@ router.delete(
 router.get(
   "/users",
   authenticateToken,
+  validateQueryDto(GetAllUsersQueryDto),
   authController.getAllUsers.bind(authController)
 );
 
@@ -92,6 +114,7 @@ router.get(
 router.get(
   "/users/:id",
   authenticateToken,
+  validateParamDto(IdParamDto),
   authController.getUserById.bind(authController)
 );
 

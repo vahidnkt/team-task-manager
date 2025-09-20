@@ -5,6 +5,7 @@ import {
   CreateCommentRequest,
   UpdateCommentRequest,
 } from "../types/comment.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class CommentService {
   // Create a new comment

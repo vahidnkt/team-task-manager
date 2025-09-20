@@ -1,6 +1,8 @@
 import { Task } from "../models/Task";
 import { Project } from "../models/Project";
+import { User } from "../models/User";
 import { CreateTaskRequest, UpdateTaskRequest } from "../types/task.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class TaskService {
   // Create a new task
@@ -16,6 +18,23 @@ export class TaskService {
       throw new Error("Project not found");
     }
 
+    // Check if task with same title already exists in this project
+    const existingTask = await Task.findOne({
+      where: {
+        projectId: projectId,
+        title: title.trim(),
+      },
+    });
+
+    if (existingTask) {
+      const error = new Error(
+        `Task with title "${title.trim()}" already exists in this project`
+      ) as any;
+      error.statusCode = HTTP_STATUS.CONFLICT;
+      error.isrequire("sequelize").Operational = true;
+      throw error;
+    }
+
     // Create task using Sequelize
     return await Task.create({
       projectId,
@@ -25,6 +44,89 @@ export class TaskService {
       priority: priority || "medium",
       dueDate: due_date || undefined,
     } as any);
+  }
+
+  // Get all tasks with search and filter
+  async getAllTasks(
+    options: {
+      search?: string;
+      status?: string;
+      priority?: string;
+      assignee_id?: string;
+      project_id?: string;
+      limit?: number;
+      offset?: number;
+      sortBy?:
+        | "title"
+        | "status"
+        | "priority"
+        | "created_at"
+        | "updated_at"
+        | "due_date";
+      sortOrder?: "ASC" | "DESC";
+    } = {}
+  ): Promise<{
+    tasks: Task[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const {
+      search = "",
+      status,
+      priority,
+      assignee_id,
+      project_id,
+      limit = 10,
+      offset = 0,
+      sortBy = "created_at",
+      sortOrder = "DESC",
+    } = options;
+
+    // Build search conditions
+    const searchConditions: any = {};
+
+    if (search) {
+      searchConditions[require("sequelize").Op.or] = [
+        { title: { [require("sequelize").Op.like]: `%${search}%` } },
+        { description: { [require("sequelize").Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (status) {
+      searchConditions.status = status;
+    }
+
+    if (priority) {
+      searchConditions.priority = priority;
+    }
+
+    if (assignee_id) {
+      searchConditions.assigneeId = assignee_id;
+    }
+
+    if (project_id) {
+      searchConditions.projectId = project_id;
+    }
+
+    // Get tasks with search and filter
+    const { count, rows: tasks } = await Task.findAndCountAll({
+      where: searchConditions,
+      include: [
+        { model: User, as: "assignee" },
+        { model: Project, as: "project" },
+      ],
+      limit: Math.min(limit, 100), // Max 100 tasks per request
+      offset,
+      order: [[sortBy, sortOrder]],
+    });
+
+    return {
+      tasks,
+      total: count,
+      limit,
+      offset,
+    };
   }
 
   // Get all tasks in a project
@@ -37,7 +139,7 @@ export class TaskService {
     return await Task.findAll({
       where: { projectId },
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
       ],
       order: [["createdAt", "DESC"]],
@@ -50,27 +152,91 @@ export class TaskService {
   async getTaskById(id: string): Promise<Task | null> {
     return await Task.findByPk(id, {
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
         { model: require("../models/Comment").Comment, as: "comments" },
       ],
     });
   }
 
-  // Get tasks assigned to a user
+  // Get tasks assigned to a user with search and filter
   async getTasksByAssignee(
     assigneeId: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<Task[]> {
-    const offset = (page - 1) * limit;
-    return await Task.findAll({
-      where: { assigneeId },
-      include: [{ model: Project, as: "project" }],
-      order: [["createdAt", "DESC"]],
+    options: {
+      search?: string;
+      status?: string;
+      priority?: string;
+      project_id?: string;
+      limit?: number;
+      offset?: number;
+      sortBy?:
+        | "title"
+        | "status"
+        | "priority"
+        | "created_at"
+        | "updated_at"
+        | "due_date";
+      sortOrder?: "ASC" | "DESC";
+    } = {}
+  ): Promise<{
+    tasks: Task[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const {
+      search = "",
+      status,
+      priority,
+      project_id,
+      limit = 10,
+      offset = 0,
+      sortBy = "created_at",
+      sortOrder = "DESC",
+    } = options;
+
+    // Build search conditions
+    const searchConditions: any = {
+      assigneeId: assigneeId,
+    };
+
+    if (search) {
+      searchConditions[require("sequelize").Op.or] = [
+        { title: { [require("sequelize").Op.like]: `%${search}%` } },
+        { description: { [require("sequelize").Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (status) {
+      searchConditions.status = status;
+    }
+
+    if (priority) {
+      searchConditions.priority = priority;
+    }
+
+    if (project_id) {
+      searchConditions.projectId = project_id;
+    }
+
+    // Get tasks with search and filter
+    const { count, rows: tasks } = await Task.findAndCountAll({
+      where: searchConditions,
+      include: [
+        { model: User, as: "assignee" },
+        { model: Project, as: "project" },
+      ],
+      limit: Math.min(limit, 100), // Max 100 tasks per request
+      offset,
+      order: [[sortBy, sortOrder]],
+    });
+
+    return {
+      tasks,
+      total: count,
       limit,
       offset,
-    });
+    };
   }
 
   // Get tasks by status
@@ -83,7 +249,7 @@ export class TaskService {
     return await Task.findAll({
       where: whereCondition,
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
       ],
       order: [["createdAt", "DESC"]],
@@ -98,6 +264,25 @@ export class TaskService {
     const task = await this.getTaskById(id);
     if (!task) {
       throw new Error("Task not found");
+    }
+
+    // Check if title is being updated and if it conflicts with existing task in the same project
+    if (updateData.title && updateData.title.trim() !== task.title) {
+      const existingTask = await Task.findOne({
+        where: {
+          projectId: task.projectId,
+          title: updateData.title.trim(),
+        },
+      });
+
+      if (existingTask && existingTask.id !== id) {
+        const error = new Error(
+          `Task with title "${updateData.title.trim()}" already exists in this project`
+        ) as any;
+        error.statusCode = HTTP_STATUS.CONFLICT;
+        error.isrequire("sequelize").Operational = true;
+        throw error;
+      }
     }
 
     await Task.update(updateData, { where: { id } });
@@ -218,7 +403,7 @@ export class TaskService {
     return await Task.findAll({
       where: whereCondition,
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
       ],
       order: [["createdAt", "DESC"]],
@@ -239,7 +424,7 @@ export class TaskService {
     return await Task.findAll({
       where: whereCondition,
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
       ],
       order: [["createdAt", "DESC"]],
@@ -264,7 +449,7 @@ export class TaskService {
     return await Task.findAll({
       where: whereCondition,
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
       ],
       order: [["dueDate", "ASC"]],
@@ -292,7 +477,7 @@ export class TaskService {
     return await Task.findAll({
       where: whereCondition,
       include: [
-        { model: require("../models/User").User, as: "assignee" },
+        { model: User, as: "assignee" },
         { model: Project, as: "project" },
       ],
       order: [["dueDate", "ASC"]],

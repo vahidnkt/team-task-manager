@@ -7,11 +7,16 @@ import {
 } from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/roleCheck";
 import {
-  validateProjectCreation,
-  validateProjectUpdate,
-  validateIdParam,
-  handleValidationErrors,
-} from "../middleware/validation";
+  validateDto,
+  validateQueryDto,
+  validateParamDto,
+} from "../middleware/dtoValidation";
+import {
+  CreateProjectDto,
+  UpdateProjectDto,
+  GetAllProjectsQueryDto,
+  IdParamDto,
+} from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
 const router = Router();
@@ -28,6 +33,7 @@ router.use(requireUser); // All project routes require at least user role
  */
 router.get(
   "/",
+  validateQueryDto(GetAllProjectsQueryDto),
   apiAccessLogger("projects-list"),
   projectController.getAllProjects.bind(projectController)
 );
@@ -40,7 +46,7 @@ router.get(
 router.post(
   "/",
   requireAdmin,
-  validateProjectCreation,
+  validateDto(CreateProjectDto),
   apiAccessLogger("project-create"),
   projectController.createProject.bind(projectController)
 );
@@ -63,7 +69,7 @@ router.get(
  */
 router.get(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   requireProjectAccess,
   apiAccessLogger("project-details"),
   projectController.getProjectById.bind(projectController)
@@ -77,8 +83,8 @@ router.get(
 router.put(
   "/:id",
   requireAdmin,
-  validateIdParam,
-  validateProjectUpdate,
+  validateParamDto(IdParamDto),
+  validateDto(UpdateProjectDto),
   requireProjectAccess,
   apiAccessLogger("project-update"),
   projectController.updateProject.bind(projectController)
@@ -92,7 +98,7 @@ router.put(
 router.delete(
   "/:id",
   requireAdmin,
-  validateIdParam,
+  validateParamDto(IdParamDto),
   requireProjectAccess,
   apiAccessLogger("project-delete"),
   projectController.deleteProject.bind(projectController)

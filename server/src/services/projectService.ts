@@ -4,6 +4,7 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
 } from "../types/project.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class ProjectService {
   // Create a new project
@@ -22,7 +23,7 @@ export class ProjectService {
       const error = new Error(
         `Project with name "${name.trim()}" already exists`
       ) as any;
-      error.statusCode = 409; // Conflict
+      error.statusCode = HTTP_STATUS.CONFLICT;
       error.isOperational = true;
       throw error;
     }
@@ -146,7 +147,7 @@ export class ProjectService {
         const error = new Error(
           `Project with name "${updateData.name.trim()}" already exists`
         ) as any;
-        error.statusCode = 409; // Conflict
+        error.statusCode = HTTP_STATUS.CONFLICT;
         error.isOperational = true;
         throw error;
       }

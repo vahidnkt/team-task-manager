@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { User } from "../models/User";
 import { CreateUserRequest, UpdateUserRequest } from "../types/user.types";
 import environment from "../config/environment";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class UserService {
   // Get all users (admin only)

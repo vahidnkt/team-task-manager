@@ -3,15 +3,20 @@ import { taskController } from "../controllers/taskController";
 import { authenticateToken, requireUser } from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/roleCheck";
 import {
-  validateTaskCreation,
-  validateTaskUpdate,
-  validateTaskStatusUpdate,
-  validateTaskAssignment,
-  validateIdParam,
-  validateProjectIdParam,
-  validatePagination,
-  handleValidationErrors,
-} from "../middleware/validation";
+  validateDto,
+  validateQueryDto,
+  validateParamDto,
+} from "../middleware/dtoValidation";
+import {
+  CreateTaskDto,
+  UpdateTaskDto,
+  UpdateTaskStatusDto,
+  AssignTaskDto,
+  GetAllTasksQueryDto,
+  GetMyTasksQueryDto,
+  IdParamDto,
+  ProjectIdParamDto,
+} from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
 const router = Router();
@@ -22,12 +27,25 @@ router.use(requestLogger);
 router.use(requireUser); // All task routes require at least user role
 
 /**
- * @route   GET /api/tasks/my
- * @desc    Get tasks assigned to current user
+ * @route   GET /api/tasks?search=authentication&status=in-progress&priority=high&assignee_id=user-uuid&project_id=project-uuid&limit=10&offset=0&sortBy=title&sortOrder=ASC
+ * @desc    Get all tasks with search, filter, and pagination
+ * @access  Private (User+)
+ */
+router.get(
+  "/",
+  validateQueryDto(GetAllTasksQueryDto),
+  apiAccessLogger("all-tasks"),
+  taskController.getAllTasks.bind(taskController)
+);
+
+/**
+ * @route   GET /api/tasks/my?search=authentication&status=in-progress&priority=high&project_id=project-uuid&limit=10&offset=0&sortBy=title&sortOrder=ASC
+ * @desc    Get tasks assigned to current user with search, filter, and pagination
  * @access  Private (User+)
  */
 router.get(
   "/my",
+  validateQueryDto(GetMyTasksQueryDto),
   apiAccessLogger("user-tasks"),
   taskController.getMyTasks.bind(taskController)
 );
@@ -39,7 +57,7 @@ router.get(
  */
 router.get(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   apiAccessLogger("task-details"),
   taskController.getTaskById.bind(taskController)
 );
@@ -51,8 +69,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validateIdParam,
-  validateTaskUpdate,
+  validateParamDto(IdParamDto),
+  validateDto(UpdateTaskDto),
   apiAccessLogger("task-update"),
   taskController.updateTask.bind(taskController)
 );
@@ -64,7 +82,7 @@ router.put(
  */
 router.delete(
   "/:id",
-  validateIdParam,
+  validateParamDto(IdParamDto),
   apiAccessLogger("task-delete"),
   taskController.deleteTask.bind(taskController)
 );
@@ -76,8 +94,8 @@ router.delete(
  */
 router.patch(
   "/:id/status",
-  validateIdParam,
-  validateTaskStatusUpdate,
+  validateParamDto(IdParamDto),
+  validateDto(UpdateTaskStatusDto),
   apiAccessLogger("task-status-update"),
   taskController.updateTaskStatus.bind(taskController)
 );
@@ -89,8 +107,8 @@ router.patch(
  */
 router.patch(
   "/:id/assign",
-  validateIdParam,
-  validateTaskAssignment,
+  validateParamDto(IdParamDto),
+  validateDto(AssignTaskDto),
   apiAccessLogger("task-assignment"),
   taskController.assignTask.bind(taskController)
 );
@@ -103,8 +121,7 @@ router.patch(
  */
 router.get(
   "/projects/:projectId/tasks",
-  validateProjectIdParam,
-  validatePagination,
+  validateParamDto(ProjectIdParamDto),
   requireProjectAccess,
   apiAccessLogger("project-tasks"),
   taskController.getTasksByProject.bind(taskController)
@@ -117,8 +134,8 @@ router.get(
  */
 router.post(
   "/projects/:projectId/tasks",
-  validateProjectIdParam,
-  validateTaskCreation,
+  validateParamDto(ProjectIdParamDto),
+  validateDto(CreateTaskDto),
   requireProjectAccess,
   apiAccessLogger("task-create"),
   taskController.createTask.bind(taskController)
@@ -131,8 +148,7 @@ router.post(
  */
 router.get(
   "/projects/:projectId/tasks/status",
-  validateProjectIdParam,
-  validatePagination,
+  validateParamDto(ProjectIdParamDto),
   requireProjectAccess,
   apiAccessLogger("project-tasks-by-status"),
   taskController.getTasksByStatus.bind(taskController)
