@@ -14,21 +14,15 @@ class Server {
   public async start(): Promise<void> {
     try {
       // Connect to database
-      console.log("🔌 Connecting to database...");
       await database.connect();
-      console.log("✅ Database connected successfully");
 
       // Connect to Sequelize
-      console.log("🔌 Connecting to Sequelize...");
       await sequelizeDatabase.connect();
-      console.log("✅ Sequelize connected successfully");
 
       // Start server
       const app = this.app.getApp();
       this.server = app.listen(config.server.port, () => {
-        console.log("🚀 Server started successfully");
-        console.log(`📡 Server running on port ${config.server.port}`);
-        console.log(`🌍 Environment: ${config.server.env}`);
+        console.log(`Server running on port ${config.server.port}`);
       });
 
       // Graceful shutdown
@@ -42,7 +36,7 @@ class Server {
   private setupGracefulShutdown(): void {
     // Handle graceful shutdown
     const gracefulShutdown = async (signal: string): Promise<void> => {
-      console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+      console.log(`Received ${signal}. Starting graceful shutdown...`);
 
       try {
         // Close server
