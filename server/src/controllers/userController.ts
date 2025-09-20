@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
-import { userService } from '../services/userService';
-import { AuthRequest } from '../types/auth.types';
-import { ApiResponse } from '../types/api.types';
+import { Request, Response } from "express";
+import { userService } from "../services/userService";
+import { AuthRequest } from "../types/auth.types";
+import { ApiResponse } from "../types/api.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class UserController {
   // Get all users (admin only)
@@ -11,13 +12,14 @@ export class UserController {
       const response: ApiResponse = {
         success: true,
         data: users,
-        message: 'Users retrieved successfully'
+        message: "Users retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to retrieve users'
+        message:
+          error instanceof Error ? error.message : "Failed to retrieve users",
       });
     }
   }
@@ -28,19 +30,19 @@ export class UserController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: 'User ID is required'
+          message: "User ID is required",
         });
         return;
       }
 
-      const user = await userService.getUserById(parseInt(id));
+      const user = await userService.getUserById(id);
 
       if (!user) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
-          message: 'User not found'
+          message: "User not found",
         });
         return;
       }
@@ -48,13 +50,14 @@ export class UserController {
       const response: ApiResponse = {
         success: true,
         data: user,
-        message: 'User retrieved successfully'
+        message: "User retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to retrieve user'
+        message:
+          error instanceof Error ? error.message : "Failed to retrieve user",
       });
     }
   }
@@ -66,34 +69,35 @@ export class UserController {
       const updateData = req.body;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: 'User ID is required'
+          message: "User ID is required",
         });
         return;
       }
 
       // Check if user can update this profile
-      if (req.user?.role !== 'admin' && req.user?.userId !== parseInt(id)) {
-        res.status(403).json({
+      if (req.user?.role !== "admin" && req.user?.userId !== id) {
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
-          message: 'Not authorized to update this user'
+          message: "Not authorized to update this user",
         });
         return;
       }
 
-      const updatedUser = await userService.updateUser(parseInt(id), updateData);
+      const updatedUser = await userService.updateUser(id, updateData);
 
       const response: ApiResponse = {
         success: true,
         data: updatedUser,
-        message: 'User updated successfully'
+        message: "User updated successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to update user'
+        message:
+          error instanceof Error ? error.message : "Failed to update user",
       });
     }
   }
@@ -104,33 +108,34 @@ export class UserController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: 'User ID is required'
+          message: "User ID is required",
         });
         return;
       }
 
       // Prevent admin from deleting themselves
-      if (req.user?.userId === parseInt(id)) {
-        res.status(400).json({
+      if (req.user?.userId === id) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: 'Cannot delete your own account'
+          message: "Cannot delete your own account",
         });
         return;
       }
 
-      await userService.deleteUser(parseInt(id));
+      await userService.deleteUser(id);
 
       const response: ApiResponse = {
         success: true,
-        message: 'User deleted successfully'
+        message: "User deleted successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to delete user'
+        message:
+          error instanceof Error ? error.message : "Failed to delete user",
       });
     }
   }
@@ -139,9 +144,9 @@ export class UserController {
   async getCurrentUser(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
-          message: 'User not authenticated'
+          message: "User not authenticated",
         });
         return;
       }
@@ -151,13 +156,16 @@ export class UserController {
       const response: ApiResponse = {
         success: true,
         data: user,
-        message: 'Current user retrieved successfully'
+        message: "Current user retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to retrieve current user'
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve current user",
       });
     }
   }

@@ -6,6 +6,7 @@ import {
   CreateCommentRequest,
   UpdateCommentRequest,
 } from "../types/comment.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class CommentController {
   // Get all comments for a task
@@ -14,23 +15,23 @@ export class CommentController {
       const { taskId } = req.params;
 
       if (!taskId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
         return;
       }
 
-      const comments = await commentService.getCommentsByTask(parseInt(taskId));
+      const comments = await commentService.getCommentsByTask(taskId);
 
       const response: ApiResponse = {
         success: true,
         data: comments,
         message: "Comments retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -44,7 +45,7 @@ export class CommentController {
   async createComment(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           message: "User not authenticated",
         });
@@ -54,7 +55,7 @@ export class CommentController {
       const { taskId } = req.params;
 
       if (!taskId) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Task ID is required",
         });
@@ -63,7 +64,7 @@ export class CommentController {
 
       const commentData: CreateCommentRequest = {
         ...req.body,
-        task_id: parseInt(taskId),
+        task_id: taskId,
         commenter_id: req.user.userId,
       };
 
@@ -74,9 +75,9 @@ export class CommentController {
         data: newComment,
         message: "Comment created successfully",
       };
-      res.status(201).json(response);
+      res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to create comment",
@@ -91,7 +92,7 @@ export class CommentController {
       const updateData: UpdateCommentRequest = req.body;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Comment ID is required",
         });
@@ -99,9 +100,9 @@ export class CommentController {
       }
 
       // Check if user is the comment author or admin
-      const comment = await commentService.getCommentById(parseInt(id));
+      const comment = await commentService.getCommentById(id);
       if (!comment) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Comment not found",
         });
@@ -110,28 +111,25 @@ export class CommentController {
 
       if (
         req.user?.role !== "admin" &&
-        req.user?.userId !== comment.commenter_id
+        req.user?.userId !== comment.commenterId
       ) {
-        res.status(403).json({
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
           message: "Not authorized to update this comment",
         });
         return;
       }
 
-      const updatedComment = await commentService.updateComment(
-        parseInt(id),
-        updateData
-      );
+      const updatedComment = await commentService.updateComment(id, updateData);
 
       const response: ApiResponse = {
         success: true,
         data: updatedComment,
         message: "Comment updated successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to update comment",
@@ -145,7 +143,7 @@ export class CommentController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Comment ID is required",
         });
@@ -153,9 +151,9 @@ export class CommentController {
       }
 
       // Check if user is the comment author or admin
-      const comment = await commentService.getCommentById(parseInt(id));
+      const comment = await commentService.getCommentById(id);
       if (!comment) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Comment not found",
         });
@@ -164,24 +162,24 @@ export class CommentController {
 
       if (
         req.user?.role !== "admin" &&
-        req.user?.userId !== comment.commenter_id
+        req.user?.userId !== comment.commenterId
       ) {
-        res.status(403).json({
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
           message: "Not authorized to delete this comment",
         });
         return;
       }
 
-      await commentService.deleteComment(parseInt(id));
+      await commentService.deleteComment(id);
 
       const response: ApiResponse = {
         success: true,
         message: "Comment deleted successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to delete comment",
@@ -195,17 +193,17 @@ export class CommentController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Comment ID is required",
         });
         return;
       }
 
-      const comment = await commentService.getCommentById(parseInt(id));
+      const comment = await commentService.getCommentById(id);
 
       if (!comment) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Comment not found",
         });
@@ -217,9 +215,9 @@ export class CommentController {
         data: comment,
         message: "Comment retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to retrieve comment",
@@ -231,7 +229,7 @@ export class CommentController {
   async getUserComments(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           message: "User not authenticated",
         });
@@ -245,9 +243,9 @@ export class CommentController {
         data: comments,
         message: "User comments retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error

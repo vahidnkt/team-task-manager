@@ -1,6 +1,6 @@
 // User Types
 export interface User {
-  id: number;
+  id: string;
   username: string;
   email: string;
   password_hash: string;
@@ -35,7 +35,7 @@ export interface AuthResponse {
 }
 
 export interface UserWithoutPassword {
-  id: number;
+  id: string;
   username: string;
   email: string;
   role: "user" | "admin";

@@ -4,11 +4,12 @@ import {
   Model,
   DataType,
   PrimaryKey,
-  AutoIncrement,
+  Default,
   CreatedAt,
   BelongsTo,
   ForeignKey,
 } from "sequelize-typescript";
+import { v4 as uuidv4 } from "uuid";
 import { Project } from "./Project";
 import { Task } from "./Task";
 import { User } from "./User";
@@ -19,33 +20,33 @@ import { User } from "./User";
 })
 export class Activity extends Model<Activity> {
   @PrimaryKey
-  @AutoIncrement
-  @Column(DataType.INTEGER)
-  override id!: number;
+  @Default(() => uuidv4())
+  @Column(DataType.UUID)
+  override id!: string;
 
   @ForeignKey(() => Project)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.UUID,
     allowNull: false,
     field: "project_id",
   })
-  projectId!: number;
+  projectId!: string;
 
   @ForeignKey(() => Task)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.UUID,
     allowNull: true,
     field: "task_id",
   })
-  taskId?: number;
+  taskId?: string;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.UUID,
     allowNull: false,
     field: "user_id",
   })
-  userId!: number;
+  userId!: string;
 
   @Column({
     type: DataType.STRING(100),

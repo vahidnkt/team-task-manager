@@ -6,6 +6,7 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
 } from "../types/project.types";
+import { HTTP_STATUS } from "../utils/constants";
 
 export class ProjectController {
   // Get all projects
@@ -17,9 +18,9 @@ export class ProjectController {
         data: projects,
         message: "Projects retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error
@@ -33,7 +34,7 @@ export class ProjectController {
   async createProject(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           message: "User not authenticated",
         });
@@ -54,9 +55,9 @@ export class ProjectController {
         data: newProject,
         message: "Project created successfully",
       };
-      res.status(201).json(response);
+      res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to create project",
@@ -70,17 +71,17 @@ export class ProjectController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
         return;
       }
 
-      const project = await projectService.getProjectById(parseInt(id));
+      const project = await projectService.getProjectById(id);
 
       if (!project) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Project not found",
         });
@@ -92,9 +93,9 @@ export class ProjectController {
         data: project,
         message: "Project retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to retrieve project",
@@ -109,7 +110,7 @@ export class ProjectController {
       const updateData: UpdateProjectRequest = req.body;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
@@ -117,9 +118,9 @@ export class ProjectController {
       }
 
       // Check if user is admin or project creator
-      const project = await projectService.getProjectById(parseInt(id));
+      const project = await projectService.getProjectById(id);
       if (!project) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Project not found",
         });
@@ -128,28 +129,25 @@ export class ProjectController {
 
       if (
         req.user?.role !== "admin" &&
-        req.user?.userId !== project.created_by
+        req.user?.userId !== project.createdBy
       ) {
-        res.status(403).json({
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
           message: "Not authorized to update this project",
         });
         return;
       }
 
-      const updatedProject = await projectService.updateProject(
-        parseInt(id),
-        updateData
-      );
+      const updatedProject = await projectService.updateProject(id, updateData);
 
       const response: ApiResponse = {
         success: true,
         data: updatedProject,
         message: "Project updated successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to update project",
@@ -163,7 +161,7 @@ export class ProjectController {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           message: "Project ID is required",
         });
@@ -171,9 +169,9 @@ export class ProjectController {
       }
 
       // Check if user is admin or project creator
-      const project = await projectService.getProjectById(parseInt(id));
+      const project = await projectService.getProjectById(id);
       if (!project) {
-        res.status(404).json({
+        res.status(HTTP_STATUS.NOT_FOUND).json({
           success: false,
           message: "Project not found",
         });
@@ -182,24 +180,24 @@ export class ProjectController {
 
       if (
         req.user?.role !== "admin" &&
-        req.user?.userId !== project.created_by
+        req.user?.userId !== project.createdBy
       ) {
-        res.status(403).json({
+        res.status(HTTP_STATUS.FORBIDDEN).json({
           success: false,
           message: "Not authorized to delete this project",
         });
         return;
       }
 
-      await projectService.deleteProject(parseInt(id));
+      await projectService.deleteProject(id);
 
       const response: ApiResponse = {
         success: true,
         message: "Project deleted successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error ? error.message : "Failed to delete project",
@@ -211,23 +209,25 @@ export class ProjectController {
   async getUserProjects(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           message: "User not authenticated",
         });
         return;
       }
 
-      const projects = await projectService.getProjectsByUser(req.user.userId);
+      const projects = await projectService.getProjectsByCreator(
+        req.user.userId
+      );
 
       const response: ApiResponse = {
         success: true,
         data: projects,
         message: "User projects retrieved successfully",
       };
-      res.json(response);
+      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
           error instanceof Error

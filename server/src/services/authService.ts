@@ -7,7 +7,9 @@ import {
   AuthResponse,
   UserWithoutPassword,
 } from "../types";
-import { AppError } from "../types";
+import { logger } from "../utils/logger";
+import { HTTP_STATUS } from "../utils/constants";
+import { AppError } from ".././types/common.types";
 
 class AuthService {
   private readonly saltRounds: number;
@@ -27,8 +29,11 @@ class AuthService {
         const error: AppError = new Error(
           "User with this email already exists"
         ) as AppError;
-        error.statusCode = 409;
+        error.statusCode = HTTP_STATUS.CONFLICT;
         error.isOperational = true;
+        logger.warn("Registration attempt with existing email", {
+          email: userData.email,
+        });
         throw error;
       }
 
@@ -38,8 +43,11 @@ class AuthService {
       );
       if (existingUsername) {
         const error: AppError = new Error("Username already taken") as AppError;
-        error.statusCode = 409;
+        error.statusCode = HTTP_STATUS.CONFLICT;
         error.isOperational = true;
+        logger.warn("Registration attempt with existing username", {
+          username: userData.username,
+        });
         throw error;
       }
 
@@ -64,6 +72,10 @@ class AuthService {
         deleted_at: newUser.deletedAt,
       };
 
+      logger.info("User registered successfully", {
+        userId: newUser.id,
+        email: newUser.email,
+      });
       return {
         token,
         user: userWithoutPassword,
@@ -72,7 +84,7 @@ class AuthService {
       if (error instanceof Error && "statusCode" in error) {
         throw error;
       }
-      console.error("Registration error:", error);
+      logger.error("Registration error", error as Error);
       throw new Error("Registration failed");
     }
   }
@@ -88,8 +100,11 @@ class AuthService {
         const error: AppError = new Error(
           "Invalid email or password"
         ) as AppError;
-        error.statusCode = 401;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
         error.isOperational = true;
+        logger.warn("Login attempt with non-existent email", {
+          email: loginData.email,
+        });
         throw error;
       }
 
@@ -98,8 +113,11 @@ class AuthService {
         const error: AppError = new Error(
           "Account has been deactivated"
         ) as AppError;
-        error.statusCode = 401;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
         error.isOperational = true;
+        logger.warn("Login attempt with deactivated account", {
+          email: loginData.email,
+        });
         throw error;
       }
 
@@ -112,8 +130,11 @@ class AuthService {
         const error: AppError = new Error(
           "Invalid email or password"
         ) as AppError;
-        error.statusCode = 401;
+        error.statusCode = HTTP_STATUS.UNAUTHORIZED;
         error.isOperational = true;
+        logger.warn("Login attempt with invalid password", {
+          email: loginData.email,
+        });
         throw error;
       }
 
@@ -135,6 +156,10 @@ class AuthService {
         deleted_at: user.deletedAt,
       };
 
+      logger.info("User logged in successfully", {
+        userId: user.id,
+        email: user.email,
+      });
       return {
         token,
         user: userWithoutPassword,
@@ -143,7 +168,7 @@ class AuthService {
       if (error instanceof Error && "statusCode" in error) {
         throw error;
       }
-      console.error("Login error:", error);
+      logger.error("Login error", error as Error);
       throw new Error("Login failed");
     }
   }
@@ -152,7 +177,7 @@ class AuthService {
    * Get user profile (without password)
    */
   public async getUserProfile(
-    userId: number
+    userId: string
   ): Promise<UserWithoutPassword | null> {
     try {
       const user = await userService.getUserById(userId);
@@ -170,7 +195,7 @@ class AuthService {
         deleted_at: user.deletedAt,
       };
     } catch (error) {
-      console.error("Get user profile error:", error);
+      logger.error("Get user profile error", error as Error);
       throw new Error("Failed to get user profile");
     }
   }
@@ -185,7 +210,7 @@ class AuthService {
     try {
       return await bcrypt.compare(plainPassword, hashedPassword);
     } catch (error) {
-      console.error("Password verification error:", error);
+      logger.error("Password verification error", error as Error);
       return false;
     }
   }
@@ -197,7 +222,7 @@ class AuthService {
     try {
       return await bcrypt.hash(password, this.saltRounds);
     } catch (error) {
-      console.error("Password hashing error:", error);
+      logger.error("Password hashing error", error as Error);
       throw new Error("Failed to hash password");
     }
   }

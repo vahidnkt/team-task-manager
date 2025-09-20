@@ -32,7 +32,7 @@ export class CommentService {
   }
 
   // Get comment by ID
-  async getCommentById(id: number): Promise<Comment | null> {
+  async getCommentById(id: string): Promise<Comment | null> {
     return await Comment.findByPk(id, {
       include: [
         { model: User, as: "commenter" },
@@ -42,7 +42,7 @@ export class CommentService {
   }
 
   // Get all comments for a task
-  async getCommentsByTask(taskId: number): Promise<Comment[]> {
+  async getCommentsByTask(taskId: string): Promise<Comment[]> {
     return await Comment.findAll({
       where: { taskId },
       include: [{ model: User, as: "commenter" }],
@@ -52,7 +52,7 @@ export class CommentService {
 
   // Get comments by user
   async getCommentsByUser(
-    userId: number,
+    userId: string,
     limit?: number,
     offset?: number
   ): Promise<Comment[]> {
@@ -77,7 +77,7 @@ export class CommentService {
 
   // Update comment
   async updateComment(
-    id: number,
+    id: string,
     updateData: UpdateCommentRequest
   ): Promise<Comment | null> {
     const comment = await this.getCommentById(id);
@@ -90,7 +90,7 @@ export class CommentService {
   }
 
   // Delete comment
-  async deleteComment(id: number): Promise<boolean> {
+  async deleteComment(id: string): Promise<boolean> {
     const comment = await this.getCommentById(id);
     if (!comment) {
       throw new Error("Comment not found");
@@ -123,7 +123,7 @@ export class CommentService {
   }
 
   // Get comment count for a task
-  async getTaskCommentCount(taskId: number): Promise<number> {
+  async getTaskCommentCount(taskId: string): Promise<number> {
     return await Comment.count({
       where: { taskId },
     });
@@ -160,8 +160,8 @@ export class CommentService {
 
   // Check if user can modify comment
   async canUserModifyComment(
-    commentId: number,
-    userId: number,
+    commentId: string,
+    userId: string,
     userRole: string
   ): Promise<boolean> {
     if (userRole === "admin") {
@@ -177,7 +177,7 @@ export class CommentService {
   }
 
   // Get comment with full details
-  async getCommentWithDetails(id: number): Promise<any> {
+  async getCommentWithDetails(id: string): Promise<any> {
     return await Comment.findByPk(id, {
       include: [
         { model: User, as: "commenter" },

@@ -131,8 +131,8 @@ export const validateTaskCreation = [
 
   body('assignee_id')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('Assignee ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Assignee ID must be a valid UUID'),
 
   body('status')
     .optional()
@@ -167,8 +167,8 @@ export const validateTaskUpdate = [
 
   body('assignee_id')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('Assignee ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Assignee ID must be a valid UUID'),
 
   body('status')
     .optional()
@@ -199,8 +199,8 @@ export const validateTaskStatusUpdate = [
 export const validateTaskAssignment = [
   body('assignee_id')
     .optional({ nullable: true })
-    .isInt({ min: 1 })
-    .withMessage('Assignee ID must be a positive integer or null'),
+    .isUUID()
+    .withMessage('Assignee ID must be a valid UUID or null'),
 
   handleValidationErrors
 ];
@@ -227,24 +227,24 @@ export const validateCommentUpdate = [
 // Parameter validation rules
 export const validateIdParam = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('ID must be a positive integer'),
+    .isUUID()
+    .withMessage('ID must be a valid UUID'),
 
   handleValidationErrors
 ];
 
 export const validateProjectIdParam = [
   param('projectId')
-    .isInt({ min: 1 })
-    .withMessage('Project ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Project ID must be a valid UUID'),
 
   handleValidationErrors
 ];
 
 export const validateTaskIdParam = [
   param('taskId')
-    .isInt({ min: 1 })
-    .withMessage('Task ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Task ID must be a valid UUID'),
 
   handleValidationErrors
 ];

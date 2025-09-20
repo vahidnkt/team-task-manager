@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwtService from "../config/jwt";
-import { JWTPayload, AppError } from "../types";
-
+import { JWTPayload } from ".././types/auth.types";
+import { AppError } from ".././types/common.types";
 // Extend Express Request interface to include user
 declare global {
   namespace Express {
@@ -142,7 +142,7 @@ export const requireOwnership = (userIdField: string = "userId") => {
         throw error;
       }
 
-      if (parseInt(resourceUserId) !== req.user.userId) {
+      if (resourceUserId !== req.user.userId) {
         const error: AppError = new Error(
           "Access denied: Not your resource"
         ) as AppError;
@@ -161,7 +161,7 @@ export const requireOwnership = (userIdField: string = "userId") => {
 /**
  * Extract user ID from token for logging/debugging
  */
-export const getCurrentUserId = (req: Request): number | null => {
+export const getCurrentUserId = (req: Request): string | null => {
   return req.user?.userId || null;
 };
 

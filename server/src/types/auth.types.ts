@@ -1,8 +1,8 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 // Authentication Types
 export interface JWTPayload {
-  userId: number;
+  userId: string;
   email: string;
   role: "user" | "admin";
   iat?: number;

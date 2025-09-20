@@ -4,7 +4,7 @@ import {
   Model,
   DataType,
   PrimaryKey,
-  AutoIncrement,
+  Default,
   CreatedAt,
   UpdatedAt,
   DeletedAt,
@@ -12,6 +12,7 @@ import {
   HasMany,
   ForeignKey,
 } from "sequelize-typescript";
+import { v4 as uuidv4 } from "uuid";
 import { User } from "./User";
 import { Task } from "./Task";
 import { Activity } from "./Activity";
@@ -23,9 +24,9 @@ import { Activity } from "./Activity";
 })
 export class Project extends Model<Project> {
   @PrimaryKey
-  @AutoIncrement
-  @Column(DataType.INTEGER)
-  override id!: number;
+  @Default(() => uuidv4())
+  @Column(DataType.UUID)
+  override id!: string;
 
   @Column({
     type: DataType.STRING(255),
@@ -41,11 +42,11 @@ export class Project extends Model<Project> {
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.UUID,
     allowNull: false,
     field: "created_by",
   })
-  createdBy!: number;
+  createdBy!: string;
 
   @CreatedAt
   @Column({

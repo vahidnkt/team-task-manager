@@ -24,7 +24,7 @@ export interface LogEntry {
   metadata?: any;
   stack?: string;
   requestId?: string;
-  userId?: number;
+  userId?: string;
   ip?: string;
 }
 
@@ -108,7 +108,7 @@ export class Logger {
   }
 
   // Get current user ID (from request context)
-  private getCurrentUserId(): number | undefined {
+  private getCurrentUserId(): string | undefined {
     // This would be implemented with request context
     // For now, return undefined
     return undefined;

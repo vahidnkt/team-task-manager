@@ -1,9 +1,9 @@
 // Activity Types
 export interface Activity {
-  id: number;
-  project_id: number;
-  task_id?: number;
-  user_id: number;
+  id: string;
+  project_id: string;
+  task_id?: string;
+  user_id: string;
   action: string;
   description?: string;
   created_at: Date;
@@ -13,25 +13,25 @@ export interface Activity {
 }
 
 export interface CreateActivityRequest {
-  project_id: number;
-  task_id?: number;
-  user_id: number;
+  project_id: string;
+  task_id?: string;
+  user_id: string;
   action: string;
   description?: string;
 }
 
 export interface ActivityWithDetails extends Activity {
   user?: {
-    id: number;
+    id: string;
     username: string;
     email: string;
   };
   task?: {
-    id: number;
+    id: string;
     title: string;
   };
   project?: {
-    id: number;
+    id: string;
     name: string;
   };
   username?: string;
@@ -40,7 +40,7 @@ export interface ActivityWithDetails extends Activity {
 }
 
 export interface ActivitySummary {
-  project_id: number;
+  project_id: string;
   period_days: number;
   total_activities: number;
   actions_summary: Record<string, number>;

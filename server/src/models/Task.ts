@@ -4,7 +4,7 @@ import {
   Model,
   DataType,
   PrimaryKey,
-  AutoIncrement,
+  Default,
   CreatedAt,
   UpdatedAt,
   DeletedAt,
@@ -12,6 +12,7 @@ import {
   HasMany,
   ForeignKey,
 } from "sequelize-typescript";
+import { v4 as uuidv4 } from "uuid";
 import { Project } from "./Project";
 import { User } from "./User";
 import { Comment } from "./Comment";
@@ -24,17 +25,17 @@ import { Activity } from "./Activity";
 })
 export class Task extends Model<Task> {
   @PrimaryKey
-  @AutoIncrement
-  @Column(DataType.INTEGER)
-  override id!: number;
+  @Default(() => uuidv4())
+  @Column(DataType.UUID)
+  override id!: string;
 
   @ForeignKey(() => Project)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.UUID,
     allowNull: false,
     field: "project_id",
   })
-  projectId!: number;
+  projectId!: string;
 
   @Column({
     type: DataType.STRING(255),
@@ -50,11 +51,11 @@ export class Task extends Model<Task> {
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.UUID,
     allowNull: true,
     field: "assignee_id",
   })
-  assigneeId?: number;
+  assigneeId?: string;
 
   @Column({
     type: DataType.ENUM("todo", "in-progress", "done"),
