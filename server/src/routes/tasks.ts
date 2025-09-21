@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { taskController } from "../controllers/taskController";
-import { authenticateToken, requireUser } from "../middleware/auth";
+import {
+  authenticateToken,
+  requireAdmin,
+  requireUser,
+} from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/roleCheck";
 import {
   validateDto,
@@ -69,6 +73,7 @@ router.get(
  */
 router.put(
   "/:id",
+  requireAdmin,
   validateParamDto(IdParamDto),
   validateDto(UpdateTaskDto),
   apiAccessLogger("task-update"),
@@ -82,6 +87,7 @@ router.put(
  */
 router.delete(
   "/:id",
+  requireAdmin,
   validateParamDto(IdParamDto),
   apiAccessLogger("task-delete"),
   taskController.deleteTask.bind(taskController)
@@ -107,6 +113,7 @@ router.patch(
  */
 router.patch(
   "/:id/assign",
+  requireAdmin,
   validateParamDto(IdParamDto),
   validateDto(AssignTaskDto),
   apiAccessLogger("task-assignment"),

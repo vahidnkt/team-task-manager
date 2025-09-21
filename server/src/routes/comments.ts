@@ -11,7 +11,8 @@ import {
   UpdateCommentDto,
   IdParamDto,
   TaskIdParamDto,
-  PaginationQueryDto,
+  GetMyCommentsQueryDto,
+  GetTaskCommentsQueryDto,
 } from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
@@ -22,6 +23,47 @@ router.use(authenticateToken);
 router.use(requestLogger);
 router.use(requireUser); // All comment routes require at least user role
 
+// Specific routes must come BEFORE parameterized routes
+/**
+ * @route   GET /api/comments/my
+ * @desc    Get comments by current user
+ * @access  Private (User+)
+ */
+router.get(
+  "/my",
+  validateQueryDto(GetMyCommentsQueryDto),
+  apiAccessLogger("user-comments"),
+  commentController.getUserComments.bind(commentController)
+);
+
+// Task-specific comment routes
+/**
+ * @route   GET /api/comments/tasks/:taskId/comments
+ * @desc    Get all comments for a task
+ * @access  Private (User+)
+ */
+router.get(
+  "/tasks/:taskId/comments",
+  validateParamDto(TaskIdParamDto),
+  validateQueryDto(GetTaskCommentsQueryDto),
+  apiAccessLogger("task-comments"),
+  commentController.getCommentsByTask.bind(commentController)
+);
+
+/**
+ * @route   POST /api/comments/tasks/:taskId/comments
+ * @desc    Add comment to task
+ * @access  Private (User+)
+ */
+router.post(
+  "/tasks/:taskId/comments",
+  validateParamDto(TaskIdParamDto),
+  validateDto(CreateCommentDto),
+  apiAccessLogger("comment-create"),
+  commentController.createComment.bind(commentController)
+);
+
+// Parameterized routes come LAST
 /**
  * @route   GET /api/comments/:id
  * @desc    Get specific comment by ID
@@ -57,45 +99,6 @@ router.delete(
   validateParamDto(IdParamDto),
   apiAccessLogger("comment-delete"),
   commentController.deleteComment.bind(commentController)
-);
-
-/**
- * @route   GET /api/comments/my
- * @desc    Get comments by current user
- * @access  Private (User+)
- */
-router.get(
-  "/my",
-  validateQueryDto(PaginationQueryDto),
-  apiAccessLogger("user-comments"),
-  commentController.getUserComments.bind(commentController)
-);
-
-// Task-specific comment routes
-/**
- * @route   GET /api/tasks/:taskId/comments
- * @desc    Get all comments for a task
- * @access  Private (User+)
- */
-router.get(
-  "/tasks/:taskId/comments",
-  validateParamDto(TaskIdParamDto),
-  validateQueryDto(PaginationQueryDto),
-  apiAccessLogger("task-comments"),
-  commentController.getCommentsByTask.bind(commentController)
-);
-
-/**
- * @route   POST /api/tasks/:taskId/comments
- * @desc    Add comment to task
- * @access  Private (User+)
- */
-router.post(
-  "/tasks/:taskId/comments",
-  validateParamDto(TaskIdParamDto),
-  validateDto(CreateCommentDto),
-  apiAccessLogger("comment-create"),
-  commentController.createComment.bind(commentController)
 );
 
 export default router;
