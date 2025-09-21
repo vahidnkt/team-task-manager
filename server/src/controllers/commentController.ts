@@ -9,10 +9,11 @@ import {
 import { HTTP_STATUS } from "../utils/constants";
 
 export class CommentController {
-  // Get all comments for a task
+  // Get all comments for a task with search and pagination
   async getCommentsByTask(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { taskId } = req.params;
+      const { search, limit, offset, sortBy, sortOrder } = req.query as any;
 
       if (!taskId) {
         res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -22,11 +23,17 @@ export class CommentController {
         return;
       }
 
-      const comments = await commentService.getCommentsByTask(taskId);
+      const result = await commentService.getCommentsByTask(taskId, {
+        search,
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+      });
 
       const response: ApiResponse = {
         success: true,
-        data: comments,
+        data: result,
         message: "Comments retrieved successfully",
       };
       res.status(HTTP_STATUS.OK).json(response);
@@ -225,7 +232,7 @@ export class CommentController {
     }
   }
 
-  // Get recent comments by user
+  // Get recent comments by user with search and pagination
   async getUserComments(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
@@ -236,11 +243,19 @@ export class CommentController {
         return;
       }
 
-      const comments = await commentService.getCommentsByUser(req.user.userId);
+      const { search, limit, offset, sortBy, sortOrder } = req.query as any;
+
+      const result = await commentService.getCommentsByUser(req.user.userId, {
+        search,
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+      });
 
       const response: ApiResponse = {
         success: true,
-        data: comments,
+        data: result,
         message: "User comments retrieved successfully",
       };
       res.status(HTTP_STATUS.OK).json(response);

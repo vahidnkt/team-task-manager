@@ -42,38 +42,107 @@ export class CommentService {
     });
   }
 
-  // Get all comments for a task
-  async getCommentsByTask(taskId: string): Promise<Comment[]> {
-    return await Comment.findAll({
-      where: { taskId },
+  // Get all comments for a task with search and pagination
+  async getCommentsByTask(
+    taskId: string,
+    options: {
+      search?: string;
+      limit?: number;
+      offset?: number;
+      sortBy?: "created_at" | "updated_at";
+      sortOrder?: "ASC" | "DESC";
+    } = {}
+  ): Promise<{
+    comments: Comment[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const {
+      search = "",
+      limit = 10,
+      offset = 0,
+      sortBy = "created_at",
+      sortOrder = "ASC",
+    } = options;
+
+    // Build search conditions
+    const searchConditions: any = { taskId };
+
+    if (search) {
+      searchConditions[require("sequelize").Op.or] = [
+        { text: { [require("sequelize").Op.like]: `%${search}%` } },
+      ];
+    }
+
+    // Get comments with search and filter
+    const { count, rows: comments } = await Comment.findAndCountAll({
+      where: searchConditions,
       include: [{ model: User, as: "commenter" }],
-      order: [["createdAt", "ASC"]],
+      limit: Math.min(limit, 100), // Max 100 comments per request
+      offset,
+      order: [[sortBy, sortOrder]],
     });
+
+    return {
+      comments,
+      total: count,
+      limit,
+      offset,
+    };
   }
 
-  // Get comments by user
+  // Get comments by user with search and pagination
   async getCommentsByUser(
     userId: string,
-    limit?: number,
-    offset?: number
-  ): Promise<Comment[]> {
-    const options: any = {
-      where: { commenterId: userId },
+    options: {
+      search?: string;
+      limit?: number;
+      offset?: number;
+      sortBy?: "created_at" | "updated_at";
+      sortOrder?: "ASC" | "DESC";
+    } = {}
+  ): Promise<{
+    comments: Comment[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const {
+      search = "",
+      limit = 10,
+      offset = 0,
+      sortBy = "created_at",
+      sortOrder = "DESC",
+    } = options;
+
+    // Build search conditions
+    const searchConditions: any = { commenterId: userId };
+
+    if (search) {
+      searchConditions[require("sequelize").Op.or] = [
+        { text: { [require("sequelize").Op.like]: `%${search}%` } },
+      ];
+    }
+
+    // Get comments with search and filter
+    const { count, rows: comments } = await Comment.findAndCountAll({
+      where: searchConditions,
       include: [
         { model: User, as: "commenter" },
         { model: Task, as: "task" },
       ],
-      order: [["createdAt", "DESC"]],
+      limit: Math.min(limit, 100), // Max 100 comments per request
+      offset,
+      order: [[sortBy, sortOrder]],
+    });
+
+    return {
+      comments,
+      total: count,
+      limit,
+      offset,
     };
-
-    if (limit !== undefined) {
-      options.limit = limit;
-      if (offset !== undefined) {
-        options.offset = offset;
-      }
-    }
-
-    return await Comment.findAll(options);
   }
 
   // Update comment
