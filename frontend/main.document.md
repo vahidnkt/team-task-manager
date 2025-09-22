@@ -178,8 +178,6 @@ src/
 
 ### Day 2: Type Definitions and Store Setup
 
-**Morning (3-4 hours)**
-
 1. **Create TypeScript type definitions**
 
    - `types/auth.types.ts`: User, LoginRequest, RegisterRequest, AuthState
@@ -422,9 +420,8 @@ VITE_JWT_SECRET_KEY=your-secret-key
 VITE_REFRESH_TOKEN_KEY=refresh_token
 ```
 
-
 **\*\*\*\***importent**\*\*\*\***\*\***\*\*\*\***pls keep this thing also (
-1 =  Performance & Optimization
+1 = Performance & Optimization
 Lazy-load pages/components (you already plan lazy routes 👍).
 Use React.Suspense for data fetching when RTK Query supports streaming.
 Consider React Query if you ever need more fine-grained caching controls (RTK Query is still great for CRUD-heavy apps).

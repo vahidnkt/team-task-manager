@@ -1,6 +1,0 @@
-{"timestamp":"2025-09-21T05:27:45.290Z","level":"INFO","message":"Retrieved users with filters","metadata":{"count":3,"total":3,"search":"","limit":10,"offset":0}}
-{"timestamp":"2025-09-21T05:27:54.490Z","level":"INFO","message":"Retrieved users with filters","metadata":{"count":3,"total":3,"search":"","limit":10,"offset":0}}
-{"timestamp":"2025-09-21T05:28:22.301Z","level":"INFO","message":"Retrieved users with filters","metadata":{"count":0,"total":0,"search":"jjjjjjj","limit":10,"offset":0}}
-{"timestamp":"2025-09-21T05:28:32.292Z","level":"INFO","message":"Retrieved users with filters","metadata":{"count":1,"total":1,"search":"vahid","limit":10,"offset":0}}
-{"timestamp":"2025-09-21T05:33:18.583Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"d34fdaae-e269-42de-b9fc-a354cb7ecffb","email":"john.doe@example.com"}}
-{"timestamp":"2025-09-21T05:55:54.305Z","level":"INFO","message":"Retrieved users with filters","metadata":{"count":4,"total":4,"search":"","limit":10,"offset":0}}
