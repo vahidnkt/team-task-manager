@@ -11,6 +11,9 @@ import uiSlice from "./uiSlice.js";
 // Import API slices
 import { baseApi } from "./api/baseApi";
 
+// Import middleware
+import { toastMiddleware } from "./middleware/toastMiddleware";
+
 // Persist configuration for auth
 const authPersistConfig = {
   key: "auth",
@@ -46,7 +49,7 @@ export const store = configureStore({
           "persist/REGISTER",
         ],
       },
-    }).concat(baseApi.middleware),
+    }).concat(baseApi.middleware, toastMiddleware),
   devTools: ENABLE_DEVTOOLS && process.env.NODE_ENV === "development",
 });
 

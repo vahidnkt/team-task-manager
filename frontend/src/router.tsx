@@ -1,12 +1,11 @@
 import React, { Suspense } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import { Layout, AuthLayout, ProtectedRoute } from "./components/layout";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { Layout, ProtectedRoute } from "./components/layout";
 import { PageLoading } from "./components/common/Loading";
 
 // Lazy load all page components for better performance
 const Login = React.lazy(() => import("./pages/auth/Login"));
 const Register = React.lazy(() => import("./pages/auth/Register"));
-const ForgotPassword = React.lazy(() => import("./pages/auth/ForgotPassword"));
 
 const Dashboard = React.lazy(() => import("./pages/dashboard/Dashboard"));
 const AdminDashboard = React.lazy(
@@ -32,9 +31,6 @@ const UsersList = React.lazy(() => import("./pages/users/UsersList"));
 const UserDetail = React.lazy(() => import("./pages/users/UserDetail"));
 
 const Profile = React.lazy(() => import("./pages/profile/Profile"));
-const ChangePassword = React.lazy(
-  () => import("./pages/profile/ChangePassword")
-);
 
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -49,41 +45,35 @@ const LazyWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const router = createBrowserRouter([
   // Auth routes (no authentication required)
   {
-    path: "/auth",
-    element: <AuthLayout />,
-    children: [
-      {
-        path: "login",
-        element: (
-          <ProtectedRoute requireAuth={false}>
-            <LazyWrapper>
-              <Login />
-            </LazyWrapper>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "register",
-        element: (
-          <ProtectedRoute requireAuth={false}>
-            <LazyWrapper>
-              <Register />
-            </LazyWrapper>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "forgot-password",
-        element: (
-          <ProtectedRoute requireAuth={false}>
-            <LazyWrapper>
-              <ForgotPassword />
-            </LazyWrapper>
-          </ProtectedRoute>
-        ),
-      },
-    ],
+    path: "/auth/login",
+    element: (
+      <ProtectedRoute requireAuth={false}>
+        <LazyWrapper>
+          <Login />
+        </LazyWrapper>
+      </ProtectedRoute>
+    ),
   },
+  {
+    path: "/auth/register",
+    element: (
+      <ProtectedRoute requireAuth={false}>
+        <LazyWrapper>
+          <Register />
+        </LazyWrapper>
+      </ProtectedRoute>
+    ),
+  },
+  // {
+  //   path: "/auth/forgot-password",
+  //   element: (
+  //     <ProtectedRoute requireAuth={false}>
+  //       <LazyWrapper>
+  //         <ForgotPassword />
+  //       </LazyWrapper>
+  //     </ProtectedRoute>
+  //   ),
+  // },
 
   // Redirect root to login page
   {
@@ -100,7 +90,11 @@ export const router = createBrowserRouter([
   // Protected routes (authentication required)
   {
     path: "/",
-    element: <Layout />,
+    element: (
+      <Layout>
+        <Outlet />
+      </Layout>
+    ),
     children: [
       // Dashboard routes
       {
@@ -253,16 +247,16 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: "profile/change-password",
-        element: (
-          <ProtectedRoute requireAuth>
-            <LazyWrapper>
-              <ChangePassword />
-            </LazyWrapper>
-          </ProtectedRoute>
-        ),
-      },
+      // {
+      //   path: "profile/change-password",
+      //   element: (
+      //     <ProtectedRoute requireAuth>
+      //       <LazyWrapper>
+      //         <ChangePassword />
+      //       </LazyWrapper>
+      //     </ProtectedRoute>
+      //   ),
+      // },
     ],
   },
 

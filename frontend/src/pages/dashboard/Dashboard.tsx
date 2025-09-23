@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/common/Button";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { PriorityBadge } from "../../components/ui/PriorityBadge";
 import { useAuth } from "../../hooks";
@@ -215,214 +214,296 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.username || "User"}!
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {isAdmin()
-              ? "Admin Dashboard - System Overview"
-              : "Your task management dashboard"}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="primary" onClick={handleCreateTask}>
-            Create Task
-          </Button>
-          {isAdmin() && (
-            <Button variant="secondary" onClick={handleCreateProject}>
-              Create Project
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Tasks"
-          value={dashboardData.stats.totalTasks}
-          subtitle={isAdmin() ? "All tasks in system" : "Tasks assigned to you"}
-          color="blue"
-          icon="📋"
-        />
-        <StatsCard
-          title="Completed"
-          value={dashboardData.stats.completedTasks}
-          subtitle="Finished tasks"
-          color="green"
-          icon="✅"
-        />
-        <StatsCard
-          title="In Progress"
-          value={dashboardData.stats.inProgressTasks}
-          subtitle="Active tasks"
-          color="yellow"
-          icon="🔄"
-        />
-        <StatsCard
-          title="Overdue"
-          value={dashboardData.stats.overdueTasks}
-          subtitle="Past due date"
-          color="red"
-          icon="⚠️"
-        />
-      </div>
-
-      {/* Admin-specific stats */}
-      {isAdmin() && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatsCard
-            title="Total Projects"
-            value={dashboardData.stats.totalProjects}
-            subtitle="All projects in system"
-            color="purple"
-            icon="📁"
-          />
-          <StatsCard
-            title="Active Projects"
-            value={dashboardData.stats.activeProjects}
-            subtitle="Currently running"
-            color="blue"
-            icon="🚀"
-          />
-          {/* <StatsCard
-            title="Total Users"
-            value={dashboardData.stats.totalUsers}
-            subtitle="Registered users"
-            color="orange"
-            icon="👥"
-          /> */}
-        </div>
-      )}
-
-      {/* User-specific project stats */}
-      {!isAdmin() && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatsCard
-            title="My Projects"
-            value={dashboardData.stats.totalProjects}
-            subtitle="Projects you're involved in"
-            color="purple"
-            icon="📁"
-          />
-          <StatsCard
-            title="Active Projects"
-            value={dashboardData.stats.activeProjects}
-            subtitle="Currently working"
-            color="blue"
-            icon="🚀"
-          />
-          <StatsCard
-            title="Completed Projects"
-            value={dashboardData.stats.completedProjects}
-            subtitle="Finished projects"
-            color="green"
-            icon="🎉"
-          />
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Tasks */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {isAdmin() ? "Recent Tasks" : "My Recent Tasks"}
-              </h3>
-              <Button variant="ghost" size="sm" onClick={handleViewTasks}>
-                View All
-              </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="container-centered section-padding">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* Welcome Text */}
+            <div className="animate-fade-in">
+              <h1 className="text-responsive-xl font-bold text-gray-900 mb-2">
+                Welcome back, {user?.username || "User"}! 👋
+              </h1>
+              <p className="text-responsive-base text-gray-600">
+                {isAdmin()
+                  ? "Admin Dashboard - Manage your entire system"
+                  : "Your personal task management hub"}
+              </p>
             </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {dashboardData.recentTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Recent Activities */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {isAdmin() ? "System Activities" : "My Activities"}
-            </h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {dashboardData.recentActivities.map((activity) => (
-                <ActivityCard key={activity.id} activity={activity} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* User Projects Overview */}
-      {!isAdmin() && "projects" in dashboardData && (
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
-                My Projects
-              </h3>
-              <Button variant="ghost" size="sm" onClick={handleViewProjects}>
-                View All
-              </Button>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dashboardData.projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Admin Quick Actions */}
-      {isAdmin() && (
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Admin Actions
-            </h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 animate-slide-up">
               <Button
                 variant="primary"
-                onClick={handleViewUsers}
-                className="w-full"
+                onClick={handleCreateTask}
+                className="btn-primary gradient-primary shadow-lg hover:shadow-xl"
               >
-                Manage Users
+                ✨ Create Task
               </Button>
-              <Button
-                variant="secondary"
-                onClick={handleViewProjects}
-                className="w-full"
-              >
-                Manage Projects
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleViewTasks}
-                className="w-full"
-              >
-                Manage Tasks
-              </Button>
+              {isAdmin() && (
+                <Button
+                  variant="secondary"
+                  onClick={handleCreateProject}
+                  className="btn-secondary"
+                >
+                  📁 Create Project
+                </Button>
+              )}
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Main Content */}
+      <div className="container-centered py-8 space-y-8">
+        {/* Stats Cards */}
+        <div className="animate-slide-up">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">
+            📊 Overview
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatsCard
+              title="Total Tasks"
+              value={dashboardData.stats.totalTasks}
+              subtitle={
+                isAdmin() ? "All tasks in system" : "Tasks assigned to you"
+              }
+              color="primary"
+              icon="📋"
+            />
+            <StatsCard
+              title="Completed"
+              value={dashboardData.stats.completedTasks}
+              subtitle="Finished tasks"
+              color="success"
+              icon="✅"
+            />
+            <StatsCard
+              title="In Progress"
+              value={dashboardData.stats.inProgressTasks}
+              subtitle="Active tasks"
+              color="warning"
+              icon="🔄"
+            />
+            <StatsCard
+              title="Overdue"
+              value={dashboardData.stats.overdueTasks}
+              subtitle="Past due date"
+              color="error"
+              icon="⚠️"
+            />
+          </div>
+        </div>
+
+        {/* Admin-specific stats */}
+        {isAdmin() && (
+          <div className="animate-slide-up">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">
+              🔧 Admin Overview
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatsCard
+                title="Total Projects"
+                value={dashboardData.stats.totalProjects}
+                subtitle="All projects in system"
+                color="secondary"
+                icon="📁"
+              />
+              <StatsCard
+                title="Active Projects"
+                value={dashboardData.stats.activeProjects}
+                subtitle="Currently running"
+                color="primary"
+                icon="🚀"
+              />
+              <StatsCard
+                title="Total Users"
+                value={25}
+                subtitle="Registered users"
+                color="warning"
+                icon="👥"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* User-specific project stats */}
+        {!isAdmin() && (
+          <div className="animate-slide-up">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">
+              📂 My Projects
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatsCard
+                title="My Projects"
+                value={dashboardData.stats.totalProjects}
+                subtitle="Projects you're involved in"
+                color="secondary"
+                icon="📁"
+              />
+              <StatsCard
+                title="Active Projects"
+                value={dashboardData.stats.activeProjects}
+                subtitle="Currently working"
+                color="primary"
+                icon="🚀"
+              />
+              <StatsCard
+                title="Completed Projects"
+                value={dashboardData.stats.completedProjects}
+                subtitle="Finished projects"
+                color="success"
+                icon="🎉"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Recent Tasks and Activities */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up">
+          {/* Recent Tasks */}
+          <div className="card hover:shadow-lg transition-all duration-300">
+            <div className="card-header">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  📝 {isAdmin() ? "Recent Tasks" : "My Recent Tasks"}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleViewTasks}
+                  className="btn-ghost"
+                >
+                  View All →
+                </Button>
+              </div>
+            </div>
+            <div className="card-content">
+              <div className="space-y-4">
+                {dashboardData.recentTasks.map((task, index) => (
+                  <div
+                    key={task.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <TaskCard task={task} />
+                  </div>
+                ))}
+                {dashboardData.recentTasks.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">📋</div>
+                    <p>No recent tasks</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activities */}
+          <div className="card hover:shadow-lg transition-all duration-300">
+            <div className="card-header">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                ⚡ {isAdmin() ? "System Activities" : "My Activities"}
+              </h3>
+            </div>
+            <div className="card-content">
+              <div className="space-y-4">
+                {dashboardData.recentActivities.map((activity, index) => (
+                  <div
+                    key={activity.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <ActivityCard activity={activity} />
+                  </div>
+                ))}
+                {dashboardData.recentActivities.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">⚡</div>
+                    <p>No recent activities</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* User Projects Overview */}
+        {!isAdmin() && "projects" in dashboardData && (
+          <div className="card animate-slide-up hover:shadow-lg transition-all duration-300">
+            <div className="card-header">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  🚀 My Projects
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleViewProjects}
+                  className="btn-ghost"
+                >
+                  View All →
+                </Button>
+              </div>
+            </div>
+            <div className="card-content">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dashboardData.projects.map((project, index) => (
+                  <div
+                    key={project.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 150}ms` }}
+                  >
+                    <ProjectCard project={project} />
+                  </div>
+                ))}
+                {dashboardData.projects.length === 0 && (
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">🚀</div>
+                    <p>No projects yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Admin Quick Actions */}
+        {isAdmin() && (
+          <div className="card animate-slide-up hover:shadow-lg transition-all duration-300">
+            <div className="card-header">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                ⚡ Admin Quick Actions
+              </h3>
+            </div>
+            <div className="card-content">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button
+                  variant="primary"
+                  onClick={handleViewUsers}
+                  className="w-full btn-primary interactive"
+                >
+                  👥 Manage Users
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleViewProjects}
+                  className="w-full btn-secondary interactive"
+                >
+                  📁 Manage Projects
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleViewTasks}
+                  className="w-full btn-secondary interactive"
+                >
+                  📝 Manage Tasks
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -432,7 +513,7 @@ interface StatsCardProps {
   title: string;
   value: number;
   subtitle: string;
-  color: "blue" | "green" | "yellow" | "red" | "purple" | "orange";
+  color: "primary" | "success" | "warning" | "error" | "secondary";
   icon: string;
 }
 
@@ -444,24 +525,27 @@ const StatsCard: React.FC<StatsCardProps> = ({
   icon,
 }) => {
   const colorClasses = {
-    blue: "text-blue-600 bg-blue-50",
-    green: "text-green-600 bg-green-50",
-    yellow: "text-yellow-600 bg-yellow-50",
-    red: "text-red-600 bg-red-50",
-    purple: "text-purple-600 bg-purple-50",
-    orange: "text-orange-600 bg-orange-50",
+    primary: "text-primary-600 bg-primary-50 border-primary-100",
+    success: "text-success-600 bg-success-50 border-success-100",
+    warning: "text-warning-600 bg-warning-50 border-warning-100",
+    error: "text-error-600 bg-error-50 border-error-100",
+    secondary: "text-secondary-600 bg-secondary-50 border-secondary-100",
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-          <p className="text-sm text-gray-500">{subtitle}</p>
-        </div>
-        <div className={`p-3 rounded-full ${colorClasses[color]}`}>
-          <span className="text-2xl">{icon}</span>
+    <div className="card group hover:shadow-xl transition-all duration-300 interactive">
+      <div className="card-content">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
+            <p className="text-sm text-gray-500">{subtitle}</p>
+          </div>
+          <div
+            className={`p-4 rounded-2xl border-2 ${colorClasses[color]} group-hover:scale-110 transition-transform duration-300`}
+          >
+            <span className="text-2xl">{icon}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -494,13 +578,17 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
   return (
     <div
-      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+      className="p-4 border border-gray-200 rounded-xl hover:bg-gray-50 hover:shadow-md cursor-pointer transition-all duration-200 group"
       onClick={handleTaskClick}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900">{task.title}</h4>
-          <p className="text-sm text-gray-600 mt-1">{task.projectName}</p>
+          <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+            {task.title}
+          </h4>
+          <p className="text-sm text-gray-600 mt-1 font-medium">
+            {task.projectName}
+          </p>
           {task.description && (
             <p className="text-sm text-gray-500 mt-2 line-clamp-2">
               {task.description}
@@ -514,6 +602,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       </div>
       {task.dueDate && (
         <div className="mt-3 flex items-center text-xs text-gray-500">
+          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+              clipRule="evenodd"
+            />
+          </svg>
           <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
         </div>
       )}

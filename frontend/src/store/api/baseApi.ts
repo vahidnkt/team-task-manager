@@ -28,8 +28,8 @@ export const baseApi = createApi({
   endpoints: () => ({}),
 });
 
-// Global error handler
-export const handleApiError = (error: any, { dispatch }: any) => {
+// Error logger for debugging
+export const logApiError = (error: any) => {
   console.error("API Error:", error);
 
   // Extract error message from backend response
@@ -43,60 +43,5 @@ export const handleApiError = (error: any, { dispatch }: any) => {
     errorMessage = error.message;
   }
 
-  if (error.status === HttpStatus.UNAUTHORIZED) {
-    // Auto logout on 401
-    dispatch({ type: "auth/logout" });
-    dispatch({
-      type: "ui/addToast",
-      payload: {
-        id: Date.now().toString(),
-        type: "error",
-        message: errorMessage || "Session expired. Please login again.",
-        duration: 5000,
-      },
-    });
-  } else if (error.status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-    // Show global toast for 500+ errors
-    dispatch({
-      type: "ui/addToast",
-      payload: {
-        id: Date.now().toString(),
-        type: "error",
-        message: errorMessage || "Server error. Please try again later.",
-        duration: 5000,
-      },
-    });
-  } else if (error.status === HttpStatus.NOT_FOUND) {
-    dispatch({
-      type: "ui/addToast",
-      payload: {
-        id: Date.now().toString(),
-        type: "error",
-        message: errorMessage || "Resource not found.",
-        duration: 3000,
-      },
-    });
-  } else if (error.status === HttpStatus.FORBIDDEN) {
-    dispatch({
-      type: "ui/addToast",
-      payload: {
-        id: Date.now().toString(),
-        type: "error",
-        message:
-          errorMessage || "You do not have permission to perform this action.",
-        duration: 4000,
-      },
-    });
-  } else {
-    // Generic error handling
-    dispatch({
-      type: "ui/addToast",
-      payload: {
-        id: Date.now().toString(),
-        type: "error",
-        message: errorMessage,
-        duration: 4000,
-      },
-    });
-  }
+  return errorMessage;
 };

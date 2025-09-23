@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { Search, X } from "lucide-react";
-import { Input } from "../common/Input";
+import { Input } from "antd";
 import { useDebounce } from "../../hooks/useDebounce";
 import { cn } from "../../utils/helpers";
 
@@ -83,8 +83,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         value={query}
         onChange={handleInputChange}
         placeholder={placeholder}
-        leftIcon={<Search className="h-4 w-4" />}
-        rightIcon={
+        prefix={<Search className="h-4 w-4" />}
+        suffix={
           showClearButton && query && !disabled ? (
             <button
               onClick={handleClear}

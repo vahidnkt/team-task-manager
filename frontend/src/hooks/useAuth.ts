@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "./useToast";
 import type { RootState, AppDispatch } from "../store";
 import {
   loginSuccess,
@@ -16,14 +17,13 @@ import {
   useLogoutMutation,
   useGetProfileQuery,
 } from "../store/api/authApi";
-import { useToast } from "./useToast";
 import { ROUTES } from "../router";
 
 // Authentication hook
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { showSuccess, showError, handleApiError } = useToast();
+  const { showError } = useToast();
 
   // Select auth state
   const auth = useSelector((state: RootState) => state.auth);
@@ -92,19 +92,19 @@ export const useAuth = () => {
           })
         );
 
-        showSuccess("Login successful");
+        // Success message handled by middleware
         return { success: true, data: response };
       } catch (error: any) {
         const errorMessage =
           error?.data?.message || error?.message || "Login failed";
         dispatch(setError(errorMessage));
-        handleApiError(error, "Login failed");
+        // Error message handled by middleware
         return { success: false, error: errorMessage };
       } finally {
         dispatch(setLoading(false));
       }
     },
-    [dispatch, loginMutation, showSuccess, handleApiError]
+    [dispatch, loginMutation]
   );
 
   // Register function
@@ -116,22 +116,19 @@ export const useAuth = () => {
 
         const response = await registerMutation(userData).unwrap();
 
-        // Registration successful - redirect to login
-        showSuccess(
-          "Registration successful! Please login with your credentials."
-        );
+        // Registration successful - success message handled by middleware
         return { success: true, data: response };
       } catch (error: any) {
         const errorMessage =
           error?.data?.message || error?.message || "Registration failed";
         dispatch(setError(errorMessage));
-        handleApiError(error, "Registration failed");
+        // Error message handled by middleware
         return { success: false, error: errorMessage };
       } finally {
         dispatch(setLoading(false));
       }
     },
-    [dispatch, registerMutation, showSuccess, handleApiError]
+    [dispatch, registerMutation]
   );
 
   // Logout function
@@ -146,9 +143,9 @@ export const useAuth = () => {
     } finally {
       dispatch(logout());
       navigate(ROUTES.LOGIN, { replace: true });
-      showSuccess("Logged out successfully");
+      // Success message handled by middleware
     }
-  }, [dispatch, logoutMutation, token, showSuccess, navigate]);
+  }, [dispatch, logoutMutation, token, navigate]);
 
   // Update user profile
   const updateUserProfile = useCallback(

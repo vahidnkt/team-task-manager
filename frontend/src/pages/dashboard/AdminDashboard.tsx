@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/common/Button";
+import { Button } from "antd";
 import { useAuth } from "../../hooks";
 import { ROUTES } from "../../router";
 
@@ -39,10 +39,10 @@ const AdminDashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="primary" onClick={handleCreateProject}>
+          <Button type="primary" onClick={handleCreateProject}>
             Create Project
           </Button>
-          <Button variant="secondary" onClick={handleCreateTask}>
+          <Button onClick={handleCreateTask}>
             Create Task
           </Button>
         </div>
@@ -122,16 +122,16 @@ const AdminDashboard: React.FC = () => {
           <div className="p-6">
             <div className="space-y-3">
               <Button
-                variant="primary"
+                type="primary"
                 className="w-full"
                 onClick={handleManageUsers}
               >
                 View All Users
               </Button>
-              <Button variant="secondary" className="w-full">
+              <Button  className="w-full">
                 User Activity Report
               </Button>
-              <Button variant="secondary" className="w-full">
+              <Button  className="w-full">
                 Export User Data
               </Button>
             </div>
@@ -151,16 +151,16 @@ const AdminDashboard: React.FC = () => {
           <div className="p-6">
             <div className="space-y-3">
               <Button
-                variant="primary"
+                type="primary"
                 className="w-full"
                 onClick={handleManageProjects}
               >
                 View All Projects
               </Button>
-              <Button variant="secondary" className="w-full">
+              <Button  className="w-full">
                 Project Analytics
               </Button>
-              <Button variant="secondary" className="w-full">
+              <Button  className="w-full">
                 Export Project Data
               </Button>
             </div>
@@ -180,11 +180,11 @@ const AdminDashboard: React.FC = () => {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="primary" onClick={handleManageTasks}>
+            <Button type="primary" onClick={handleManageTasks}>
               View All Tasks
             </Button>
-            <Button variant="secondary">Task Analytics</Button>
-            <Button variant="secondary">Export Task Data</Button>
+            <Button >Task Analytics</Button>
+            <Button >Export Task Data</Button>
           </div>
         </div>
       </div>

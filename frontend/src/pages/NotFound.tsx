@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Button } from "../components/common/Button";
+import { Button } from "antd";
 import { ROUTES } from "../router";
 
 const NotFound: React.FC = () => {
@@ -28,15 +28,15 @@ const NotFound: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="mt-8 space-y-4">
-          <Button
-            as={Link}
-            to={ROUTES.DASHBOARD}
-            variant="primary"
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            Go to Dashboard
-          </Button>
+          <Link to={ROUTES.DASHBOARD}>
+            <Button
+              type="primary"
+              size="large"
+              className="w-full sm:w-auto"
+            >
+              Go to Dashboard
+            </Button>
+          </Link>
 
           <div className="text-sm">
             <button

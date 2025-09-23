@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button, Input, Dropdown, Badge } from "antd";
+import type { MenuProps } from "antd";
 import {
   Bell,
   Menu,
@@ -11,8 +13,6 @@ import {
   Moon,
   ChevronDown,
 } from "lucide-react";
-import { Button } from "../common/Button";
-import { Input } from "../common/Input";
 import { useAuth } from "../../hooks/useAuth";
 import { usePermissions } from "../../hooks/usePermissions";
 import { getInitials } from "../../utils/helpers";
@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate("/auth/login");
   };
 
   const toggleDarkMode = () => {
@@ -58,13 +58,11 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       <div className="flex items-center space-x-4">
         {/* Menu Button */}
         <Button
-          variant="ghost"
-          size="icon"
+          type="text"
+          icon={<Menu className="h-5 w-5" />}
           onClick={onMenuClick}
           className="lg:hidden"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        />
 
         {/* Logo/App Name */}
         <div className="flex items-center space-x-2">
@@ -80,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="hidden md:block md:max-w-md lg:max-w-lg">
           <Input
             placeholder="Search tasks, projects..."
-            leftIcon={<Search className="h-4 w-4" />}
+            prefix={<Search className="h-4 w-4" />}
             className="w-full"
           />
         </div>
@@ -89,29 +87,28 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       {/* Right Section */}
       <div className="flex items-center space-x-3">
         {/* Mobile Search Button */}
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Search className="h-5 w-5" />
-        </Button>
+        <Button
+          type="text"
+          icon={<Search className="h-5 w-5" />}
+          className="md:hidden"
+        />
 
         {/* Dark Mode Toggle */}
-        <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
-          {isDarkMode ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </Button>
+        <Button
+          type="text"
+          icon={isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          onClick={toggleDarkMode}
+        />
 
         {/* Notifications */}
         <div className="relative">
-          <Button variant="ghost" size="icon" onClick={handleNotificationClick}>
-            <Bell className="h-5 w-5" />
-          </Button>
-
-          {/* Notification Badge */}
-          <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-            3
-          </span>
+          <Badge count={3} size="small">
+            <Button
+              type="text"
+              icon={<Bell className="h-5 w-5" />}
+              onClick={handleNotificationClick}
+            />
+          </Badge>
 
           {/* Notifications Dropdown */}
           {isNotificationsOpen && (
@@ -142,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
               </div>
               <div className="p-3 border-t border-gray-200">
-                <Button variant="ghost" size="sm" className="w-full">
+                <Button type="text" size="small" className="w-full">
                   View All Notifications
                 </Button>
               </div>
@@ -153,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         {/* User Menu */}
         <div className="relative">
           <Button
-            variant="ghost"
+            type="text"
             onClick={handleUserMenuClick}
             className="flex items-center space-x-2 px-3"
           >

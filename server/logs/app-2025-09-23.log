@@ -1,0 +1,11 @@
+{"timestamp":"2025-09-23T06:03:51.617Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"0d45d5d3-51d7-49d2-b44c-145ffbf0d368","email":"admin@hjghj123456asmoulana.com"}}
+{"timestamp":"2025-09-23T14:42:58.142Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"3e18b60a-ab3c-411d-a86b-70255b8284c3","email":"admin@fdsfdsfdsmoulana.com"}}
+{"timestamp":"2025-09-23T14:44:34.466Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"ee98fc95-97e3-4f1b-a637-b87ad1b7b490","email":"vahid@gmial.com"}}
+{"timestamp":"2025-09-23T14:44:52.222Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"vahid@gmai.com"}}
+{"timestamp":"2025-09-23T14:45:19.581Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T14:45:52.929Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"ee98fc95-97e3-4f1b-a637-b87ad1b7b490","email":"vahid@gmial.com"}}
+{"timestamp":"2025-09-23T15:44:04.252Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"vahid@gmai.com"}}
+{"timestamp":"2025-09-23T16:30:04.025Z","level":"WARN","message":"Login attempt with invalid password","metadata":{"email":"admin@moulana.com"}}
+{"timestamp":"2025-09-23T16:30:18.940Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"vahid@gmai.com"}}
+{"timestamp":"2025-09-23T16:30:52.832Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T16:31:08.227Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}

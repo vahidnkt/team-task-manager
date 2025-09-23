@@ -1,22 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { Button } from "../../components/common/Button";
-import { Input } from "../../components/common/Input";
+import { Form, message, Checkbox, Button, Input } from "antd";
+import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import { useAuth } from "../../hooks";
-import {
-  registerSchema,
-  type RegisterFormData,
-} from "../../utils/validationSchemas";
 import { ROUTES } from "../../router";
+import { cn } from "../../utils/helpers";
+
+interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  terms: boolean;
+}
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { register: registerUser, isLoading, isAuthenticated } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [form] = Form.useForm();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile screen
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -25,35 +39,18 @@ const Register: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
-    watch,
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  // Watch password field for real-time validation
-  const password = watch("password");
-
-  const onSubmit = async (data: RegisterFormData) => {
+  const onFinish = async (values: RegisterFormData) => {
     try {
       const result = await registerUser({
-        username: data.username,
-        email: data.email,
-        password: data.password,
+        username: values.username,
+        email: values.email,
+        password: values.password,
       });
 
       if (result.success) {
-        // Redirect to login page with success message
+        message.success(
+          "Account created successfully! Please check your email to verify your account."
+        );
         navigate(ROUTES.LOGIN, {
           state: {
             message:
@@ -61,204 +58,227 @@ const Register: React.FC = () => {
           },
         });
       } else {
-        // Handle registration errors
         if (result.error?.includes("Email already exists")) {
-          setError("email", {
-            type: "manual",
-            message: "An account with this email already exists.",
-          });
+          message.error("An account with this email already exists.");
         } else if (result.error?.includes("Username already exists")) {
-          setError("username", {
-            type: "manual",
-            message: "This username is already taken.",
-          });
+          message.error("This username is already taken.");
         } else {
-          setError("root", {
-            type: "manual",
-            message: result.error || "Registration failed. Please try again.",
-          });
+          message.error(
+            result.error || "Registration failed. Please try again."
+          );
         }
       }
     } catch (error) {
-      setError("root", {
-        type: "manual",
-        message: "An unexpected error occurred. Please try again.",
-      });
+      message.error("An unexpected error occurred. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link
-              to={ROUTES.LOGIN}
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-            >
-              Sign in here
-            </Link>
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 overflow-auto relative">
+      {/* Animated background with floating orbs */}
+      <div className="animated-background">
+        <div className="floating-orb floating-orb-1"></div>
+        <div className="floating-orb floating-orb-2"></div>
+        <div className="floating-orb floating-orb-3"></div>
+        <div className="floating-orb floating-orb-4"></div>
+        <div className="floating-orb floating-orb-5"></div>
+      </div>
 
-        {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
-            {/* Username Field */}
-            <div>
-              <Input
-                {...register("username")}
-                type="text"
-                label="Username"
-                placeholder="Choose a username"
-                error={errors.username?.message}
-                autoComplete="username"
-                required
-                className="w-full"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Only letters, numbers, and underscores allowed
-              </p>
+      <div
+        className={cn(
+          "w-full max-w-2xl auth-card rounded-3xl animate-slide-in transform transition-all duration-300",
+          isMobile ? "p-6" : "p-8"
+        )}
+      >
+        <div className="space-y-6 w-full">
+          {/* Logo and Title */}
+          <div className="text-center">
+            <div className="w-20 h-20 rounded-2xl bg-brand-gradient flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold shadow-lg">
+              TM
             </div>
-
-            {/* Email Field */}
-            <div>
-              <Input
-                {...register("email")}
-                type="email"
-                label="Email address"
-                placeholder="Enter your email"
-                error={errors.email?.message}
-                autoComplete="email"
-                required
-                className="w-full"
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <Input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                label="Password"
-                placeholder="Create a password"
-                error={errors.password?.message}
-                autoComplete="new-password"
-                required
-                className="w-full"
-                rightIcon={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-                }
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Must contain at least 8 characters with uppercase, lowercase,
-                and number
-              </p>
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <Input
-                {...register("confirmPassword")}
-                type={showConfirmPassword ? "text" : "password"}
-                label="Confirm Password"
-                placeholder="Confirm your password"
-                error={errors.confirmPassword?.message}
-                autoComplete="new-password"
-                required
-                className="w-full"
-                rightIcon={
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeSlashIcon className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-                }
-              />
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Create Account
+            </h1>
+            <p className="text-gray-600 text-base">
+              Join TaskMaster to manage your projects
+            </p>
           </div>
 
-          {/* Terms and Conditions */}
-          <div className="flex items-center">
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              required
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-              I agree to the{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500">
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500">
-                Privacy Policy
-              </a>
-            </label>
-          </div>
-
-          {/* Error Message */}
-          {errors.root && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {errors.root.message}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full"
-            disabled={isSubmitting || isLoading}
-            loading={isSubmitting || isLoading}
+          {/* Register Form */}
+          <Form
+            form={form}
+            name="register"
+            onFinish={onFinish}
+            autoComplete="off"
+            size="large"
+            layout="vertical"
+            className="space-y-4"
           >
-            {isSubmitting || isLoading
-              ? "Creating account..."
-              : "Create account"}
-          </Button>
-        </form>
+            {/* First Row - Username and Email */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Form.Item
+                label={<span className="text-gray-700 font-medium text-sm">Username</span>}
+                name="username"
+                rules={[
+                  { required: true, message: "Username required!" },
+                  {
+                    min: 3,
+                    message: "Min 3 characters!",
+                  },
+                  {
+                    max: 50,
+                    message: "Max 50 characters!",
+                  },
+                  {
+                    pattern: /^[a-zA-Z0-9_]+$/,
+                    message: "Letters, numbers, underscores only!",
+                  },
+                ]}
+              >
+                <Input
+                  prefix={<UserOutlined className="text-blue-500" />}
+                  placeholder="Username"
+                  autoComplete="username"
+                  size="large"
+                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                />
+              </Form.Item>
 
-        {/* Password Requirements */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-800 mb-2">
-            Password Requirements:
-          </h3>
-          <ul className="text-xs text-gray-600 space-y-1">
-            <li>• At least 8 characters long</li>
-            <li>• Contains at least one uppercase letter</li>
-            <li>• Contains at least one lowercase letter</li>
-            <li>• Contains at least one number</li>
-          </ul>
+              <Form.Item
+                label={<span className="text-gray-700 font-medium text-sm">Email Address</span>}
+                name="email"
+                rules={[
+                  { required: true, message: "Email required!" },
+                  { type: "email", message: "Valid email required!" },
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined className="text-blue-500" />}
+                  placeholder="Email address"
+                  autoComplete="email"
+                  size="large"
+                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                />
+              </Form.Item>
+            </div>
+
+            {/* Second Row - Password and Confirm Password */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Form.Item
+                label={<span className="text-gray-700 font-medium text-sm">Password</span>}
+                name="password"
+                rules={[
+                  { required: true, message: "Password required!" },
+                  {
+                    min: 8,
+                    message: "Min 8 characters!",
+                  },
+                  {
+                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                    message: "Include uppercase, lowercase, number!",
+                  },
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="text-blue-500" />}
+                  placeholder="Create password"
+                  autoComplete="new-password"
+                  size="large"
+                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label={<span className="text-gray-700 font-medium text-sm">Confirm Password</span>}
+                name="confirmPassword"
+                dependencies={["password"]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Confirm password!",
+                  },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("Passwords don't match!")
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="text-blue-500" />}
+                  placeholder="Confirm password"
+                  autoComplete="new-password"
+                  size="large"
+                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="terms"
+              valuePropName="checked"
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Please accept the terms and conditions!")
+                        ),
+                },
+              ]}
+            >
+              <Checkbox className="text-gray-700 text-sm">
+                I agree to the{" "}
+                <a
+                  href="#"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a
+                  href="#"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Privacy Policy
+                </a>
+              </Checkbox>
+            </Form.Item>
+
+            <Form.Item className="mb-6">
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={isLoading}
+                size="large"
+                className="w-full h-12 bg-brand-gradient hover:bg-brand-gradient-hover border-none rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </Form.Item>
+          </Form>
+
+          {/* Login Link */}
+          <div className="text-center pt-6 border-t border-gray-200/50">
+            <p className="text-gray-600 text-sm mb-4">
+              Already have an account?
+            </p>
+            <Link to={ROUTES.LOGIN}>
+              <Button
+                type="default"
+                className="w-full h-11 bg-white/60 hover:bg-white/80 border-gray-200 text-gray-700 font-medium rounded-lg transition-all duration-200"
+                size="large"
+              >
+                Sign In Instead
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
