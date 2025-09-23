@@ -57,37 +57,45 @@ export const useAuth = () => {
   // Auto logout when token expires (7 days)
   useEffect(() => {
     // Only check token expiration after rehydration is complete
-    if (!isRehydrated) return;
+    if (!isRehydrated || !token) return;
 
-    if (token && isAuthenticated) {
-      try {
-        // Decode JWT token to check expiration
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const expirationTime = payload.exp * 1000; // Convert to milliseconds
-        const currentTime = Date.now();
-        const timeUntilExpiry = expirationTime - currentTime;
+    try {
+      // Decode JWT token to check expiration
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expirationTime = payload.exp * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+      const timeUntilExpiry = expirationTime - currentTime;
 
-        if (timeUntilExpiry > 0) {
-          // Set timeout to auto-logout when token expires
-          const timeoutId = setTimeout(() => {
-            dispatch(logout());
-            showError("Session expired. Please login again.");
-            navigate(ROUTES.LOGIN, { replace: true });
-          }, timeUntilExpiry);
+      if (timeUntilExpiry > 0) {
+        // Token is valid, ensure user is authenticated
+        if (!isAuthenticated) {
+          dispatch(loginSuccess({ user, token }));
+        }
 
-          return () => clearTimeout(timeoutId);
-        } else {
-          // Token already expired
+        // Set timeout to auto-logout when token expires
+        const timeoutId = setTimeout(() => {
           dispatch(logout());
+          showError("Session expired. Please login again.");
+          navigate(ROUTES.LOGIN, { replace: true });
+        }, timeUntilExpiry);
+
+        return () => clearTimeout(timeoutId);
+      } else {
+        // Token already expired, only logout if currently authenticated
+        if (isAuthenticated) {
+          dispatch(logout());
+          showError("Session expired. Please login again.");
           navigate(ROUTES.LOGIN, { replace: true });
         }
-      } catch (error) {
-        // Invalid token format, logout immediately
+      }
+    } catch (error) {
+      // Invalid token format, only logout if currently authenticated
+      if (isAuthenticated) {
         dispatch(logout());
         navigate(ROUTES.LOGIN, { replace: true });
       }
     }
-  }, [token, isAuthenticated, dispatch, navigate, showError, isRehydrated]);
+  }, [token, user, isAuthenticated, dispatch, navigate, showError, isRehydrated]);
 
   // Login function
   const login = useCallback(
@@ -200,7 +208,7 @@ export const useAuth = () => {
     // State
     user,
     token,
-    isAuthenticated: isAuthenticated && isRehydrated, // Only consider authenticated after rehydration
+    isAuthenticated: isRehydrated ? isAuthenticated : false, // Show auth status after rehydration
     isLoading: isLoading || isLoginLoading || isRegisterLoading || !isRehydrated,
     error,
     profile,

@@ -232,10 +232,10 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Welcome Text */}
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
                 Welcome back, {user?.username || "User"}! 👋
               </h1>
-              <p className="text-base sm:text-lg text-gray-600">
+              <p className="text-base sm:text-lg text-white/80">
                 {isAdmin()
                   ? "Admin Dashboard - Manage your entire system"
                   : "Your personal task management hub"}
@@ -244,18 +244,12 @@ const Dashboard: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                type="primary"
+              <button
                 onClick={handleCreateTask}
-                size="large"
-                className="h-12 bg-brand-gradient hover:bg-brand-gradient-hover border-none shadow-lg hover:shadow-xl transition-all duration-200"
-                style={{
-                  background: "linear-gradient(45deg, #1890ff, #722ed1)",
-                  border: "none",
-                }}
+                className="h-12 px-6 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 ✨ Create Task
-              </Button>
+              </button>
               {isAdmin() && (
                 <Button
                   type="default"

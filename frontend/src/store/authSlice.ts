@@ -86,20 +86,22 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Handle Redux Persist rehydration
-    builder.addCase(REHYDRATE, (state, action) => {
-      if (action.payload?.auth) {
-        const { token, user } = action.payload.auth;
+    builder.addCase(REHYDRATE, (state, action: any) => {
+      if (action.payload && action.payload.auth) {
+        const { token, user, isAuthenticated } = action.payload.auth;
 
-        // Check if the persisted token is still valid
-        if (token && user && isTokenValid(token)) {
+        // Always restore the persisted state first
+        if (token && user) {
           state.user = user;
           state.token = token;
-          state.isAuthenticated = true;
-        } else {
-          // Token is invalid or expired, clear the auth state
-          state.user = null;
-          state.token = null;
-          state.isAuthenticated = false;
+
+          // Check if the persisted token is still valid
+          if (isTokenValid(token)) {
+            state.isAuthenticated = true;
+          } else {
+            // Token is expired, but don't clear immediately - let useAuth handle it
+            state.isAuthenticated = false;
+          }
         }
 
         state.isLoading = false;

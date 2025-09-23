@@ -18,7 +18,8 @@ import { toastMiddleware } from "./middleware/toastMiddleware";
 const authPersistConfig = {
   key: "auth",
   storage,
-  whitelist: ["token", "user"], // Only persist JWT token and basic user info
+  whitelist: ["token", "user", "isAuthenticated"], // Persist auth state
+  version: 1,
 };
 
 // Persist configuration for UI (optional - for theme, etc.)

@@ -21,16 +21,28 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
-      {/* Sidebar - Fixed full height */}
+    <div className="h-screen relative flex overflow-hidden">
+      {/* Animated background with floating orbs - same as Login page */}
+      <div className="animated-background">
+        <div className="floating-orb floating-orb-1"></div>
+        <div className="floating-orb floating-orb-2"></div>
+        <div className="floating-orb floating-orb-3"></div>
+        <div className="floating-orb floating-orb-4"></div>
+        <div className="floating-orb floating-orb-5"></div>
+      </div>
+
+      {/* Sidebar - Fixed full height with glassmorphism */}
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:z-auto",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-          "h-full"
+          "h-full relative"
         )}
       >
-        <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+        <div className="absolute inset-0 glass-card border-r border-white/30" />
+        <div className="relative z-10 h-full">
+          <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+        </div>
       </div>
 
       {/* Mobile backdrop */}
@@ -42,12 +54,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Header */}
-        <Header
-          onMenuClick={toggleMobileMenu}
-          sidebarCollapsed={sidebarCollapsed}
-        />
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative z-10">
+        {/* Header with glassmorphism */}
+        <div className="relative">
+          <div className="absolute inset-0 glass-card border-b border-white/30" />
+          <div className="relative z-10">
+            <Header
+              onMenuClick={toggleMobileMenu}
+              sidebarCollapsed={sidebarCollapsed}
+            />
+          </div>
+        </div>
 
         {/* Page Content */}
         <main className={cn("flex-1 overflow-auto h-full", className)}>
