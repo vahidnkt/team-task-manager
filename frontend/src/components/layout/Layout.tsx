@@ -23,7 +23,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
   return (
     <div className="h-screen relative flex overflow-hidden">
       {/* Animated background with floating orbs - same as Login page */}
-      <div className="animated-background">
+      <div className="animated-background fixed inset-0 z-0">
         <div className="floating-orb floating-orb-1"></div>
         <div className="floating-orb floating-orb-2"></div>
         <div className="floating-orb floating-orb-3"></div>
@@ -34,8 +34,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
       {/* Sidebar - Fixed full height with glassmorphism */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:z-auto",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed inset-y-0 left-0 z-30 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:z-30",
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "h-full relative"
         )}
       >
@@ -54,9 +54,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative z-20">
         {/* Header with glassmorphism */}
-        <div className="relative">
+        <div className="relative z-10">
           <div className="absolute inset-0 glass-card border-b border-white/30" />
           <div className="relative z-10">
             <Header

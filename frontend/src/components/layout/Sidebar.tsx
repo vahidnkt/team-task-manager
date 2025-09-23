@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "../../utils/helpers";
 import { usePermissions } from "../../hooks/usePermissions";
+import { useAuth } from "../../hooks/useAuth";
+import { getInitials } from "../../utils/helpers";
 import {
   Home,
   FolderOpen,
@@ -124,6 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { hasPermission } = usePermissions();
+  const { user } = useAuth();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
 
   const handleItemClick = (item: MenuItem) => {
@@ -168,9 +171,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
           onClick={() => handleItemClick(item)}
           className={cn(
             "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors",
-            "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
-            isActive && "bg-blue-100 text-blue-700",
-            !isActive && "text-gray-700",
+            "hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+            isActive && "bg-blue-500/30 text-blue-200",
+            !isActive && "text-white",
             level > 0 && "ml-4"
           )}
         >
@@ -183,16 +186,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
 
           <div className="flex items-center space-x-2">
             {item.badge && !collapsed && (
-              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500/80 rounded-full border border-red-400/30">
                 {item.badge}
               </span>
             )}
             {hasChildren && !collapsed && (
               <span className="flex-shrink-0">
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 text-white/70" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 text-white/70" />
                 )}
               </span>
             )}
@@ -212,22 +215,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   return (
     <aside
       className={cn(
-        "bg-white border-r border-gray-200 transition-all duration-300 h-screen flex flex-col",
+        "transition-all duration-300 h-screen flex flex-col",
         collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex flex-col h-full overflow-hidden">
         {/* Logo Section */}
-        <div className="flex items-center px-4 py-4 border-b border-gray-200">
-          <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <div className="flex items-center px-4 py-4 border-b border-white/30">
+          <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
             <span className="text-white font-bold text-sm">TM</span>
           </div>
           {!collapsed && (
             <div className="ml-3">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-white">
                 Task Manager
               </h2>
-              <p className="text-xs text-gray-500">Project Management</p>
+              <p className="text-xs text-white/70">Project Management</p>
             </div>
           )}
         </div>
@@ -238,23 +241,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         </nav>
 
         {/* User Section */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-white/30 p-4">
           <div
             className={cn(
               "flex items-center space-x-3",
               collapsed && "justify-center"
             )}
           >
-            <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-white" />
+            <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-white text-sm font-medium">
+                {user ? getInitials(user.username) : "U"}
+              </span>
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  John Doe
+                <p className="text-sm font-medium text-white truncate">
+                  {user?.username || "User"}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
-                  john@example.com
+                <p className="text-xs text-white/70 truncate">
+                  {user?.email || "user@example.com"}
                 </p>
               </div>
             )}

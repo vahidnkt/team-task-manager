@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
           {/* Notifications Dropdown */}
           {isNotificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 glass-card border border-white/30 rounded-lg shadow-lg z-50">
+            <div className="absolute right-0 mt-2 w-80 glass-card border border-white/30 rounded-lg shadow-lg z-[9999]">
               <div className="p-4 border-b border-white/30">
                 <h3 className="text-sm font-medium text-white">
                   Notifications
@@ -175,19 +175,19 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               </span>
             </div>
             <span className="hidden md:block text-sm font-medium text-white">
-              {user?.username}
+              {user?.username || "User"}
             </span>
             <ChevronDown className="h-4 w-4 text-white/70" />
           </button>
 
           {/* User Dropdown Menu */}
           {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 glass-card border border-white/30 rounded-lg shadow-lg z-50">
+            <div className="absolute right-0 mt-2 w-56 glass-card border border-white/30 rounded-lg shadow-lg z-[9999]">
               <div className="p-3 border-b border-white/30">
                 <p className="text-sm font-medium text-white">
-                  {user?.username}
+                  {user?.username || "User"}
                 </p>
-                <p className="text-xs text-white/70">{user?.email}</p>
+                <p className="text-xs text-white/70">{user?.email || "user@example.com"}</p>
                 {isAdmin() && (
                   <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-500/50 text-blue-200 rounded-full border border-blue-300/30">
                     Admin

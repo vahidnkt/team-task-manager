@@ -233,7 +233,7 @@ const Dashboard: React.FC = () => {
             {/* Welcome Text */}
             <div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
-                Welcome back, {user?.username || "User"}! 👋
+                Hi {user?.username || "User"}! 👋
               </h1>
               <p className="text-base sm:text-lg text-white/80">
                 {isAdmin()
