@@ -212,11 +212,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   return (
     <aside
       className={cn(
-        "bg-white border-r border-gray-200 transition-all duration-300",
+        "bg-white border-r border-gray-200 transition-all duration-300 h-screen flex flex-col",
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full overflow-hidden">
         {/* Logo Section */}
         <div className="flex items-center px-4 py-4 border-b border-gray-200">
           <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">

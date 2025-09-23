@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./useToast";
@@ -24,10 +24,21 @@ export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { showError } = useToast();
+  const [isRehydrated, setIsRehydrated] = useState(false);
 
   // Select auth state
   const auth = useSelector((state: RootState) => state.auth);
   const { user, token, isAuthenticated, isLoading, error } = auth;
+
+  // Wait for redux-persist to rehydrate before making navigation decisions
+  useEffect(() => {
+    // Small delay to ensure rehydration is complete
+    const timer = setTimeout(() => {
+      setIsRehydrated(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // API mutations
   const [loginMutation, { isLoading: isLoginLoading }] = useLoginMutation();
@@ -45,6 +56,9 @@ export const useAuth = () => {
 
   // Auto logout when token expires (7 days)
   useEffect(() => {
+    // Only check token expiration after rehydration is complete
+    if (!isRehydrated) return;
+
     if (token && isAuthenticated) {
       try {
         // Decode JWT token to check expiration
@@ -73,7 +87,7 @@ export const useAuth = () => {
         navigate(ROUTES.LOGIN, { replace: true });
       }
     }
-  }, [token, isAuthenticated, dispatch, navigate, showError]);
+  }, [token, isAuthenticated, dispatch, navigate, showError, isRehydrated]);
 
   // Login function
   const login = useCallback(
@@ -186,8 +200,8 @@ export const useAuth = () => {
     // State
     user,
     token,
-    isAuthenticated,
-    isLoading: isLoading || isLoginLoading || isRegisterLoading,
+    isAuthenticated: isAuthenticated && isRehydrated, // Only consider authenticated after rehydration
+    isLoading: isLoading || isLoginLoading || isRegisterLoading || !isRehydrated,
     error,
     profile,
 

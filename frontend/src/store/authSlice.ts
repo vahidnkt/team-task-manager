@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { REHYDRATE } from "redux-persist";
 import type { UserWithoutPassword, AuthState } from "../types";
 
 // Initial state
@@ -8,6 +9,20 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+};
+
+// Helper function to check if token is valid
+const isTokenValid = (token: string | null): boolean => {
+  if (!token) return false;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const expirationTime = payload.exp * 1000;
+    const currentTime = Date.now();
+    return currentTime < expirationTime;
+  } catch {
+    return false;
+  }
 };
 
 // Auth slice
@@ -68,6 +83,29 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.error = null;
     },
+  },
+  extraReducers: (builder) => {
+    // Handle Redux Persist rehydration
+    builder.addCase(REHYDRATE, (state, action) => {
+      if (action.payload?.auth) {
+        const { token, user } = action.payload.auth;
+
+        // Check if the persisted token is still valid
+        if (token && user && isTokenValid(token)) {
+          state.user = user;
+          state.token = token;
+          state.isAuthenticated = true;
+        } else {
+          // Token is invalid or expired, clear the auth state
+          state.user = null;
+          state.token = null;
+          state.isAuthenticated = false;
+        }
+
+        state.isLoading = false;
+        state.error = null;
+      }
+    });
   },
 });
 

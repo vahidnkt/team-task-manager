@@ -214,16 +214,58 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Responsive adjustments for orbs */
+/* Responsive adjustments for orbs and animations */
 @media (max-width: 768px) {
   .floating-orb {
     transform: scale(0.7);
+  }
+
+  /* Reduce animation intensity on smaller screens */
+  .card-3d:hover {
+    transform: scale(1.02) translateY(-4px) !important;
+  }
+
+  /* Simplify hover effects on mobile */
+  .group:hover .group-hover\\:scale-125 {
+    transform: scale(1.1) !important;
   }
 }
 
 @media (max-width: 480px) {
   .floating-orb {
     transform: scale(0.5);
+  }
+
+  /* Further reduce animations on very small screens */
+  .card-3d:hover {
+    transform: scale(1.01) translateY(-2px) !important;
+  }
+
+  /* Disable rotation on small screens for better UX */
+  .group:hover .group-hover\\:rotate-12,
+  .group:hover .group-hover\\:rotate-6,
+  .group:hover .group-hover\\:rotate-3 {
+    transform: rotate(0deg) !important;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .floating-orb {
+    animation: none;
+  }
+
+  .animate-ping,
+  .animate-pulse,
+  .float-animation,
+  .glow-pulse,
+  .shimmer-effect,
+  .gradient-animated {
+    animation: none;
+  }
+
+  .card-3d:hover {
+    transform: none !important;
   }
 }
 
@@ -493,6 +535,44 @@ body {
     }
   }
 
+  /* Enhanced 3D animations */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Smooth morphing gradient */
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
   /* Custom gradients */
   .gradient-primary {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -552,6 +632,44 @@ body {
 
   .interactive:active {
     @apply transform scale-95;
+  }
+
+  /* Enhanced 3D effects */
+  .card-3d {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    will-change: transform;
+  }
+
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .shimmer-effect {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .gradient-animated {
+    background: linear-gradient(
+      -45deg,
+      #ee7752,
+      #e73c7e,
+      #23a6d5,
+      #23d5ab
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
   }
 }
 

@@ -1,10 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "antd";
+import { useAuth } from "../../hooks";
+import { ROUTES } from "../../router";
+import { formatRelativeTime } from "../../utils/dateUtils";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { PriorityBadge } from "../../components/ui/PriorityBadge";
-import { useAuth } from "../../hooks";
-import { formatRelativeTime } from "../../utils/dateUtils";
-import { ROUTES } from "../../router";
 
 // Static data for demonstration - will be replaced with real API calls
 const USER_DASHBOARD_DATA = {
@@ -214,17 +215,27 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container-centered section-padding">
+    <>
+      {/* Animated background with floating orbs */}
+      <div className="animated-background">
+        <div className="floating-orb floating-orb-1"></div>
+        <div className="floating-orb floating-orb-2"></div>
+        <div className="floating-orb floating-orb-3"></div>
+        <div className="floating-orb floating-orb-4"></div>
+        <div className="floating-orb floating-orb-5"></div>
+      </div>
+
+      {/* Dashboard Content */}
+      <div className="relative z-10 -mx-4 lg:-mx-6 -my-4 lg:-my-6 min-h-screen p-4 lg:p-6">
+        {/* Header Section */}
+        <div className="glass-card rounded-xl p-6 mb-8 border border-white/30">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Welcome Text */}
-            <div className="animate-fade-in">
-              <h1 className="text-responsive-xl font-bold text-gray-900 mb-2">
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
                 Welcome back, {user?.username || "User"}! 👋
               </h1>
-              <p className="text-responsive-base text-gray-600">
+              <p className="text-base sm:text-lg text-gray-600">
                 {isAdmin()
                   ? "Admin Dashboard - Manage your entire system"
                   : "Your personal task management hub"}
@@ -232,19 +243,25 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 animate-slide-up">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                variant="primary"
+                type="primary"
                 onClick={handleCreateTask}
-                className="btn-primary gradient-primary shadow-lg hover:shadow-xl"
+                size="large"
+                className="h-12 bg-brand-gradient hover:bg-brand-gradient-hover border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                style={{
+                  background: "linear-gradient(45deg, #1890ff, #722ed1)",
+                  border: "none",
+                }}
               >
                 ✨ Create Task
               </Button>
               {isAdmin() && (
                 <Button
-                  variant="secondary"
+                  type="default"
                   onClick={handleCreateProject}
-                  className="btn-secondary"
+                  size="large"
+                  className="h-12 bg-white/60 hover:bg-white/80 border-gray-200 text-gray-700 transition-all duration-200"
                 >
                   📁 Create Project
                 </Button>
@@ -252,501 +269,395 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container-centered py-8 space-y-8">
-        {/* Stats Cards */}
-        <div className="animate-slide-up">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            📊 Overview
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatsCard
-              title="Total Tasks"
-              value={dashboardData.stats.totalTasks}
-              subtitle={
-                isAdmin() ? "All tasks in system" : "Tasks assigned to you"
-              }
-              color="primary"
-              icon="📋"
-            />
-            <StatsCard
-              title="Completed"
-              value={dashboardData.stats.completedTasks}
-              subtitle="Finished tasks"
-              color="success"
-              icon="✅"
-            />
-            <StatsCard
-              title="In Progress"
-              value={dashboardData.stats.inProgressTasks}
-              subtitle="Active tasks"
-              color="warning"
-              icon="🔄"
-            />
-            <StatsCard
-              title="Overdue"
-              value={dashboardData.stats.overdueTasks}
-              subtitle="Past due date"
-              color="error"
-              icon="⚠️"
-            />
-          </div>
-        </div>
-
-        {/* Admin-specific stats */}
-        {isAdmin() && (
-          <div className="animate-slide-up">
+        {/* Main Content */}
+        <div className="space-y-8">
+          {/* Stats Cards */}
+          <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              🔧 Admin Overview
+              📊 Overview
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatsCard
-                title="Total Projects"
-                value={dashboardData.stats.totalProjects}
-                subtitle="All projects in system"
-                color="secondary"
-                icon="📁"
-              />
-              <StatsCard
-                title="Active Projects"
-                value={dashboardData.stats.activeProjects}
-                subtitle="Currently running"
-                color="primary"
-                icon="🚀"
-              />
-              <StatsCard
-                title="Total Users"
-                value={25}
-                subtitle="Registered users"
-                color="warning"
-                icon="👥"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Tasks</p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.totalTasks}</p>
+                    <p className="text-sm text-gray-500">{isAdmin() ? "All tasks in system" : "Tasks assigned to you"}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+                    <span className="text-2xl">📋</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Completed</p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.completedTasks}</p>
+                    <p className="text-sm text-gray-500">Finished tasks</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-green-50 text-green-600">
+                    <span className="text-2xl">✅</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">In Progress</p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.inProgressTasks}</p>
+                    <p className="text-sm text-gray-500">Active tasks</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-yellow-50 text-yellow-600">
+                    <span className="text-2xl">🔄</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Overdue</p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.overdueTasks}</p>
+                    <p className="text-sm text-gray-500">Past due date</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-red-50 text-red-600">
+                    <span className="text-2xl">⚠️</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* User-specific project stats */}
-        {!isAdmin() && (
-          <div className="animate-slide-up">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              📂 My Projects
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatsCard
-                title="My Projects"
-                value={dashboardData.stats.totalProjects}
-                subtitle="Projects you're involved in"
-                color="secondary"
-                icon="📁"
-              />
-              <StatsCard
-                title="Active Projects"
-                value={dashboardData.stats.activeProjects}
-                subtitle="Currently working"
-                color="primary"
-                icon="🚀"
-              />
-              <StatsCard
-                title="Completed Projects"
-                value={dashboardData.stats.completedProjects}
-                subtitle="Finished projects"
-                color="success"
-                icon="🎉"
-              />
+          {/* Admin-specific stats */}
+          {isAdmin() && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                🔧 Admin Overview
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Projects</p>
+                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.totalProjects}</p>
+                      <p className="text-sm text-gray-500">All projects in system</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
+                      <span className="text-2xl">📁</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Active Projects</p>
+                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.activeProjects}</p>
+                      <p className="text-sm text-gray-500">Currently running</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Users</p>
+                      <p className="text-3xl font-bold text-gray-900">25</p>
+                      <p className="text-sm text-gray-500">Registered users</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-orange-50 text-orange-600">
+                      <span className="text-2xl">👥</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Recent Tasks and Activities */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up">
-          {/* Recent Tasks */}
-          <div className="card hover:shadow-lg transition-all duration-300">
-            <div className="card-header">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  📝 {isAdmin() ? "Recent Tasks" : "My Recent Tasks"}
+          {/* User-specific project stats */}
+          {!isAdmin() && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                📂 My Projects
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">My Projects</p>
+                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.totalProjects}</p>
+                      <p className="text-sm text-gray-500">Projects you're involved in</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
+                      <span className="text-2xl">📁</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Active Projects</p>
+                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.activeProjects}</p>
+                      <p className="text-sm text-gray-500">Currently working</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Completed Projects</p>
+                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.completedProjects}</p>
+                      <p className="text-sm text-gray-500">Finished projects</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-green-50 text-green-600">
+                      <span className="text-2xl">🎉</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recent Tasks and Activities */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Recent Tasks */}
+            <div className="glass-card rounded-xl border border-white/30">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    📝 {isAdmin() ? "Recent Tasks" : "My Recent Tasks"}
+                  </h3>
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={handleViewTasks}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    View All →
+                  </Button>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {dashboardData.recentTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate(ROUTES.TASK_DETAIL(task.id))}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{task.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{task.projectName}</p>
+                          {task.description && (
+                            <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end space-y-2 ml-4">
+                          <StatusBadge status={task.status} />
+                          <PriorityBadge priority={task.priority} />
+                        </div>
+                      </div>
+                      {task.dueDate && (
+                        <div className="mt-3 text-xs text-gray-500">
+                          Due: {new Date(task.dueDate).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {dashboardData.recentTasks.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">📋</div>
+                      <p>No recent tasks</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activities */}
+            <div className="glass-card rounded-xl border border-white/30">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  ⚡ {isAdmin() ? "System Activities" : "My Activities"}
                 </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleViewTasks}
-                  className="btn-ghost"
-                >
-                  View All →
-                </Button>
               </div>
-            </div>
-            <div className="card-content">
-              <div className="space-y-4">
-                {dashboardData.recentTasks.map((task, index) => (
-                  <div
-                    key={task.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <TaskCard task={task} />
-                  </div>
-                ))}
-                {dashboardData.recentTasks.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">📋</div>
-                    <p>No recent tasks</p>
-                  </div>
-                )}
+              <div className="p-6">
+                <div className="space-y-4">
+                  {dashboardData.recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start space-x-3">
+                      <div className={`p-2 rounded-full ${{
+                        task_completed: "bg-green-100 text-green-600",
+                        task_created: "bg-blue-100 text-blue-600",
+                        project_created: "bg-purple-100 text-purple-600",
+                        user_created: "bg-orange-100 text-orange-600",
+                        task_assigned: "bg-indigo-100 text-indigo-600",
+                      }[activity.action] || "bg-gray-100 text-gray-600"}`}>
+                        <span className="text-sm">
+                          {{
+                            task_completed: "✅",
+                            task_created: "➕",
+                            project_created: "📁",
+                            user_created: "👤",
+                            task_assigned: "👥",
+                          }[activity.action] || "📝"}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">{activity.description}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs text-gray-500">{activity.userName}</span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs text-gray-500">
+                            {formatRelativeTime(activity.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {dashboardData.recentActivities.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">⚡</div>
+                      <p>No recent activities</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Recent Activities */}
-          <div className="card hover:shadow-lg transition-all duration-300">
-            <div className="card-header">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                ⚡ {isAdmin() ? "System Activities" : "My Activities"}
-              </h3>
-            </div>
-            <div className="card-content">
-              <div className="space-y-4">
-                {dashboardData.recentActivities.map((activity, index) => (
-                  <div
-                    key={activity.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
+          {/* User Projects Overview */}
+          {!isAdmin() && "projects" in dashboardData && (
+            <div className="glass-card rounded-xl border border-white/30">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    🚀 My Projects
+                  </h3>
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={handleViewProjects}
+                    className="text-blue-600 hover:text-blue-800"
                   >
-                    <ActivityCard activity={activity} />
-                  </div>
-                ))}
-                {dashboardData.recentActivities.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">⚡</div>
-                    <p>No recent activities</p>
-                  </div>
-                )}
+                    View All →
+                  </Button>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {dashboardData.projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="p-6 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate(ROUTES.PROJECT_DETAIL(project.id))}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{project.name}</h4>
+                          <p className="text-sm text-gray-600 mt-1">by {project.creatorName}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {project.progressPercentage}%
+                          </div>
+                          <div className="text-xs text-gray-500">Complete</div>
+                        </div>
+                      </div>
+
+                      {project.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                          {project.description}
+                        </p>
+                      )}
+
+                      <div className="space-y-3">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${project.progressPercentage}%` }}
+                          ></div>
+                        </div>
+
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>
+                            {project.completedTaskCount} of {project.taskCount} tasks
+                          </span>
+                          <span>{formatRelativeTime(project.updatedAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {dashboardData.projects.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">🚀</div>
+                      <p>No projects yet</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* User Projects Overview */}
-        {!isAdmin() && "projects" in dashboardData && (
-          <div className="card animate-slide-up hover:shadow-lg transition-all duration-300">
-            <div className="card-header">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  🚀 My Projects
+          {/* Admin Quick Actions */}
+          {isAdmin() && (
+            <div className="glass-card rounded-xl border border-white/30">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  ⚡ Admin Quick Actions
                 </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleViewProjects}
-                  className="btn-ghost"
-                >
-                  View All →
-                </Button>
               </div>
-            </div>
-            <div className="card-content">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {dashboardData.projects.map((project, index) => (
-                  <div
-                    key={project.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 150}ms` }}
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button
+                    type="primary"
+                    onClick={handleViewUsers}
+                    size="large"
+                    className="w-full h-12 bg-brand-gradient hover:bg-brand-gradient-hover border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                    style={{
+                      background: "linear-gradient(45deg, #1890ff, #722ed1)",
+                      border: "none",
+                    }}
                   >
-                    <ProjectCard project={project} />
-                  </div>
-                ))}
-                {dashboardData.projects.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">🚀</div>
-                    <p>No projects yet</p>
-                  </div>
-                )}
+                    👥 Manage Users
+                  </Button>
+                  <Button
+                    type="default"
+                    onClick={handleViewProjects}
+                    size="large"
+                    className="w-full h-12 bg-white/60 hover:bg-white/80 border-gray-200 text-gray-700 transition-all duration-200"
+                  >
+                    📁 Manage Projects
+                  </Button>
+                  <Button
+                    type="default"
+                    onClick={handleViewTasks}
+                    size="large"
+                    className="w-full h-12 bg-white/60 hover:bg-white/80 border-gray-200 text-gray-700 transition-all duration-200"
+                  >
+                    📝 Manage Tasks
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Admin Quick Actions */}
-        {isAdmin() && (
-          <div className="card animate-slide-up hover:shadow-lg transition-all duration-300">
-            <div className="card-header">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                ⚡ Admin Quick Actions
-              </h3>
-            </div>
-            <div className="card-content">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button
-                  variant="primary"
-                  onClick={handleViewUsers}
-                  className="w-full btn-primary interactive"
-                >
-                  👥 Manage Users
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={handleViewProjects}
-                  className="w-full btn-secondary interactive"
-                >
-                  📁 Manage Projects
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={handleViewTasks}
-                  className="w-full btn-secondary interactive"
-                >
-                  📝 Manage Tasks
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Stats Card Component
-interface StatsCardProps {
-  title: string;
-  value: number;
-  subtitle: string;
-  color: "primary" | "success" | "warning" | "error" | "secondary";
-  icon: string;
-}
-
-const StatsCard: React.FC<StatsCardProps> = ({
-  title,
-  value,
-  subtitle,
-  color,
-  icon,
-}) => {
-  const colorClasses = {
-    primary: "text-primary-600 bg-primary-50 border-primary-100",
-    success: "text-success-600 bg-success-50 border-success-100",
-    warning: "text-warning-600 bg-warning-50 border-warning-100",
-    error: "text-error-600 bg-error-50 border-error-100",
-    secondary: "text-secondary-600 bg-secondary-50 border-secondary-100",
-  };
-
-  return (
-    <div className="card group hover:shadow-xl transition-all duration-300 interactive">
-      <div className="card-content">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
-            <p className="text-sm text-gray-500">{subtitle}</p>
-          </div>
-          <div
-            className={`p-4 rounded-2xl border-2 ${colorClasses[color]} group-hover:scale-110 transition-transform duration-300`}
-          >
-            <span className="text-2xl">{icon}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Task Card Component
-interface TaskCardProps {
-  task: {
-    id: string;
-    title: string;
-    description?: string;
-    status: "todo" | "in_progress" | "done";
-    priority: "low" | "medium" | "high";
-    dueDate?: string;
-    projectId: string;
-    projectName: string;
-    assigneeId?: string;
-    assigneeName?: string;
-    createdAt: string;
-  };
-}
-
-const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-  const navigate = useNavigate();
-
-  const handleTaskClick = () => {
-    navigate(ROUTES.TASK_DETAIL(task.id));
-  };
-
-  return (
-    <div
-      className="p-4 border border-gray-200 rounded-xl hover:bg-gray-50 hover:shadow-md cursor-pointer transition-all duration-200 group"
-      onClick={handleTaskClick}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-            {task.title}
-          </h4>
-          <p className="text-sm text-gray-600 mt-1 font-medium">
-            {task.projectName}
-          </p>
-          {task.description && (
-            <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-              {task.description}
-            </p>
           )}
         </div>
-        <div className="flex flex-col items-end space-y-2 ml-4">
-          <StatusBadge status={task.status} />
-          <PriorityBadge priority={task.priority} />
-        </div>
       </div>
-      {task.dueDate && (
-        <div className="mt-3 flex items-center text-xs text-gray-500">
-          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Activity Card Component
-interface ActivityCardProps {
-  activity: {
-    id: string;
-    action: string;
-    description: string;
-    userId: string;
-    userName: string;
-    projectId?: string;
-    projectName?: string;
-    taskId?: string;
-    taskTitle?: string;
-    createdAt: string;
-  };
-}
-
-const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
-  const getActivityIcon = (action: string) => {
-    switch (action) {
-      case "task_completed":
-        return "✅";
-      case "task_created":
-        return "➕";
-      case "project_created":
-        return "📁";
-      case "user_created":
-        return "👤";
-      case "task_assigned":
-        return "👥";
-      default:
-        return "📝";
-    }
-  };
-
-  const getActivityColor = (action: string) => {
-    switch (action) {
-      case "task_completed":
-        return "text-green-600 bg-green-100";
-      case "task_created":
-        return "text-blue-600 bg-blue-100";
-      case "project_created":
-        return "text-purple-600 bg-purple-100";
-      case "user_created":
-        return "text-orange-600 bg-orange-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
-  };
-
-  return (
-    <div className="flex items-start space-x-3">
-      <div className={`p-2 rounded-full ${getActivityColor(activity.action)}`}>
-        <span className="text-sm">{getActivityIcon(activity.action)}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900">{activity.description}</p>
-        <div className="flex items-center space-x-2 mt-1">
-          <span className="text-xs text-gray-500">{activity.userName}</span>
-          <span className="text-xs text-gray-400">•</span>
-          <span className="text-xs text-gray-500">
-            {formatRelativeTime(activity.createdAt)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Project Card Component
-interface ProjectCardProps {
-  project: {
-    id: string;
-    name: string;
-    description?: string;
-    taskCount: number;
-    completedTaskCount: number;
-    progressPercentage: number;
-    createdBy: string;
-    creatorName: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-}
-
-const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
-  const navigate = useNavigate();
-
-  const handleProjectClick = () => {
-    navigate(ROUTES.PROJECT_DETAIL(project.id));
-  };
-
-  return (
-    <div
-      className="p-6 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-      onClick={handleProjectClick}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h4 className="font-semibold text-gray-900">{project.name}</h4>
-          <p className="text-sm text-gray-600 mt-1">by {project.creatorName}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-blue-600">
-            {project.progressPercentage}%
-          </div>
-          <div className="text-xs text-gray-500">Complete</div>
-        </div>
-      </div>
-
-      {project.description && (
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-          {project.description}
-        </p>
-      )}
-
-      <div className="space-y-3">
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${project.progressPercentage}%` }}
-          ></div>
-        </div>
-
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>
-            {project.completedTaskCount} of {project.taskCount} tasks
-          </span>
-          <span>{formatRelativeTime(project.updatedAt)}</span>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

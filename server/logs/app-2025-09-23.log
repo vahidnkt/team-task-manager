@@ -9,3 +9,12 @@
 {"timestamp":"2025-09-23T16:30:18.940Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"vahid@gmai.com"}}
 {"timestamp":"2025-09-23T16:30:52.832Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
 {"timestamp":"2025-09-23T16:31:08.227Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T16:33:57.256Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T16:43:36.946Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T16:56:58.378Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T16:57:15.832Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"vahid@gmai.com"}}
+{"timestamp":"2025-09-23T16:57:33.047Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T17:09:26.208Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T17:19:04.162Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T17:20:07.664Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}
+{"timestamp":"2025-09-23T17:36:11.806Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"676b5e8d-656e-4fba-802c-89978d73361b","email":"vahid@gmail.com"}}

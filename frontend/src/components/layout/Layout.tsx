@@ -21,13 +21,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
+      {/* Sidebar - Fixed full height */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:z-auto",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:static lg:inset-0"
+          "h-full"
         )}
       >
         <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
@@ -42,12 +42,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
       )}
 
       {/* Main Content */}
-      <div
-        className={cn(
-          "flex-1 flex flex-col min-w-0 transition-all duration-300",
-          sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
-        )}
-      >
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Header */}
         <Header
           onMenuClick={toggleMobileMenu}
@@ -55,8 +50,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
         />
 
         {/* Page Content */}
-        <main className={cn("flex-1 overflow-auto", className)}>
-          <div className="p-4 lg:p-6">{children}</div>
+        <main className={cn("flex-1 overflow-auto h-full", className)}>
+          <div className="p-4 lg:p-6 h-full">{children}</div>
         </main>
       </div>
     </div>
