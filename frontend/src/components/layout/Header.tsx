@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 flex items-center justify-between bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
+    <header className="glass-card px-3 sm:px-4 lg:px-6 py-2 sm:py-3 flex items-center justify-between border-b border-white/30">
       {/* Left Section */}
       <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Mobile Menu Button */}
