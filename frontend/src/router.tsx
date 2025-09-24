@@ -8,9 +8,6 @@ const Login = React.lazy(() => import("./pages/auth/Login"));
 const Register = React.lazy(() => import("./pages/auth/Register"));
 
 const Dashboard = React.lazy(() => import("./pages/dashboard/Dashboard"));
-const AdminDashboard = React.lazy(
-  () => import("./pages/dashboard/AdminDashboard")
-);
 
 const ProjectsList = React.lazy(() => import("./pages/projects/ProjectsList"));
 const ProjectDetail = React.lazy(
@@ -103,18 +100,6 @@ export const router = createBrowserRouter([
           <ProtectedRoute requireAuth>
             <LazyWrapper>
               <Dashboard />
-            </LazyWrapper>
-          </ProtectedRoute>
-        ),
-      },
-
-      // Admin dashboard (admin only)
-      {
-        path: "admin",
-        element: (
-          <ProtectedRoute requireAuth requireAdmin>
-            <LazyWrapper>
-              <AdminDashboard />
             </LazyWrapper>
           </ProtectedRoute>
         ),

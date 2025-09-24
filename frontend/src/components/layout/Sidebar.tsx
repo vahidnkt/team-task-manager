@@ -225,7 +225,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={cn(
         "transition-all duration-300 h-screen flex flex-col bg-transparent border-r-0",
-        collapsed ? "w-16" : "w-64"
+        // Desktop: dynamic width based on collapsed state
+        collapsed ? "lg:w-16" : "lg:w-64",
+        // Mobile: always full width when visible
+        "w-full"
       )}
     >
       <div className="flex flex-col h-full overflow-hidden">

@@ -34,14 +34,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
       {/* Sidebar - Fixed full height with glassmorphism */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out lg:relative lg:z-30",
-          // Mobile behavior
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed inset-y-0 left-0 transition-all duration-300 ease-in-out lg:relative",
+          // Mobile: high z-index when open, normal when closed
+          mobileMenuOpen ? "z-50" : "z-30",
+          // Desktop: normal z-index
+          "lg:z-30",
+          // Mobile behavior - no width when hidden to prevent space reservation
+          mobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full w-0",
           // Desktop behavior - always visible, just width changes
           "lg:translate-x-0",
-          // Dynamic width based on collapsed state
+          // Dynamic width based on collapsed state for desktop
           sidebarCollapsed ? "lg:w-16" : "lg:w-64",
-          "h-full relative w-64" // Fixed width for mobile
+          "h-full relative" // Remove fixed width for mobile
         )}
       >
         <div className="absolute inset-0 glass-card border-r border-white/30" />
@@ -50,23 +54,31 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
         </div>
       </div>
 
-      {/* Mobile backdrop */}
+      {/* Mobile backdrop - subtle glassmorphism overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-20 bg-black transition-all duration-300 lg:hidden",
+          "fixed inset-0 z-20 transition-all duration-300 lg:hidden",
           mobileMenuOpen
-            ? "bg-opacity-50 pointer-events-auto"
-            : "bg-opacity-0 pointer-events-none"
+            ? "bg-white/10 backdrop-blur-sm pointer-events-auto"
+            : "bg-transparent pointer-events-none"
         )}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       {/* Main Content */}
-      <div className={cn(
-        "flex-1 flex flex-col min-w-0 h-full overflow-hidden relative z-20 transition-all duration-300 ease-in-out",
-        // Adjust margin for desktop collapsed state
-        sidebarCollapsed ? "lg:ml-0" : "lg:ml-0"
-      )}>
+      <div
+        className={cn(
+          "flex-1 flex flex-col min-w-0 h-full overflow-hidden relative transition-all duration-300 ease-in-out",
+          // Mobile: full width when sidebar is hidden, disabled when sidebar is open
+          "w-full lg:flex-1",
+          // Mobile: disable interactions when sidebar is open
+          mobileMenuOpen
+            ? "lg:z-20 pointer-events-none"
+            : "z-20 pointer-events-auto",
+          // Desktop: no margin needed since sidebar is relative positioned
+          "lg:ml-0"
+        )}
+      >
         {/* Header with glassmorphism */}
         <div className="relative z-10">
           <div className="absolute inset-0 glass-card border-b border-white/30" />
@@ -75,6 +87,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
               onMenuClick={toggleMobileMenu}
               sidebarCollapsed={sidebarCollapsed}
               onSidebarToggle={toggleSidebar}
+              mobileMenuOpen={mobileMenuOpen}
             />
           </div>
         </div>

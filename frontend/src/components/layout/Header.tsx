@@ -14,18 +14,20 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { usePermissions } from "../../hooks/usePermissions";
-import { getInitials } from "../../utils/helpers";
+import { getInitials, cn } from "../../utils/helpers";
 
 interface HeaderProps {
   onMenuClick?: () => void;
   sidebarCollapsed?: boolean;
   onSidebarToggle?: () => void;
+  mobileMenuOpen?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onMenuClick,
   sidebarCollapsed,
   onSidebarToggle,
+  mobileMenuOpen,
 }) => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
@@ -63,7 +65,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Mobile Menu Button */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-1.5 sm:p-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 transition-all duration-300 shadow-sm backdrop-blur-sm"
+          className={cn(
+            "lg:hidden p-1.5 sm:p-2 rounded-lg border transition-all duration-300 shadow-sm backdrop-blur-sm",
+            mobileMenuOpen
+              ? "bg-blue-100 border-blue-300 text-blue-600"
+              : "bg-white/60 border-gray-200/50 text-gray-700 hover:bg-gray-50"
+          )}
         >
           <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>

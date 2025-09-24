@@ -231,7 +231,7 @@ const Dashboard: React.FC = () => {
         <div className="glass-card rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 border border-white/30">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
             {/* Welcome Text */}
-            <div>
+            <div className="zin">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
                 Hi {user?.username || "User"}! 👋
               </h1>
