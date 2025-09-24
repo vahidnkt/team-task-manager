@@ -80,7 +80,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className }) => {
         )}
       >
         {/* Header with glassmorphism */}
-        <div className="relative z-10">
+        <div className="relative z-50">
           <div className="absolute inset-0 glass-card border-b border-white/30" />
           <div className="relative z-10">
             <Header

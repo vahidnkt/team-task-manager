@@ -7,3 +7,4 @@ export * from "./task.types";
 export * from "./activity.types";
 export * from "./user.types";
 export * from "./database.types";
+export * from "./dashboard.types";

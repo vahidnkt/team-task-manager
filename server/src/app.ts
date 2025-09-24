@@ -14,6 +14,7 @@ import projectRoutes from "./routes/projects";
 import taskRoutes from "./routes/tasks";
 import commentRoutes from "./routes/comments";
 import activityRoutes from "./routes/activities";
+import dashboardRoutes from "./routes/dashboard";
 
 class App {
   public app: express.Application;
@@ -95,6 +96,7 @@ class App {
     this.app.use("/api/tasks", taskRoutes);
     this.app.use("/api/comments", commentRoutes);
     this.app.use("/api/activities", activityRoutes);
+    this.app.use("/api/dashboard", dashboardRoutes);
 
     // API info endpoint
     this.app.get("/api", (req, res) => {
@@ -110,7 +112,7 @@ class App {
           tasks: "/api/tasks",
           comments: "/api/comments",
           activities: "/api/activities",
-          health: "/health",
+          dashboard: "/api/dashboard",
         },
       });
     });

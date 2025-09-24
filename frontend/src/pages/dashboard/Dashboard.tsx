@@ -1,198 +1,28 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "antd";
-import { useAuth } from "../../hooks";
+import { Button, Spin, Alert } from "antd";
+import { useAuth, useDashboard } from "../../hooks";
 import { ROUTES } from "../../router";
 import { formatRelativeTime } from "../../utils/dateUtils";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { PriorityBadge } from "../../components/ui/PriorityBadge";
 
-// Static data for demonstration - will be replaced with real API calls
-const USER_DASHBOARD_DATA = {
-  stats: {
-    totalTasks: 12,
-    completedTasks: 8,
-    inProgressTasks: 3,
-    overdueTasks: 1,
-    totalProjects: 5,
-    activeProjects: 4,
-    completedProjects: 1,
-  },
-  recentTasks: [
-    {
-      id: "1",
-      title: "Fix login bug",
-      description: "Users unable to login with special characters in password",
-      status: "done" as const,
-      priority: "high" as const,
-      dueDate: "2024-01-15",
-      projectId: "proj-1",
-      projectName: "Mobile App",
-      assigneeId: "user-1",
-      assigneeName: "John Doe",
-      createdAt: "2024-01-10T10:00:00Z",
-    },
-    {
-      id: "2",
-      title: "Update documentation",
-      description: "Update API documentation for new endpoints",
-      status: "in_progress" as const,
-      priority: "medium" as const,
-      dueDate: "2024-01-20",
-      projectId: "proj-2",
-      projectName: "Web Platform",
-      assigneeId: "user-1",
-      assigneeName: "John Doe",
-      createdAt: "2024-01-12T14:30:00Z",
-    },
-    {
-      id: "3",
-      title: "Design new UI components",
-      description: "Create design system for consistent UI",
-      status: "todo" as const,
-      priority: "medium" as const,
-      dueDate: "2024-01-25",
-      projectId: "proj-1",
-      projectName: "Mobile App",
-      assigneeId: "user-1",
-      assigneeName: "John Doe",
-      createdAt: "2024-01-14T09:15:00Z",
-    },
-  ],
-  projects: [
-    {
-      id: "proj-1",
-      name: "Mobile App",
-      description: "iOS and Android mobile application",
-      taskCount: 15,
-      completedTaskCount: 10,
-      progressPercentage: 67,
-      createdBy: "user-1",
-      creatorName: "John Doe",
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-14T10:30:00Z",
-    },
-    {
-      id: "proj-2",
-      name: "Web Platform",
-      description: "Web-based task management platform",
-      taskCount: 8,
-      completedTaskCount: 5,
-      progressPercentage: 63,
-      createdBy: "user-1",
-      creatorName: "John Doe",
-      createdAt: "2024-01-05T00:00:00Z",
-      updatedAt: "2024-01-13T15:20:00Z",
-    },
-  ],
-  recentActivities: [
-    {
-      id: "act-1",
-      action: "task_completed",
-      description: "Completed task 'Fix login bug'",
-      userId: "user-1",
-      userName: "John Doe",
-      projectId: "proj-1",
-      projectName: "Mobile App",
-      taskId: "1",
-      taskTitle: "Fix login bug",
-      createdAt: "2024-01-14T14:30:00Z",
-    },
-    {
-      id: "act-2",
-      action: "task_created",
-      description: "Created new task 'Design new UI components'",
-      userId: "user-1",
-      userName: "John Doe",
-      projectId: "proj-1",
-      projectName: "Mobile App",
-      taskId: "3",
-      taskTitle: "Design new UI components",
-      createdAt: "2024-01-14T09:15:00Z",
-    },
-  ],
-};
-
-const ADMIN_DASHBOARD_DATA = {
-  stats: {
-    totalTasks: 45,
-    completedTasks: 28,
-    inProgressTasks: 12,
-    overdueTasks: 5,
-    totalProjects: 12,
-    activeProjects: 8,
-    completedProjects: 4,
-    totalUsers: 25,
-    activeUsers: 23,
-  },
-  recentTasks: [
-    {
-      id: "5",
-      title: "System maintenance",
-      description: "Regular system maintenance and updates",
-      status: "in_progress" as const,
-      priority: "high" as const,
-      dueDate: "2024-01-16",
-      projectId: "proj-4",
-      projectName: "System Operations",
-      assigneeId: "user-2",
-      assigneeName: "Jane Smith",
-      createdAt: "2024-01-14T08:00:00Z",
-    },
-    {
-      id: "6",
-      title: "Security audit",
-      description: "Conduct security audit of all systems",
-      status: "todo" as const,
-      priority: "high" as const,
-      dueDate: "2024-01-22",
-      projectId: "proj-5",
-      projectName: "Security",
-      assigneeId: "user-3",
-      assigneeName: "Mike Johnson",
-      createdAt: "2024-01-13T16:00:00Z",
-    },
-  ],
-  recentActivities: [
-    {
-      id: "act-4",
-      action: "user_created",
-      description: "New user 'Alice Brown' registered",
-      userId: "user-5",
-      userName: "Alice Brown",
-      createdAt: "2024-01-14T16:45:00Z",
-    },
-    {
-      id: "act-5",
-      action: "project_created",
-      description: "Created new project 'Mobile App'",
-      userId: "user-1",
-      userName: "John Doe",
-      projectId: "proj-1",
-      projectName: "Mobile App",
-      createdAt: "2024-01-14T10:00:00Z",
-    },
-    {
-      id: "act-6",
-      action: "task_assigned",
-      description: "Assigned task 'System maintenance' to Jane Smith",
-      userId: "user-2",
-      userName: "Jane Smith",
-      projectId: "proj-4",
-      projectName: "System Operations",
-      taskId: "5",
-      taskTitle: "System maintenance",
-      createdAt: "2024-01-14T08:00:00Z",
-    },
-  ],
-};
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
-
-  // Get role-based dashboard data
-  const dashboardData = isAdmin() ? ADMIN_DASHBOARD_DATA : USER_DASHBOARD_DATA;
+  const {
+    dashboardData,
+    isLoading,
+    error,
+    refresh,
+    stats,
+    recentTasks,
+    recentActivities,
+    projects,
+  } = useDashboard({
+    autoFetch: true,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   const handleCreateTask = () => {
     navigate(ROUTES.CREATE_TASK);
@@ -213,6 +43,73 @@ const Dashboard: React.FC = () => {
   const handleViewUsers = () => {
     navigate(ROUTES.USERS);
   };
+
+  // Show loading state
+  if (isLoading && !dashboardData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && !dashboardData) {
+    const errorMessage =
+      (error as any)?.data?.message ||
+      (error as any)?.message ||
+      "Failed to load dashboard data";
+
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Alert
+          message="Error Loading Dashboard"
+          description={errorMessage}
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={() => refresh()}>
+              Retry
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  // Use real data or fallback to empty data
+  const currentStats = stats || {
+    totalTasks: 0,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    overdueTasks: 0,
+    totalProjects: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+  };
+
+  // Ensure arrays are properly handled
+  const currentRecentTasks = Array.isArray(recentTasks) ? recentTasks : [];
+  const currentRecentActivities = Array.isArray(recentActivities)
+    ? recentActivities
+    : [];
+  const currentProjects = Array.isArray(projects) ? projects : [];
+
+  // Debug logging to help identify data structure issues
+  if (process.env.NODE_ENV === "development") {
+    console.log("Dashboard Debug Data:", {
+      recentTasks,
+      recentTasksType: typeof recentTasks,
+      isArray: Array.isArray(recentTasks),
+      currentRecentTasks,
+      recentActivities,
+      recentActivitiesType: typeof recentActivities,
+      projects,
+      projectsType: typeof projects,
+    });
+  }
 
   return (
     <>
@@ -279,7 +176,7 @@ const Dashboard: React.FC = () => {
                       Total Tasks
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {dashboardData.stats.totalTasks}
+                      {currentStats.totalTasks}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       {isAdmin()
@@ -300,7 +197,7 @@ const Dashboard: React.FC = () => {
                       Completed
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {dashboardData.stats.completedTasks}
+                      {currentStats.completedTasks}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       Finished tasks
@@ -319,7 +216,7 @@ const Dashboard: React.FC = () => {
                       In Progress
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {dashboardData.stats.inProgressTasks}
+                      {currentStats.inProgressTasks}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       Active tasks
@@ -338,7 +235,7 @@ const Dashboard: React.FC = () => {
                       Overdue
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {dashboardData.stats.overdueTasks}
+                      {currentStats.overdueTasks}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       Past due date
@@ -366,7 +263,7 @@ const Dashboard: React.FC = () => {
                         Total Projects
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        {dashboardData.stats.totalProjects}
+                        {currentStats.totalProjects}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         All projects in system
@@ -385,7 +282,7 @@ const Dashboard: React.FC = () => {
                         Active Projects
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        {dashboardData.stats.activeProjects}
+                        {currentStats.activeProjects}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         Currently running
@@ -404,7 +301,7 @@ const Dashboard: React.FC = () => {
                         Total Users
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        25
+                        {currentStats.totalUsers || 0}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         Registered users
@@ -433,7 +330,7 @@ const Dashboard: React.FC = () => {
                         My Projects
                       </p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {dashboardData.stats.totalProjects}
+                        {currentStats.totalProjects}
                       </p>
                       <p className="text-sm text-gray-500">
                         Projects you're involved in
@@ -452,7 +349,7 @@ const Dashboard: React.FC = () => {
                         Active Projects
                       </p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {dashboardData.stats.activeProjects}
+                        {currentStats.activeProjects}
                       </p>
                       <p className="text-sm text-gray-500">Currently working</p>
                     </div>
@@ -469,7 +366,7 @@ const Dashboard: React.FC = () => {
                         Completed Projects
                       </p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {dashboardData.stats.completedProjects}
+                        {currentStats.completedProjects}
                       </p>
                       <p className="text-sm text-gray-500">Finished projects</p>
                     </div>
@@ -503,7 +400,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="p-4 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {dashboardData.recentTasks.map((task) => (
+                  {currentRecentTasks.map((task) => (
                     <div
                       key={task.id}
                       className="p-3 sm:p-4 border border-white/30 rounded-lg hover:bg-white/50 cursor-pointer transition-colors backdrop-blur-sm"
@@ -535,7 +432,7 @@ const Dashboard: React.FC = () => {
                       )}
                     </div>
                   ))}
-                  {dashboardData.recentTasks.length === 0 && (
+                  {currentRecentTasks.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">📋</div>
                       <p>No recent tasks</p>
@@ -554,7 +451,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="p-4 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {dashboardData.recentActivities.map((activity) => (
+                  {currentRecentActivities.map((activity) => (
                     <div
                       key={activity.id}
                       className="flex items-start space-x-2 sm:space-x-3"
@@ -596,7 +493,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   ))}
-                  {dashboardData.recentActivities.length === 0 && (
+                  {currentRecentActivities.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">⚡</div>
                       <p>No recent activities</p>
@@ -608,7 +505,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* User Projects Overview */}
-          {!isAdmin() && "projects" in dashboardData && (
+          {!isAdmin() && currentProjects.length > 0 && (
             <div className="glass-card rounded-xl border border-white/30">
               <div className="p-4 sm:p-6 border-b border-white/20">
                 <div className="flex justify-between items-center">
@@ -627,7 +524,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="p-4 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-                  {dashboardData.projects.map((project) => (
+                  {currentProjects.map((project) => (
                     <div
                       key={project.id}
                       className="p-4 sm:p-6 border border-white/30 rounded-lg hover:bg-white/50 cursor-pointer transition-colors backdrop-blur-sm"
@@ -676,7 +573,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   ))}
-                  {dashboardData.projects.length === 0 && (
+                  {currentProjects.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">🚀</div>
                       <p>No projects yet</p>

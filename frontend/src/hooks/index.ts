@@ -8,3 +8,4 @@ export * from "./useModal";
 export * from "./useForm";
 export * from "./useTheme";
 export * from "./useApiMutation";
+export * from "./useDashboard";

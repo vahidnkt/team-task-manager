@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "antd";
 import {
@@ -12,7 +12,7 @@ import {
   Moon,
   ChevronDown,
 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../hooks";
 import { usePermissions } from "../../hooks/usePermissions";
 import { getInitials, cn } from "../../utils/helpers";
 
@@ -36,6 +36,9 @@ export const Header: React.FC<HeaderProps> = ({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
   const handleLogout = async () => {
     await logout();
     navigate("/auth/login");
@@ -53,6 +56,32 @@ export const Header: React.FC<HeaderProps> = ({
   const handleNotificationClick = () => {
     setIsNotificationsOpen(!isNotificationsOpen);
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen || isNotificationsOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isUserMenuOpen, isNotificationsOpen]);
 
   if (!isAuthenticated) {
     return null;
@@ -144,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative" ref={notificationRef}>
           <div className="relative">
             <button
               onClick={handleNotificationClick}
@@ -195,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* User Menu */}
-        <div className="relative">
+        <div className="relative" ref={userMenuRef}>
           <button
             onClick={handleUserMenuClick}
             className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 transition-all duration-300 shadow-sm backdrop-blur-sm"
