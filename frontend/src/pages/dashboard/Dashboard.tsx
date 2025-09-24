@@ -232,10 +232,10 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
             {/* Welcome Text */}
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
                 Hi {user?.username || "User"}! 👋
               </h1>
-              <p className="text-base sm:text-lg text-white/80">
+              <p className="text-base sm:text-lg text-gray-800">
                 {isAdmin()
                   ? "Admin Dashboard - Manage your entire system"
                   : "Your personal task management hub"}
@@ -275,9 +275,17 @@ const Dashboard: React.FC = () => {
               <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total Tasks</p>
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{dashboardData.stats.totalTasks}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">{isAdmin() ? "All tasks in system" : "Tasks assigned to you"}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                      Total Tasks
+                    </p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                      {dashboardData.stats.totalTasks}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                      {isAdmin()
+                        ? "All tasks in system"
+                        : "Tasks assigned to you"}
+                    </p>
                   </div>
                   <div className="p-2 sm:p-3 rounded-lg bg-blue-50 text-blue-600">
                     <span className="text-lg sm:text-xl lg:text-2xl">📋</span>
@@ -288,9 +296,15 @@ const Dashboard: React.FC = () => {
               <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Completed</p>
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{dashboardData.stats.completedTasks}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Finished tasks</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                      Completed
+                    </p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                      {dashboardData.stats.completedTasks}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                      Finished tasks
+                    </p>
                   </div>
                   <div className="p-2 sm:p-3 rounded-lg bg-green-50 text-green-600">
                     <span className="text-lg sm:text-xl lg:text-2xl">✅</span>
@@ -301,9 +315,15 @@ const Dashboard: React.FC = () => {
               <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">In Progress</p>
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{dashboardData.stats.inProgressTasks}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Active tasks</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                      In Progress
+                    </p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                      {dashboardData.stats.inProgressTasks}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                      Active tasks
+                    </p>
                   </div>
                   <div className="p-2 sm:p-3 rounded-lg bg-yellow-50 text-yellow-600">
                     <span className="text-lg sm:text-xl lg:text-2xl">🔄</span>
@@ -314,9 +334,15 @@ const Dashboard: React.FC = () => {
               <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Overdue</p>
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{dashboardData.stats.overdueTasks}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Past due date</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                      Overdue
+                    </p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                      {dashboardData.stats.overdueTasks}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                      Past due date
+                    </p>
                   </div>
                   <div className="p-2 sm:p-3 rounded-lg bg-red-50 text-red-600">
                     <span className="text-lg sm:text-xl lg:text-2xl">⚠️</span>
@@ -336,9 +362,15 @@ const Dashboard: React.FC = () => {
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total Projects</p>
-                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{dashboardData.stats.totalProjects}</p>
-                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">All projects in system</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                        Total Projects
+                      </p>
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                        {dashboardData.stats.totalProjects}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                        All projects in system
+                      </p>
                     </div>
                     <div className="p-2 sm:p-3 rounded-lg bg-purple-50 text-purple-600">
                       <span className="text-lg sm:text-xl lg:text-2xl">📁</span>
@@ -349,9 +381,15 @@ const Dashboard: React.FC = () => {
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Active Projects</p>
-                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{dashboardData.stats.activeProjects}</p>
-                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Currently running</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                        Active Projects
+                      </p>
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                        {dashboardData.stats.activeProjects}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                        Currently running
+                      </p>
                     </div>
                     <div className="p-2 sm:p-3 rounded-lg bg-blue-50 text-blue-600">
                       <span className="text-lg sm:text-xl lg:text-2xl">🚀</span>
@@ -362,9 +400,15 @@ const Dashboard: React.FC = () => {
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total Users</p>
-                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">25</p>
-                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Registered users</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                        Total Users
+                      </p>
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                        25
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                        Registered users
+                      </p>
                     </div>
                     <div className="p-2 sm:p-3 rounded-lg bg-orange-50 text-orange-600">
                       <span className="text-lg sm:text-xl lg:text-2xl">👥</span>
@@ -385,9 +429,15 @@ const Dashboard: React.FC = () => {
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">My Projects</p>
-                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.totalProjects}</p>
-                      <p className="text-sm text-gray-500">Projects you're involved in</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        My Projects
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {dashboardData.stats.totalProjects}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Projects you're involved in
+                      </p>
                     </div>
                     <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
                       <span className="text-2xl">📁</span>
@@ -398,8 +448,12 @@ const Dashboard: React.FC = () => {
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Active Projects</p>
-                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.activeProjects}</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Active Projects
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {dashboardData.stats.activeProjects}
+                      </p>
                       <p className="text-sm text-gray-500">Currently working</p>
                     </div>
                     <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
@@ -411,8 +465,12 @@ const Dashboard: React.FC = () => {
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Completed Projects</p>
-                      <p className="text-3xl font-bold text-gray-900">{dashboardData.stats.completedProjects}</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Completed Projects
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {dashboardData.stats.completedProjects}
+                      </p>
                       <p className="text-sm text-gray-500">Finished projects</p>
                     </div>
                     <div className="p-3 rounded-lg bg-green-50 text-green-600">
@@ -453,8 +511,12 @@ const Dashboard: React.FC = () => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-sm sm:text-base font-semibold text-gray-900">{task.title}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">{task.projectName}</p>
+                          <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                            {task.title}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                            {task.projectName}
+                          </p>
                           {task.description && (
                             <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-2">
                               {task.description}
@@ -493,14 +555,21 @@ const Dashboard: React.FC = () => {
               <div className="p-4 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
                   {dashboardData.recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-start space-x-2 sm:space-x-3">
-                      <div className={`p-2 rounded-full ${{
-                        task_completed: "bg-green-100 text-green-600",
-                        task_created: "bg-blue-100 text-blue-600",
-                        project_created: "bg-purple-100 text-purple-600",
-                        user_created: "bg-orange-100 text-orange-600",
-                        task_assigned: "bg-indigo-100 text-indigo-600",
-                      }[activity.action] || "bg-gray-100 text-gray-600"}`}>
+                    <div
+                      key={activity.id}
+                      className="flex items-start space-x-2 sm:space-x-3"
+                    >
+                      <div
+                        className={`p-2 rounded-full ${
+                          {
+                            task_completed: "bg-green-100 text-green-600",
+                            task_created: "bg-blue-100 text-blue-600",
+                            project_created: "bg-purple-100 text-purple-600",
+                            user_created: "bg-orange-100 text-orange-600",
+                            task_assigned: "bg-indigo-100 text-indigo-600",
+                          }[activity.action] || "bg-gray-100 text-gray-600"
+                        }`}
+                      >
                         <span className="text-sm">
                           {{
                             task_completed: "✅",
@@ -512,9 +581,13 @@ const Dashboard: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-900">{activity.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-900">
+                          {activity.description}
+                        </p>
                         <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-xs text-gray-500">{activity.userName}</span>
+                          <span className="text-xs text-gray-500">
+                            {activity.userName}
+                          </span>
                           <span className="text-xs text-gray-400">•</span>
                           <span className="text-xs text-gray-500">
                             {formatRelativeTime(activity.createdAt)}
@@ -558,12 +631,18 @@ const Dashboard: React.FC = () => {
                     <div
                       key={project.id}
                       className="p-4 sm:p-6 border border-white/30 rounded-lg hover:bg-white/50 cursor-pointer transition-colors backdrop-blur-sm"
-                      onClick={() => navigate(ROUTES.PROJECT_DETAIL(project.id))}
+                      onClick={() =>
+                        navigate(ROUTES.PROJECT_DETAIL(project.id))
+                      }
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h4 className="text-sm sm:text-base font-semibold text-gray-900">{project.name}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">by {project.creatorName}</p>
+                          <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                            {project.name}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                            by {project.creatorName}
+                          </p>
                         </div>
                         <div className="text-right">
                           <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">
@@ -589,7 +668,8 @@ const Dashboard: React.FC = () => {
 
                         <div className="flex justify-between text-xs sm:text-sm text-gray-600">
                           <span>
-                            {project.completedTaskCount} of {project.taskCount} tasks
+                            {project.completedTaskCount} of {project.taskCount}{" "}
+                            tasks
                           </span>
                           <span>{formatRelativeTime(project.updatedAt)}</span>
                         </div>

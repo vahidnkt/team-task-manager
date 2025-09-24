@@ -19,6 +19,10 @@ export const authApi = baseApi.injectEndpoints({
         method: "POST",
         body: credentials,
       }),
+      transformResponse: (response: any) => {
+        // Extract data from the server's ApiResponse wrapper
+        return response.data;
+      },
       invalidatesTags: ["User"],
     }),
 
@@ -29,6 +33,10 @@ export const authApi = baseApi.injectEndpoints({
         method: "POST",
         body: userData,
       }),
+      transformResponse: (response: any) => {
+        // Extract data from the server's ApiResponse wrapper
+        return response.data;
+      },
       invalidatesTags: ["User"],
     }),
 
@@ -49,6 +57,10 @@ export const authApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.AUTH.PROFILE,
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        // Extract data from the server's ApiResponse wrapper
+        return response.data;
+      },
       providesTags: ["User"],
     }),
 
@@ -59,6 +71,10 @@ export const authApi = baseApi.injectEndpoints({
         method: "PUT",
         body: profileData,
       }),
+      transformResponse: (response: any) => {
+        // Extract data from the server's ApiResponse wrapper
+        return response.data;
+      },
       invalidatesTags: ["User"],
     }),
 
