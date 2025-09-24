@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Dropdown, Badge } from "antd";
-import type { MenuProps } from "antd";
+import { Input } from "antd";
 import {
   Bell,
   Menu,
@@ -20,9 +19,14 @@ import { getInitials } from "../../utils/helpers";
 interface HeaderProps {
   onMenuClick?: () => void;
   sidebarCollapsed?: boolean;
+  onSidebarToggle?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onMenuClick,
+  sidebarCollapsed,
+  onSidebarToggle,
+}) => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const { isAdmin } = usePermissions();
@@ -53,62 +57,83 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   }
 
   return (
-    <header className="px-4 py-3 flex items-center justify-between">
+    <header className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 flex items-center justify-between bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
       {/* Left Section */}
-      <div className="flex items-center space-x-4">
-        {/* Menu Button */}
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        {/* Mobile Menu Button */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 rounded-lg glass-card border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+          className="lg:hidden p-1.5 sm:p-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 transition-all duration-300 shadow-sm backdrop-blur-sm"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
 
+        {/* Desktop Sidebar Toggle Button */}
+        {onSidebarToggle && (
+          <button
+            onClick={onSidebarToggle}
+            className="hidden lg:flex p-1.5 sm:p-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 transition-all duration-300 shadow-sm backdrop-blur-sm"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <svg
+              className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 ${
+                sidebarCollapsed ? "rotate-0" : "rotate-180"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
+
         {/* Logo/App Name */}
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-sm">TM</span>
+        {/* <div className="flex items-center space-x-2">
+          <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-xs sm:text-sm">TM</span>
           </div>
-          <h1 className="text-xl font-semibold text-white hidden sm:block">
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 hidden sm:block">
             Task Manager
           </h1>
-        </div>
+        </div> */}
 
         {/* Search Bar - Hidden on mobile */}
-        <div className="hidden md:block md:max-w-md lg:max-w-lg">
-          <div className="relative">
-            <div className="absolute inset-0 glass-card border border-white/30 rounded-lg"></div>
-            <div className="relative">
-              <Input
-                placeholder="Search tasks, projects..."
-                prefix={<Search className="h-4 w-4 text-white/70" />}
-                className="w-full bg-transparent border-none text-white placeholder:text-white/70"
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: 'white'
-                }}
-              />
-            </div>
+        <div className="hidden md:block md:max-w-sm lg:max-w-md xl:max-w-lg">
+          <div className="relative group">
+            <Input
+              placeholder="Search tasks, projects..."
+              prefix={
+                <Search className="h-4 w-4 text-gray-500 group-focus-within:text-primary-500 transition-colors" />
+              }
+              className="form-input h-9 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white hover:shadow-md focus:shadow-lg focus:shadow-primary-100/50 border-gray-200/60 hover:border-gray-300/60 focus:border-primary-300 focus:ring-primary-500"
+            />
           </div>
         </div>
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
         {/* Mobile Search Button */}
-        <button
-          className="md:hidden p-2 rounded-lg glass-card border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
-        >
-          <Search className="h-5 w-5" />
+        <button className="btn-ghost md:hidden p-1.5 sm:p-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 shadow-sm backdrop-blur-sm">
+          <Search className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
 
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleDarkMode}
-          className="p-2 rounded-lg glass-card border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+          className="btn-ghost p-1.5 sm:p-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 shadow-sm backdrop-blur-sm"
         >
-          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {isDarkMode ? (
+            <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+          ) : (
+            <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
+          )}
         </button>
 
         {/* Notifications */}
@@ -116,45 +141,45 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <div className="relative">
             <button
               onClick={handleNotificationClick}
-              className="p-2 rounded-lg glass-card border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+              className="btn-ghost p-1.5 sm:p-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 shadow-sm backdrop-blur-sm"
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
+            <span className="badge badge-error absolute -top-0.5 sm:-top-1 -right-0.5 sm:-right-1 h-4 w-4 sm:h-5 sm:w-5 text-xs flex items-center justify-center rounded-full">
               3
             </span>
           </div>
 
           {/* Notifications Dropdown */}
           {isNotificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 glass-card border border-white/30 rounded-lg shadow-lg z-[9999]">
-              <div className="p-4 border-b border-white/30">
-                <h3 className="text-sm font-medium text-white">
+            <div className="glass-card absolute right-0 mt-2 w-72 sm:w-80 rounded-lg z-[9999]">
+              <div className="p-3 sm:p-4 border-b border-gray-200/50">
+                <h3 className="text-sm font-medium text-gray-900">
                   Notifications
                 </h3>
               </div>
               <div className="max-h-64 overflow-y-auto">
-                <div className="p-3 border-b border-white/20 hover:bg-white/10 transition-colors">
-                  <p className="text-sm text-white">
+                <div className="p-2 sm:p-3 border-b border-gray-100/50 hover:bg-gray-50/50 transition-colors">
+                  <p className="text-xs sm:text-sm text-gray-900">
                     New task assigned to you
                   </p>
-                  <p className="text-xs text-white/70">2 hours ago</p>
+                  <p className="text-xs text-gray-500">2 hours ago</p>
                 </div>
-                <div className="p-3 border-b border-white/20 hover:bg-white/10 transition-colors">
-                  <p className="text-sm text-white">
+                <div className="p-2 sm:p-3 border-b border-gray-100/50 hover:bg-gray-50/50 transition-colors">
+                  <p className="text-xs sm:text-sm text-gray-900">
                     Project deadline approaching
                   </p>
-                  <p className="text-xs text-white/70">4 hours ago</p>
+                  <p className="text-xs text-gray-500">4 hours ago</p>
                 </div>
-                <div className="p-3 hover:bg-white/10 transition-colors">
-                  <p className="text-sm text-white">
+                <div className="p-2 sm:p-3 hover:bg-gray-50/50 transition-colors">
+                  <p className="text-xs sm:text-sm text-gray-900">
                     Team member joined project
                   </p>
-                  <p className="text-xs text-white/70">1 day ago</p>
+                  <p className="text-xs text-gray-500">1 day ago</p>
                 </div>
               </div>
-              <div className="p-3 border-t border-white/30">
-                <button className="w-full text-sm text-white hover:bg-white/10 py-2 rounded-lg transition-colors">
+              <div className="p-2 sm:p-3 border-t border-gray-200/50">
+                <button className="w-full text-xs sm:text-sm text-gray-700 hover:bg-gray-50/50 py-2 rounded-lg transition-colors">
                   View All Notifications
                 </button>
               </div>
@@ -166,32 +191,32 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="relative">
           <button
             onClick={handleUserMenuClick}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg glass-card border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+            className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-white/60 border border-gray-200/50 text-gray-700 hover:bg-gray-50 transition-all duration-300 shadow-sm backdrop-blur-sm"
           >
             {/* User Avatar */}
-            <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm font-medium">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-white text-xs sm:text-sm font-medium">
                 {user ? getInitials(user.username) : "U"}
               </span>
             </div>
-            <span className="hidden md:block text-sm font-medium text-white">
+            <span className="hidden md:block text-xs sm:text-sm font-medium text-gray-900">
               {user?.username || "User"}
             </span>
-            <ChevronDown className="h-4 w-4 text-white/70" />
+            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </button>
 
           {/* User Dropdown Menu */}
           {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 glass-card border border-white/30 rounded-lg shadow-lg z-[9999]">
-              <div className="p-3 border-b border-white/30">
-                <p className="text-sm font-medium text-white">
+            <div className="glass-card absolute right-0 mt-2 w-48 sm:w-56 rounded-lg z-[9999]">
+              <div className="p-3 border-b border-gray-200/50">
+                <p className="text-xs sm:text-sm font-medium text-gray-900">
                   {user?.username || "User"}
                 </p>
-                <p className="text-xs text-white/70">{user?.email || "user@example.com"}</p>
+                <p className="text-xs text-gray-500">
+                  {user?.email || "user@example.com"}
+                </p>
                 {isAdmin() && (
-                  <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-500/50 text-blue-200 rounded-full border border-blue-300/30">
-                    Admin
-                  </span>
+                  <span className="badge badge-primary mt-1">Admin</span>
                 )}
               </div>
 
@@ -201,9 +226,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     navigate("/profile");
                     setIsUserMenuOpen(false);
                   }}
-                  className="flex items-center w-full px-3 py-2 text-sm text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center w-full px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50/50 transition-colors"
                 >
-                  <User className="h-4 w-4 mr-3" />
+                  <User className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3" />
                   Profile
                 </button>
 
@@ -212,9 +237,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     navigate("/settings");
                     setIsUserMenuOpen(false);
                   }}
-                  className="flex items-center w-full px-3 py-2 text-sm text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center w-full px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50/50 transition-colors"
                 >
-                  <Settings className="h-4 w-4 mr-3" />
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3" />
                   Settings
                 </button>
 
@@ -224,20 +249,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       navigate("/admin");
                       setIsUserMenuOpen(false);
                     }}
-                    className="flex items-center w-full px-3 py-2 text-sm text-white hover:bg-white/10 transition-colors"
+                    className="flex items-center w-full px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50/50 transition-colors"
                   >
-                    <Settings className="h-4 w-4 mr-3" />
+                    <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3" />
                     Admin Panel
                   </button>
                 )}
               </div>
 
-              <div className="py-1 border-t border-white/30">
+              <div className="py-1 border-t border-gray-200">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center w-full px-3 py-2 text-sm text-red-300 hover:bg-red-500/20 transition-colors"
+                  className="flex items-center w-full px-3 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50/50 transition-colors"
                 >
-                  <LogOut className="h-4 w-4 mr-3" />
+                  <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3" />
                   Sign Out
                 </button>
               </div>

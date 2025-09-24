@@ -11,7 +11,6 @@ import {
   Users,
   BarChart3,
   Settings,
-  User,
   Calendar,
   MessageSquare,
   Activity,
@@ -122,7 +121,10 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  collapsed = false,
+  onToggle,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { hasPermission } = usePermissions();
@@ -157,7 +159,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
 
   const renderMenuItem = (item: MenuItem, level = 0) => {
     // Check permissions
-    if (item.permission && !hasPermission(item.permission as any)) {
+    if (
+      item.permission &&
+      !hasPermission(
+        item.permission as "users:read" | "projects:read" | "tasks:read"
+      )
+    ) {
       return null;
     }
 
@@ -170,32 +177,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         <button
           onClick={() => handleItemClick(item)}
           className={cn(
-            "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors",
-            "hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
-            isActive && "bg-blue-500/30 text-blue-200",
-            !isActive && "text-white",
-            level > 0 && "ml-4"
+            "w-full flex items-center justify-between px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors",
+            "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+            isActive && "bg-blue-50 text-blue-600 border border-blue-200",
+            !isActive && "text-gray-700 hover:text-gray-900",
+            level > 0 && "ml-3 sm:ml-4"
           )}
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <span className={cn("flex-shrink-0", level > 0 && "h-4 w-4")}>
               {item.icon}
             </span>
-            {!collapsed && <span className="truncate">{item.label}</span>}
+            {!collapsed && (
+              <span className="truncate text-xs sm:text-sm">{item.label}</span>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
             {item.badge && !collapsed && (
-              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500/80 rounded-full border border-red-400/30">
+              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
                 {item.badge}
               </span>
             )}
             {hasChildren && !collapsed && (
               <span className="flex-shrink-0">
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-white/70" />
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-white/70" />
+                  <ChevronRight className="h-4 w-4 text-gray-500" />
                 )}
               </span>
             )}
@@ -215,50 +224,79 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   return (
     <aside
       className={cn(
-        "transition-all duration-300 h-screen flex flex-col",
+        "transition-all duration-300 h-screen flex flex-col bg-transparent border-r-0",
         collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex flex-col h-full overflow-hidden">
         {/* Logo Section */}
-        <div className="flex items-center px-4 py-4 border-b border-white/30">
-          <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-sm">TM</span>
-          </div>
-          {!collapsed && (
-            <div className="ml-3">
-              <h2 className="text-lg font-semibold text-white">
-                Task Manager
-              </h2>
-              <p className="text-xs text-white/70">Project Management</p>
+        <div className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-xs sm:text-sm">
+                TM
+              </span>
             </div>
-          )}
+            {!collapsed && (
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                  Task Manager
+                </h2>
+                <p className="text-xs text-gray-500">Project Management</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Toggle Button */}
+          {/* {onToggle && (
+            <button
+              onClick={onToggle}
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <svg
+                className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${
+                  collapsed ? "rotate-0" : "rotate-180"
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                />
+              </svg>
+            </button>
+          )} */}
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 sm:px-4 py-3 sm:py-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => renderMenuItem(item))}
         </nav>
 
         {/* User Section */}
-        <div className="border-t border-white/30 p-4">
+        <div className="border-t border-gray-200 p-3 sm:p-4">
           <div
             className={cn(
               "flex items-center space-x-3",
               collapsed && "justify-center"
             )}
           >
-            <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm font-medium">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-white text-xs sm:text-sm font-medium">
                 {user ? getInitials(user.username) : "U"}
               </span>
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                   {user?.username || "User"}
                 </p>
-                <p className="text-xs text-white/70 truncate">
+                <p className="text-xs text-gray-500 truncate">
                   {user?.email || "user@example.com"}
                 </p>
               </div>
