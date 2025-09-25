@@ -1,15 +1,186 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button, Input, List, Avatar, Spin, Alert, Empty, message } from "antd";
+import {
+  ArrowLeftOutlined,
+  SendOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { useGetTaskCommentsQuery } from "../../store/api/tasksApi";
+import { useGetTaskQuery } from "../../store/api/tasksApi";
+import { ROUTES } from "../../utils/constants";
+import { formatRelativeTime } from "../../utils/dateUtils";
+
+const { TextArea } = Input;
 
 const TaskComments: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [newComment, setNewComment] = useState("");
+
+  const { data: task, isLoading: isLoadingTask } = useGetTaskQuery(id!);
+  const {
+    data: comments = [],
+    isLoading: isLoadingComments,
+    error,
+  } = useGetTaskCommentsQuery(id!);
+
+  const handleBack = () => {
+    navigate(ROUTES.TASK_DETAIL(id!));
+  };
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) {
+      message.warning("Please enter a comment!");
+      return;
+    }
+
+    // TODO: Implement add comment functionality
+    message.info("Add comment functionality coming soon!");
+    setNewComment("");
+  };
+
+  if (isLoadingTask || isLoadingComments) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <Alert
+          message="Error"
+          description="Failed to load comments"
+          type="error"
+          showIcon
+        />
+        <Button onClick={handleBack} className="mt-4">
+          Go Back
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Task Comments</h1>
-      <p className="text-gray-600">Task ID: {id}</p>
-      <p className="text-gray-600 mt-2">Task comments page - Coming soon!</p>
-    </div>
+    <>
+      {/* Animated background */}
+      <div className="animated-background">
+        <div className="floating-orb floating-orb-1"></div>
+        <div className="floating-orb floating-orb-2"></div>
+        <div className="floating-orb floating-orb-3"></div>
+        <div className="floating-orb floating-orb-4"></div>
+        <div className="floating-orb floating-orb-5"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 -mx-2 sm:-mx-4 lg:-mx-6 -my-2 sm:-my-4 lg:-my-6 min-h-screen p-2 sm:p-4 lg:p-6">
+        {/* Header */}
+        <div className="glass-card rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 border border-white/30">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={handleBack}
+              className="text-gray-600 hover:text-gray-800"
+            />
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
+                💬 Comments
+              </h1>
+              <p className="text-sm sm:text-base text-gray-800">
+                {task?.title ? `Comments for "${task.title}"` : "Task Comments"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          {/* Add Comment Form */}
+          <div className="glass-card rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 border border-white/30">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+              Add a Comment
+            </h3>
+            <div className="space-y-3">
+              <TextArea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write your comment here..."
+                rows={4}
+                className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  onClick={handleAddComment}
+                  className="h-10 px-6 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Post Comment
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Comments List */}
+          <div className="glass-card rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 border border-white/30">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+              Comments ({comments.length})
+            </h3>
+
+            {comments.length === 0 ? (
+              <Empty
+                description="No comments yet"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                className="text-gray-400 py-8"
+              >
+                <p className="text-sm text-gray-500">
+                  Be the first to add a comment!
+                </p>
+              </Empty>
+            ) : (
+              <List
+                dataSource={comments}
+                renderItem={(comment: any) => (
+                  <List.Item className="!px-0 !py-4 border-b border-gray-200/50 last:border-b-0">
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar
+                          size="large"
+                          className="bg-gradient-to-r from-blue-500 to-purple-500"
+                        >
+                          {comment.user?.username?.charAt(0).toUpperCase() ||
+                            "U"}
+                        </Avatar>
+                      }
+                      title={
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900">
+                            {comment.user?.username || "Unknown User"}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {formatRelativeTime(comment.createdAt)}
+                          </span>
+                        </div>
+                      }
+                      description={
+                        <div className="mt-2">
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {comment.content}
+                          </p>
+                        </div>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

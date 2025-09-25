@@ -5,19 +5,38 @@ import type {
   CreateTaskRequest,
   UpdateTaskRequest,
   TaskWithDetails,
-  TaskFilter,
+  GetTasksQuery,
+  TasksResponse,
+  AssignTaskRequest,
+  UpdateTaskStatusRequest,
 } from "../../types";
 
 // Tasks API slice
 export const tasksApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Get all tasks with filtering
-    getTasks: builder.query<Task[], TaskFilter>({
-      query: (filters = {}) => ({
+    // Get all tasks with search, filter, and pagination
+    getTasks: builder.query<TasksResponse, GetTasksQuery>({
+      query: (params = {}) => ({
         url: API_ENDPOINTS.TASKS.BASE,
         method: "GET",
-        params: filters,
+        params,
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
+      providesTags: ["Task"],
+    }),
+
+    // Get user's tasks (tasks assigned to current user)
+    getMyTasks: builder.query<TasksResponse, GetTasksQuery>({
+      query: (params = {}) => ({
+        url: `${API_ENDPOINTS.TASKS.BASE}/my`,
+        method: "GET",
+        params,
+      }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: ["Task"],
     }),
 
@@ -27,16 +46,25 @@ export const tasksApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.TASKS.BY_ID(id),
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: (_result, _error, id) => [{ type: "Task", id }],
     }),
 
-    // Create task
-    createTask: builder.mutation<Task, CreateTaskRequest>({
-      query: (taskData) => ({
-        url: API_ENDPOINTS.TASKS.BASE,
+    // Create task in project
+    createTask: builder.mutation<
+      Task,
+      { projectId: string; data: CreateTaskRequest }
+    >({
+      query: ({ projectId, data }) => ({
+        url: `${API_ENDPOINTS.TASKS.BASE}/projects/${projectId}/tasks`,
         method: "POST",
-        body: taskData,
+        body: data,
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       invalidatesTags: ["Task", "Project"],
     }),
 
@@ -48,6 +76,9 @@ export const tasksApi = baseApi.injectEndpoints({
           method: "PUT",
           body: data,
         }),
+        transformResponse: (response: any) => {
+          return response.data || response;
+        },
         invalidatesTags: (_result, _error, { id }) => [
           { type: "Task", id },
           "Task",
@@ -66,12 +97,18 @@ export const tasksApi = baseApi.injectEndpoints({
     }),
 
     // Update task status
-    updateTaskStatus: builder.mutation<Task, { id: string; status: string }>({
-      query: ({ id, status }) => ({
+    updateTaskStatus: builder.mutation<
+      Task,
+      { id: string; data: UpdateTaskStatusRequest }
+    >({
+      query: ({ id, data }) => ({
         url: API_ENDPOINTS.TASKS.STATUS(id),
         method: "PATCH",
-        body: { status },
+        body: data,
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Task", id },
         "Task",
@@ -80,18 +117,23 @@ export const tasksApi = baseApi.injectEndpoints({
     }),
 
     // Assign task
-    assignTask: builder.mutation<Task, { id: string; userId: string }>({
-      query: ({ id, userId }) => ({
-        url: API_ENDPOINTS.TASKS.ASSIGN(id),
-        method: "PATCH",
-        body: { userId },
-      }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: "Task", id },
-        "Task",
-        "User",
-      ],
-    }),
+    assignTask: builder.mutation<Task, { id: string; data: AssignTaskRequest }>(
+      {
+        query: ({ id, data }) => ({
+          url: API_ENDPOINTS.TASKS.ASSIGN(id),
+          method: "PATCH",
+          body: data,
+        }),
+        transformResponse: (response: any) => {
+          return response.data || response;
+        },
+        invalidatesTags: (_result, _error, { id }) => [
+          { type: "Task", id },
+          "Task",
+          "User",
+        ],
+      }
+    ),
 
     // Get task comments
     getTaskComments: builder.query<any[], string>({
@@ -99,6 +141,9 @@ export const tasksApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.TASKS.COMMENTS(taskId),
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: (_result, _error, taskId) => [
         { type: "Comment", id: taskId },
         "Comment",
@@ -108,25 +153,33 @@ export const tasksApi = baseApi.injectEndpoints({
     // Get tasks by project
     getTasksByProject: builder.query<Task[], string>({
       query: (projectId) => ({
-        url: API_ENDPOINTS.TASKS.BASE,
+        url: API_ENDPOINTS.PROJECTS.TASKS(projectId),
         method: "GET",
-        params: { projectId },
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: (_result, _error, projectId) => [
         { type: "Project", id: projectId },
         "Task",
       ],
     }),
 
-    // Get tasks by user
-    getTasksByUser: builder.query<Task[], string>({
-      query: (userId) => ({
-        url: API_ENDPOINTS.TASKS.BASE,
+    // Get tasks by status in project
+    getTasksByStatus: builder.query<
+      Task[],
+      { projectId: string; status: string }
+    >({
+      query: ({ projectId, status }) => ({
+        url: API_ENDPOINTS.PROJECTS.TASKS_BY_STATUS(projectId),
         method: "GET",
-        params: { assignedTo: userId },
+        params: { status },
       }),
-      providesTags: (_result, _error, userId) => [
-        { type: "User", id: userId },
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
+      providesTags: (_result, _error, { projectId }) => [
+        { type: "Project", id: projectId },
         "Task",
       ],
     }),
@@ -136,6 +189,7 @@ export const tasksApi = baseApi.injectEndpoints({
 // Export hooks for usage in components
 export const {
   useGetTasksQuery,
+  useGetMyTasksQuery,
   useGetTaskQuery,
   useCreateTaskMutation,
   useUpdateTaskMutation,
@@ -144,5 +198,5 @@ export const {
   useAssignTaskMutation,
   useGetTaskCommentsQuery,
   useGetTasksByProjectQuery,
-  useGetTasksByUserQuery,
+  useGetTasksByStatusQuery,
 } = tasksApi;

@@ -12,10 +12,10 @@ interface EnvConfig {
 
 const getEnvVar = (key: string, defaultValue?: string): string => {
   const value = import.meta.env[key] || defaultValue;
-  if (!value) {
+  if (!value && key !== "VITE_API_BASE_URL") {
     throw new Error(`Environment variable ${key} is required`);
   }
-  return value;
+  return value || defaultValue || "";
 };
 
 const getBooleanEnvVar = (
@@ -30,11 +30,11 @@ const getBooleanEnvVar = (
 };
 
 export const env: EnvConfig = {
-  API_BASE_URL: getEnvVar("VITE_API_BASE_URL"),
-  APP_NAME: getEnvVar("VITE_APP_NAME"),
+  API_BASE_URL: getEnvVar("VITE_API_BASE_URL", "http://localhost:3000/api"),
+  APP_NAME: getEnvVar("VITE_APP_NAME", "Task Manager"),
   ENABLE_DEVTOOLS: getBooleanEnvVar("VITE_ENABLE_DEVTOOLS", false),
-  JWT_SECRET_KEY: getEnvVar("VITE_JWT_SECRET_KEY"),
-  REFRESH_TOKEN_KEY: getEnvVar("VITE_REFRESH_TOKEN_KEY"),
+  JWT_SECRET_KEY: getEnvVar("VITE_JWT_SECRET_KEY", "dev-secret-key"),
+  REFRESH_TOKEN_KEY: getEnvVar("VITE_REFRESH_TOKEN_KEY", "dev-refresh-key"),
 };
 
 // API Configuration

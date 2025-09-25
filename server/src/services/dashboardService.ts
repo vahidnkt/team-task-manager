@@ -271,7 +271,11 @@ class DashboardService {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      dueDate: task.dueDate?.toISOString(),
+      dueDate: task.dueDate
+        ? typeof task.dueDate === "string"
+          ? task.dueDate
+          : task.dueDate.toISOString()
+        : undefined,
       projectId: task.projectId,
       projectName: task.project?.name || "Unknown Project",
       assigneeId: task.assigneeId,
@@ -688,7 +692,11 @@ class DashboardService {
       description: task.description,
       status: task.status as "todo" | "in-progress" | "done",
       priority: task.priority as "low" | "medium" | "high",
-      dueDate: task.dueDate?.toISOString(),
+      dueDate: task.dueDate
+        ? typeof task.dueDate === "string"
+          ? task.dueDate
+          : task.dueDate.toISOString()
+        : undefined,
       projectId: task.projectId,
       projectName: task.project?.name || "Unknown Project",
       assigneeId: task.assigneeId,

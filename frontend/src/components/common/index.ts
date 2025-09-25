@@ -10,10 +10,6 @@ export {
   PageLoading,
   LoadingOverlay,
 } from "./Loading";
-export {
-  ErrorBoundary,
-  withErrorBoundary,
-  useErrorHandler,
-} from "./ErrorBoundary";
+export { default as ErrorBoundary } from "./ErrorBoundary";
 export { ConfirmDialog, useConfirmDialog } from "./ConfirmDialog";
 export { Tooltip, useTooltip } from "./Tooltip";

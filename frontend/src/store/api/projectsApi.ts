@@ -6,21 +6,36 @@ import type {
   UpdateProjectRequest,
   ProjectWithStats,
   ProjectMember,
+  GetProjectsQuery,
+  ProjectsResponse,
 } from "../../types";
 
 // Projects API slice
 export const projectsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Get all projects
-    getProjects: builder.query<
-      Project[],
-      { page?: number; limit?: number; search?: string }
-    >({
+    // Get all projects with search, filter, and pagination
+    getProjects: builder.query<ProjectsResponse, GetProjectsQuery>({
       query: (params = {}) => ({
         url: API_ENDPOINTS.PROJECTS.BASE,
         method: "GET",
         params,
       }),
+      transformResponse: (response: any) => {
+        // Extract data from the server's ApiResponse wrapper
+        return response.data || response;
+      },
+      providesTags: ["Project"],
+    }),
+
+    // Get user's projects (projects created by or assigned to user)
+    getUserProjects: builder.query<Project[], void>({
+      query: () => ({
+        url: `${API_ENDPOINTS.PROJECTS.BASE}/my`,
+        method: "GET",
+      }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: ["Project"],
     }),
 
@@ -30,6 +45,9 @@ export const projectsApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.PROJECTS.BY_ID(id),
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: (_result, _error, id) => [{ type: "Project", id }],
     }),
 
@@ -40,6 +58,9 @@ export const projectsApi = baseApi.injectEndpoints({
         method: "POST",
         body: projectData,
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       invalidatesTags: ["Project"],
     }),
 
@@ -53,6 +74,9 @@ export const projectsApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Project", id },
         "Project",
@@ -74,6 +98,9 @@ export const projectsApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.PROJECTS.MEMBERS(projectId),
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: (_result, _error, projectId) => [
         { type: "Project", id: projectId },
         "User",
@@ -90,6 +117,9 @@ export const projectsApi = baseApi.injectEndpoints({
         method: "POST",
         body: { userId, role },
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       invalidatesTags: (_result, _error, { projectId }) => [
         { type: "Project", id: projectId },
         "User",
@@ -116,6 +146,7 @@ export const projectsApi = baseApi.injectEndpoints({
 // Export hooks for usage in components
 export const {
   useGetProjectsQuery,
+  useGetUserProjectsQuery,
   useGetProjectQuery,
   useCreateProjectMutation,
   useUpdateProjectMutation,

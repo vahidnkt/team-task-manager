@@ -207,6 +207,9 @@ export const ROUTES = {
   CREATE_PROJECT: "/projects/new",
   PROJECT_DETAIL: (id: string) => `/projects/${id}`,
   EDIT_PROJECT: (id: string) => `/projects/${id}/edit`,
+  CREATE_TASK_FOR_PROJECT: (projectId: string) =>
+    `/projects/${projectId}/tasks/new`,
+  PROJECT_TASKS: (projectId: string) => `/projects/${projectId}/tasks`,
 
   // Tasks
   TASKS: "/tasks",
@@ -306,4 +309,3 @@ export const CONSTANTS = {
   PRIORITY_COLORS,
   STATUS_COLORS,
 } as const;
-

@@ -1,23 +1,80 @@
-import { format, formatDistanceToNow, isAfter, isBefore, addDays, subDays, startOfDay, endOfDay, differenceInDays, differenceInHours, differenceInMinutes } from "date-fns";
+import {
+  format,
+  formatDistanceToNow,
+  isAfter,
+  isBefore,
+  addDays,
+  subDays,
+  startOfDay,
+  endOfDay,
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+} from "date-fns";
 
 // Date formatting utilities
-export const formatDate = (date: Date | string, formatString: string = "MMM dd, yyyy"): string => {
+export const formatDate = (
+  date: Date | string | null | undefined,
+  formatString: string = "MMM dd, yyyy"
+): string => {
+  if (!date) {
+    return "Unknown";
+  }
+
   const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  if (isNaN(dateObj.getTime())) {
+    return "Invalid date";
+  }
+
   return format(dateObj, formatString);
 };
 
-export const formatDateTime = (date: Date | string): string => {
+export const formatDateTime = (
+  date: Date | string | null | undefined
+): string => {
+  if (!date) {
+    return "Unknown";
+  }
+
   const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  if (isNaN(dateObj.getTime())) {
+    return "Invalid date";
+  }
+
   return format(dateObj, "MMM dd, yyyy 'at' h:mm a");
 };
 
-export const formatTime = (date: Date | string): string => {
+export const formatTime = (date: Date | string | null | undefined): string => {
+  if (!date) {
+    return "Unknown";
+  }
+
   const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  if (isNaN(dateObj.getTime())) {
+    return "Invalid date";
+  }
+
   return format(dateObj, "h:mm a");
 };
 
-export const formatRelativeTime = (date: Date | string): string => {
+export const formatRelativeTime = (
+  date: Date | string | null | undefined
+): string => {
+  // Handle null, undefined, or empty values
+  if (!date) {
+    return "Unknown";
+  }
+
   const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) {
+    return "Invalid date";
+  }
+
   return formatDistanceToNow(dateObj, { addSuffix: true });
 };
 
@@ -55,7 +112,10 @@ export const addDaysToDate = (date: Date | string, days: number): Date => {
   return addDays(dateObj, days);
 };
 
-export const subtractDaysFromDate = (date: Date | string, days: number): Date => {
+export const subtractDaysFromDate = (
+  date: Date | string,
+  days: number
+): Date => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   return subDays(dateObj, days);
 };
@@ -71,26 +131,37 @@ export const getEndOfDay = (date: Date | string): Date => {
 };
 
 // Duration utilities
-export const getDaysDifference = (startDate: Date | string, endDate: Date | string): number => {
+export const getDaysDifference = (
+  startDate: Date | string,
+  endDate: Date | string
+): number => {
   const start = typeof startDate === "string" ? new Date(startDate) : startDate;
   const end = typeof endDate === "string" ? new Date(endDate) : endDate;
   return differenceInDays(end, start);
 };
 
-export const getHoursDifference = (startDate: Date | string, endDate: Date | string): number => {
+export const getHoursDifference = (
+  startDate: Date | string,
+  endDate: Date | string
+): number => {
   const start = typeof startDate === "string" ? new Date(startDate) : startDate;
   const end = typeof endDate === "string" ? new Date(endDate) : endDate;
   return differenceInHours(end, start);
 };
 
-export const getMinutesDifference = (startDate: Date | string, endDate: Date | string): number => {
+export const getMinutesDifference = (
+  startDate: Date | string,
+  endDate: Date | string
+): number => {
   const start = typeof startDate === "string" ? new Date(startDate) : startDate;
   const end = typeof endDate === "string" ? new Date(endDate) : endDate;
   return differenceInMinutes(end, start);
 };
 
 // Task and project specific utilities
-export const getTaskDeadlineStatus = (dueDate: Date | string): {
+export const getTaskDeadlineStatus = (
+  dueDate: Date | string
+): {
   status: "overdue" | "due-today" | "due-soon" | "not-due";
   daysLeft: number;
   message: string;
@@ -103,7 +174,9 @@ export const getTaskDeadlineStatus = (dueDate: Date | string): {
     return {
       status: "overdue",
       daysLeft: Math.abs(daysLeft),
-      message: `Overdue by ${Math.abs(daysLeft)} day${Math.abs(daysLeft) === 1 ? "" : "s"}`,
+      message: `Overdue by ${Math.abs(daysLeft)} day${
+        Math.abs(daysLeft) === 1 ? "" : "s"
+      }`,
     };
   }
 
@@ -130,7 +203,10 @@ export const getTaskDeadlineStatus = (dueDate: Date | string): {
   };
 };
 
-export const getProjectTimeline = (startDate: Date | string, endDate: Date | string): {
+export const getProjectTimeline = (
+  startDate: Date | string,
+  endDate: Date | string
+): {
   totalDays: number;
   daysPassed: number;
   daysRemaining: number;
@@ -172,7 +248,10 @@ export const getProjectTimeline = (startDate: Date | string, endDate: Date | str
 };
 
 // Date range utilities
-export const getDateRange = (startDate: Date | string, endDate: Date | string): {
+export const getDateRange = (
+  startDate: Date | string,
+  endDate: Date | string
+): {
   start: Date;
   end: Date;
   days: number;
@@ -205,7 +284,8 @@ export const getYear = (date: Date | string): number => {
 export const getWeekNumber = (date: Date | string): number => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   const firstDayOfYear = new Date(dateObj.getFullYear(), 0, 1);
-  const pastDaysOfYear = (dateObj.getTime() - firstDayOfYear.getTime()) / 86400000;
+  const pastDaysOfYear =
+    (dateObj.getTime() - firstDayOfYear.getTime()) / 86400000;
   return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 };
 
@@ -244,4 +324,3 @@ export const DATE_FORMATS = {
   INPUT_DATETIME: "yyyy-MM-dd'T'HH:mm",
   RELATIVE: "relative", // Special flag for relative formatting
 } as const;
-

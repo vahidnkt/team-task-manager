@@ -4,44 +4,17 @@ export type TaskPriority = "low" | "medium" | "high";
 
 export interface Task {
   id: string;
-  project_id: string;
+  projectId: string;
   title: string;
   description?: string;
-  assignee_id?: string;
+  assigneeId?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  due_date?: Date;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
-}
-
-export interface CreateTaskRequest {
-  title: string;
-  description?: string;
-  assignee_id?: string;
-  priority?: TaskPriority;
-  due_date?: Date;
-}
-
-export interface UpdateTaskRequest {
-  title?: string;
-  description?: string;
-  assignee_id?: string;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  due_date?: Date;
-}
-
-export interface AssignTaskRequest {
-  assignee_id?: string;
-}
-
-export interface UpdateTaskStatusRequest {
-  status: TaskStatus;
-}
-
-export interface TaskWithDetails extends Task {
+  dueDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  // Relations
   assignee?: {
     id: string;
     username: string;
@@ -51,7 +24,36 @@ export interface TaskWithDetails extends Task {
     id: string;
     name: string;
   };
-  comment_count?: number;
+  comments?: Comment[];
+}
+
+export interface CreateTaskRequest {
+  title: string;
+  description?: string;
+  assignee_id?: string;
+  priority?: TaskPriority;
+  due_date?: string;
+}
+
+export interface UpdateTaskRequest {
+  title?: string;
+  description?: string;
+  assignee_id?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  due_date?: string;
+}
+
+export interface AssignTaskRequest {
+  assignee_id?: string | null;
+}
+
+export interface UpdateTaskStatusRequest {
+  status: TaskStatus;
+}
+
+export interface TaskWithDetails extends Task {
+  commentCount?: number;
 }
 
 export interface TaskStats {
@@ -60,6 +62,33 @@ export interface TaskStats {
   inProgress: number;
   done: number;
   overdue: number;
+}
+
+// Query parameters for getting tasks
+export interface GetTasksQuery {
+  search?: string;
+  status?: string;
+  priority?: string;
+  assignee_id?: string;
+  project_id?: string;
+  limit?: number;
+  offset?: number;
+  sortBy?:
+    | "title"
+    | "status"
+    | "priority"
+    | "created_at"
+    | "updated_at"
+    | "due_date";
+  sortOrder?: "ASC" | "DESC";
+}
+
+// Response from getAllTasks API
+export interface TasksResponse {
+  tasks: Task[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface TaskFilter {
@@ -89,4 +118,19 @@ export interface TaskSort {
     | "createdAt"
     | "updatedAt";
   direction: "asc" | "desc";
+}
+
+// Comment interface for task relations
+export interface Comment {
+  id: string;
+  content: string;
+  userId: string;
+  taskId: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+  };
 }

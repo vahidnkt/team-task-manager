@@ -146,6 +146,26 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: "projects/:projectId/tasks/new",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
+              <CreateTask />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "projects/:projectId/tasks",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
+              <TaskBoard />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
 
       // Task routes
       {
@@ -272,6 +292,9 @@ export const ROUTES = {
   CREATE_PROJECT: "/projects/new",
   PROJECT_DETAIL: (id: string) => `/projects/${id}`,
   EDIT_PROJECT: (id: string) => `/projects/${id}/edit`,
+  CREATE_TASK_FOR_PROJECT: (projectId: string) =>
+    `/projects/${projectId}/tasks/new`,
+  PROJECT_TASKS: (projectId: string) => `/projects/${projectId}/tasks`,
 
   // Task routes
   TASKS: "/tasks",
@@ -308,6 +331,9 @@ export const navigation = {
   goToCreateProject: () => ROUTES.CREATE_PROJECT,
   goToProjectDetail: (id: string) => ROUTES.PROJECT_DETAIL(id),
   goToEditProject: (id: string) => ROUTES.EDIT_PROJECT(id),
+  goToCreateTaskForProject: (projectId: string) =>
+    ROUTES.CREATE_TASK_FOR_PROJECT(projectId),
+  goToProjectTasks: (projectId: string) => ROUTES.PROJECT_TASKS(projectId),
 
   // Task navigation
   goToTasks: () => ROUTES.TASKS,
