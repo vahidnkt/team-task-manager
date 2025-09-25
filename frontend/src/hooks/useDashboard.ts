@@ -1,15 +1,44 @@
 import { useEffect, useCallback } from "react";
 import { useAuth } from "./useAuth";
 import { useToast } from "./useToast";
-import { useGetDashboardDataQuery } from "../store/api/dashboardApi";
+import { useGetDashboardQuery } from "../store/api/dashboardApi";
 
 interface UseDashboardOptions {
   autoFetch?: boolean;
   refetchInterval?: number;
+  // Optional query parameters for the single API
+  statsDays?: number;
+  recentTasksLimit?: number;
+  recentTasksOffset?: number;
+  recentActivitiesLimit?: number;
+  recentActivitiesOffset?: number;
+  projectsLimit?: number;
+  projectsOffset?: number;
+  projectsStatus?: "active" | "completed" | "all";
+  includeStats?: boolean;
+  includeRecentTasks?: boolean;
+  includeRecentActivities?: boolean;
+  includeProjects?: boolean;
 }
 
 export const useDashboard = (options: UseDashboardOptions = {}) => {
-  const { autoFetch = true, refetchInterval } = options;
+  const {
+    autoFetch = true,
+    refetchInterval,
+    statsDays = 30,
+    recentTasksLimit = 10,
+    recentTasksOffset = 0,
+    recentActivitiesLimit = 10,
+    recentActivitiesOffset = 0,
+    projectsLimit = 20,
+    projectsOffset = 0,
+    projectsStatus = "all",
+    includeStats = true,
+    includeRecentTasks = true,
+    includeRecentActivities = true,
+    includeProjects = true,
+  } = options;
+
   const { user, isAuthenticated } = useAuth();
   const { showError } = useToast();
 
@@ -19,8 +48,21 @@ export const useDashboard = (options: UseDashboardOptions = {}) => {
     isLoading,
     error,
     refetch,
-  } = useGetDashboardDataQuery(
-    {},
+  } = useGetDashboardQuery(
+    {
+      statsDays,
+      recentTasksLimit,
+      recentTasksOffset,
+      recentActivitiesLimit,
+      recentActivitiesOffset,
+      projectsLimit,
+      projectsOffset,
+      projectsStatus,
+      includeStats,
+      includeRecentTasks,
+      includeRecentActivities,
+      includeProjects,
+    },
     {
       skip: !isAuthenticated || !user || !autoFetch,
       pollingInterval: refetchInterval,
@@ -54,6 +96,7 @@ export const useDashboard = (options: UseDashboardOptions = {}) => {
   const projects = Array.isArray(dashboardData?.projects)
     ? dashboardData.projects
     : [];
+  const metadata = dashboardData?.metadata || null;
 
   return {
     // Main data
@@ -61,6 +104,7 @@ export const useDashboard = (options: UseDashboardOptions = {}) => {
     isLoading,
     error,
     refresh,
+    metadata,
 
     // Extracted data for easy access
     stats,

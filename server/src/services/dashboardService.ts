@@ -16,144 +16,123 @@ import { AppError } from "../types/common.types";
 
 class DashboardService {
   /**
-   * Get dashboard statistics based on user role
+   * Get admin statistics (system-wide)
    */
-  public async getDashboardStats(
-    userId: string,
-    userRole: string,
-    days: number = 30
-  ): Promise<DashboardStatsResponseDto> {
-    try {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-
-      if (userRole === "admin") {
-        // Admin gets system-wide statistics
-        return await this.getAdminStats(startDate);
-      } else {
-        // User gets personal statistics
-        return await this.getUserStats(userId, startDate);
-      }
-    } catch (error) {
-      logger.error("Get dashboard stats error", error as Error);
-      throw new Error("Failed to get dashboard statistics");
-    }
-  }
-
-  // Get admin statistics (system-wide)
   private async getAdminStats(
     startDate: Date
   ): Promise<DashboardStatsResponseDto> {
-    const [
-      totalTasks,
-      completedTasks,
-      inProgressTasks,
-      overdueTasks,
-      totalProjects,
-      activeProjects,
-      completedProjects,
-      totalUsers,
-      activeUsers,
-    ] = await Promise.all([
-      // Task statistics
-      Task.count({ where: { deletedAt: null } as any }),
-      Task.count({ where: { status: "done", deletedAt: null } as any }),
-      Task.count({
-        where: { status: "in-progress", deletedAt: null } as any,
-      }),
-      Task.count({
-        where: {
-          dueDate: { [Op.lt]: new Date() },
-          status: { [Op.ne]: "done" },
-          deletedAt: null,
-        } as any,
-      }),
-      // Project statistics
-      Project.count({ where: { deletedAt: null } as any }),
-      Project.count({
-        where: {
-          deletedAt: null,
-          "$tasks.status$": { [Op.ne]: "done" },
-        } as any,
-        include: [{ model: Task, as: "tasks", required: false }],
-      }),
-      Project.count({
-        where: {
-          deletedAt: null,
-          "$tasks.status$": "done",
-        } as any,
-        include: [{ model: Task, as: "tasks", required: true }],
-      }),
-      // User statistics
-      User.count({ where: { deletedAt: null } as any }),
-      User.count({
-        where: {
-          deletedAt: null,
-          "$activities.createdAt$": { [Op.gte]: startDate },
-        } as any,
-        include: [{ model: Activity, as: "activities", required: false }],
-      }),
-    ]);
-
-    return {
-      totalTasks,
-      completedTasks,
-      inProgressTasks,
-      overdueTasks,
-      totalProjects,
-      activeProjects,
-      completedProjects,
-      totalUsers,
-      activeUsers,
-    };
-  }
-
-  // Get user statistics (personal)
-  private async getUserStats(
-    userId: string,
-    startDate: Date
-  ): Promise<DashboardStatsResponseDto> {
-    // Get user project data once to avoid duplicate queries
-    const userProjectData = await this.getUserProjectData(userId);
-
-    const [totalTasks, completedTasks, inProgressTasks, overdueTasks] =
-      await Promise.all([
-        // User's assigned tasks
-        Task.count({ where: { assigneeId: userId, deletedAt: null } as any }),
+    try {
+      // Get basic counts first
+      const [
+        totalTasks,
+        completedTasks,
+        inProgressTasks,
+        overdueTasks,
+        totalProjects,
+        totalUsers,
+      ] = await Promise.all([
+        // Task statistics
+        Task.count({ where: { deletedAt: null } as any }),
+        Task.count({ where: { status: "done", deletedAt: null } as any }),
         Task.count({
-          where: { assigneeId: userId, status: "done", deletedAt: null } as any,
+          where: { status: "in-progress", deletedAt: null } as any,
         }),
         Task.count({
           where: {
-            assigneeId: userId,
-            status: "in-progress",
-            deletedAt: null,
-          } as any,
-        }),
-        Task.count({
-          where: {
-            assigneeId: userId,
             dueDate: { [Op.lt]: new Date() },
             status: { [Op.ne]: "done" },
             deletedAt: null,
           } as any,
         }),
+        // Project statistics
+        Project.count({ where: { deletedAt: null } as any }),
+        // User statistics
+        User.count({ where: { deletedAt: null } as any }),
       ]);
 
-    // Calculate project counts from cached data
-    const totalProjects = userProjectData.totalProjects;
-    const activeProjects = userProjectData.activeProjects;
-    const completedProjects = userProjectData.completedProjects;
+      // Get project status counts separately to avoid complex joins
+      const [activeProjects, completedProjects, activeUsers] =
+        await Promise.all([
+          // Count projects with active tasks (not all done)
+          Project.count({
+            where: { deletedAt: null } as any,
+            include: [
+              {
+                model: Task,
+                as: "tasks",
+                where: {
+                  status: { [Op.ne]: "done" },
+                  deletedAt: null,
+                } as any,
+                required: true,
+              },
+            ],
+          }),
+          // Count projects where all tasks are done
+          Project.count({
+            where: { deletedAt: null } as any,
+            include: [
+              {
+                model: Task,
+                as: "tasks",
+                where: {
+                  status: "done",
+                  deletedAt: null,
+                } as any,
+                required: true,
+              },
+            ],
+          }),
+          // Count active users (users with recent activities)
+          User.count({
+            where: { deletedAt: null } as any,
+            include: [
+              {
+                model: Activity,
+                as: "activities",
+                where: {
+                  createdAt: { [Op.gte]: startDate },
+                } as any,
+                required: true,
+              },
+            ],
+          }),
+        ]);
 
-    return {
-      totalTasks,
-      completedTasks,
-      inProgressTasks,
-      overdueTasks,
-      totalProjects,
-      activeProjects,
-      completedProjects,
-    };
+      const stats = {
+        totalTasks,
+        completedTasks,
+        inProgressTasks,
+        overdueTasks,
+        totalProjects,
+        activeProjects,
+        completedProjects,
+        totalUsers,
+        activeUsers,
+      };
+
+      logger.info("Admin statistics retrieved successfully", {
+        totalTasks,
+        completedTasks,
+        inProgressTasks,
+        overdueTasks,
+        totalProjects,
+        activeProjects,
+        completedProjects,
+        totalUsers,
+        activeUsers,
+      });
+
+      return stats;
+    } catch (error) {
+      logger.error("Get admin stats error", error as Error);
+      const appError: AppError = new Error(
+        "Failed to get admin statistics"
+      ) as AppError;
+      appError.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      appError.isOperational = true;
+      throw appError;
+    }
   }
 
   /**
@@ -188,6 +167,7 @@ class DashboardService {
       const uniqueProjectIds = [...new Set(allProjectIds)];
 
       if (uniqueProjectIds.length === 0) {
+        logger.info("No projects found for user", { userId });
         return {
           totalProjects: 0,
           activeProjects: 0,
@@ -234,46 +214,36 @@ class DashboardService {
         ],
       });
 
-      return {
+      const result = {
         totalProjects: uniqueProjectIds.length,
         activeProjects,
         completedProjects,
         projectIds: uniqueProjectIds,
       };
+
+      logger.info("User project data retrieved successfully", {
+        userId,
+        totalProjects: result.totalProjects,
+        activeProjects: result.activeProjects,
+        completedProjects: result.completedProjects,
+      });
+
+      return result;
     } catch (error) {
-      logger.error("Error getting user project data:", error as Error);
-      return {
-        totalProjects: 0,
-        activeProjects: 0,
-        completedProjects: 0,
-        projectIds: [],
-      };
+      logger.error("Error getting user project data", error as Error);
+      const appError: AppError = new Error(
+        "Failed to get user project data"
+      ) as AppError;
+      appError.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      appError.isOperational = true;
+      throw appError;
     }
   }
 
   /**
-   * Helper method to count user projects with different statuses
+   * Get recent tasks for admin (system-wide)
    */
-  private async getUserProjectCount(
-    userId: string,
-    status: "active" | "completed" | null
-  ): Promise<number> {
-    const data = await this.getUserProjectData(userId);
-
-    switch (status) {
-      case "active":
-        return data.activeProjects;
-      case "completed":
-        return data.completedProjects;
-      default:
-        return data.totalProjects;
-    }
-  }
-
-  /**
-   * Get recent tasks based on user role
-   */
-  public async getRecentTasks(
+  private async getRecentTasks(
     userId: string,
     userRole: string,
     limit: number = 10,
@@ -311,9 +281,9 @@ class DashboardService {
   }
 
   /**
-   * Get recent activities based on user role
+   * Get recent activities for admin (system-wide)
    */
-  public async getRecentActivities(
+  private async getRecentActivities(
     userId: string,
     userRole: string,
     limit: number = 10,
@@ -348,21 +318,17 @@ class DashboardService {
   }
 
   /**
-   * Get projects based on user role (optimized version)
+   * Get projects for admin (system-wide)
    */
-  public async getProjects(
+  private async getProjects(
     userId: string,
     userRole: string,
     limit: number = 20,
-    offset: number = 0,
-    preFetchedProjectIds?: string[]
+    offset: number = 0
   ): Promise<DashboardProjectDto[]> {
     let projectIds: string[] = [];
 
-    if (preFetchedProjectIds) {
-      // Use pre-fetched project IDs to avoid duplicate queries
-      projectIds = preFetchedProjectIds;
-    } else if (userRole === "admin") {
+    if (userRole === "admin") {
       // Admin can see all projects
       const allProjects = await Project.findAll({
         where: { deletedAt: null } as any,
@@ -441,76 +407,185 @@ class DashboardService {
   }
 
   /**
-   * Get complete dashboard data (optimized to prevent duplicate queries)
+   * Get complete dashboard data with flexible data inclusion
    */
-  public async getDashboardData(
+  public async getCompleteDashboardData(
     userId: string,
     userRole: string,
     options: {
       statsDays?: number;
-      recentLimit?: number;
-      recentOffset?: number;
+      recentTasksLimit?: number;
+      recentTasksOffset?: number;
+      recentActivitiesLimit?: number;
+      recentActivitiesOffset?: number;
       projectsLimit?: number;
       projectsOffset?: number;
+      projectsStatus?: string;
+      includeStats?: boolean;
+      includeRecentTasks?: boolean;
+      includeRecentActivities?: boolean;
+      includeProjects?: boolean;
     } = {}
   ): Promise<DashboardResponseDto> {
-    const {
-      statsDays = 30,
-      recentLimit = 10,
-      recentOffset = 0,
-      projectsLimit = 20,
-      projectsOffset = 0,
-    } = options;
-
     try {
+      const {
+        statsDays = 30,
+        recentTasksLimit = 10,
+        recentTasksOffset = 0,
+        recentActivitiesLimit = 10,
+        recentActivitiesOffset = 0,
+        projectsLimit = 20,
+        projectsOffset = 0,
+        projectsStatus = "all",
+        includeStats = true,
+        includeRecentTasks = true,
+        includeRecentActivities = true,
+        includeProjects = true,
+      } = options;
+
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - statsDays);
 
-      if (userRole === "admin") {
-        // Admin gets system-wide data
-        const [stats, recentTasks, recentActivities, projects] =
-          await Promise.all([
-            this.getAdminStats(startDate),
-            this.getRecentTasks(userId, userRole, recentLimit, recentOffset),
+      // Prepare promises array based on what data to include
+      const promises: Promise<any>[] = [];
+      const dataKeys: string[] = [];
+
+      if (includeStats) {
+        if (userRole === "admin") {
+          promises.push(this.getAdminStats(startDate));
+        } else {
+          promises.push(this.getUserStatsOptimized(userId, startDate));
+        }
+        dataKeys.push("stats");
+      }
+
+      if (includeRecentTasks) {
+        if (userRole === "admin") {
+          promises.push(
+            this.getRecentTasks(
+              userId,
+              userRole,
+              recentTasksLimit,
+              recentTasksOffset
+            )
+          );
+        } else {
+          promises.push(
+            this.getRecentTasksOptimized(
+              userId,
+              recentTasksLimit,
+              recentTasksOffset
+            )
+          );
+        }
+        dataKeys.push("recentTasks");
+      }
+
+      if (includeRecentActivities) {
+        if (userRole === "admin") {
+          promises.push(
             this.getRecentActivities(
               userId,
               userRole,
-              recentLimit,
-              recentOffset
-            ),
-            this.getProjects(userId, userRole, projectsLimit, projectsOffset),
-          ]);
-
-        return {
-          stats,
-          recentTasks,
-          recentActivities,
-          projects,
-        };
-      } else {
-        // User gets personal data - fetch everything in one optimized call
-        const [stats, recentTasks, recentActivities, projects] =
-          await Promise.all([
-            this.getUserStatsOptimized(userId, startDate),
-            this.getRecentTasksOptimized(userId, recentLimit, recentOffset),
+              recentActivitiesLimit,
+              recentActivitiesOffset
+            )
+          );
+        } else {
+          promises.push(
             this.getRecentActivitiesOptimized(
               userId,
-              recentLimit,
-              recentOffset
-            ),
-            this.getProjectsOptimized(userId, projectsLimit, projectsOffset),
-          ]);
-
-        return {
-          stats,
-          recentTasks,
-          recentActivities,
-          projects,
-        };
+              recentActivitiesLimit,
+              recentActivitiesOffset
+            )
+          );
+        }
+        dataKeys.push("recentActivities");
       }
+
+      if (includeProjects) {
+        if (userRole === "admin") {
+          promises.push(
+            this.getProjects(userId, userRole, projectsLimit, projectsOffset)
+          );
+        } else {
+          promises.push(
+            this.getProjectsOptimized(userId, projectsLimit, projectsOffset)
+          );
+        }
+        dataKeys.push("projects");
+      }
+
+      // Execute all promises in parallel
+      const results = await Promise.all(promises);
+
+      // Build response object
+      const response: any = {
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          userRole,
+          dataRange: {
+            statsDays,
+            recentTasksCount: 0,
+            recentActivitiesCount: 0,
+            projectsCount: 0,
+          },
+        },
+      };
+
+      // Map results to response object
+      let resultIndex = 0;
+      dataKeys.forEach((key) => {
+        response[key] = results[resultIndex];
+        if (key === "recentTasks") {
+          response.metadata.dataRange.recentTasksCount =
+            results[resultIndex].length;
+        } else if (key === "recentActivities") {
+          response.metadata.dataRange.recentActivitiesCount =
+            results[resultIndex].length;
+        } else if (key === "projects") {
+          response.metadata.dataRange.projectsCount =
+            results[resultIndex].length;
+        }
+        resultIndex++;
+      });
+
+      // Apply project status filter if needed
+      if (includeProjects && projectsStatus !== "all" && response.projects) {
+        response.projects = response.projects.filter((project: any) => {
+          if (projectsStatus === "active") {
+            return project.progressPercentage < 100;
+          } else if (projectsStatus === "completed") {
+            return project.progressPercentage === 100;
+          }
+          return true;
+        });
+        response.metadata.dataRange.projectsCount = response.projects.length;
+      }
+
+      logger.info("Dashboard data retrieved successfully", {
+        userId,
+        userRole,
+        statsDays,
+        recentTasksCount: response.metadata.dataRange.recentTasksCount,
+        recentActivitiesCount:
+          response.metadata.dataRange.recentActivitiesCount,
+        projectsCount: response.metadata.dataRange.projectsCount,
+        includedSections: dataKeys,
+      });
+
+      return response as DashboardResponseDto;
     } catch (error) {
-      logger.error("Get dashboard data error", error as Error);
-      throw new Error("Failed to get dashboard data");
+      if (error instanceof Error && "statusCode" in error) {
+        throw error;
+      }
+      logger.error("Get complete dashboard data error", error as Error);
+      const appError: AppError = new Error(
+        "Failed to get complete dashboard data"
+      ) as AppError;
+      appError.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      appError.isOperational = true;
+      throw appError;
     }
   }
 
@@ -521,44 +596,71 @@ class DashboardService {
     userId: string,
     startDate: Date
   ): Promise<DashboardStatsResponseDto> {
-    // Get user project data once
-    const userProjectData = await this.getUserProjectData(userId);
+    try {
+      // Get user project data once
+      const userProjectData = await this.getUserProjectData(userId);
 
-    const [totalTasks, completedTasks, inProgressTasks, overdueTasks] =
-      await Promise.all([
-        // User's assigned tasks
-        Task.count({ where: { assigneeId: userId, deletedAt: null } as any }),
-        Task.count({
-          where: { assigneeId: userId, status: "done", deletedAt: null } as any,
-        }),
-        Task.count({
-          where: {
-            assigneeId: userId,
-            status: "in-progress",
-            deletedAt: null,
-          } as any,
-        }),
-        Task.count({
-          where: {
-            assigneeId: userId,
-            dueDate: { [Op.lt]: new Date() },
-            status: { [Op.ne]: "done" },
-            deletedAt: null,
-          } as any,
-        }),
-      ]);
+      const [totalTasks, completedTasks, inProgressTasks, overdueTasks] =
+        await Promise.all([
+          // User's assigned tasks
+          Task.count({ where: { assigneeId: userId, deletedAt: null } as any }),
+          Task.count({
+            where: {
+              assigneeId: userId,
+              status: "done",
+              deletedAt: null,
+            } as any,
+          }),
+          Task.count({
+            where: {
+              assigneeId: userId,
+              status: "in-progress",
+              deletedAt: null,
+            } as any,
+          }),
+          Task.count({
+            where: {
+              assigneeId: userId,
+              dueDate: { [Op.lt]: new Date() },
+              status: { [Op.ne]: "done" },
+              deletedAt: null,
+            } as any,
+          }),
+        ]);
 
-    return {
-      totalTasks,
-      completedTasks,
-      inProgressTasks,
-      overdueTasks,
-      totalProjects: userProjectData.totalProjects,
-      activeProjects: userProjectData.activeProjects,
-      completedProjects: userProjectData.completedProjects,
-      totalUsers: 0, // Not relevant for user stats
-      activeUsers: 0, // Not relevant for user stats
-    };
+      const stats = {
+        totalTasks,
+        completedTasks,
+        inProgressTasks,
+        overdueTasks,
+        totalProjects: userProjectData.totalProjects,
+        activeProjects: userProjectData.activeProjects,
+        completedProjects: userProjectData.completedProjects,
+        totalUsers: 0, // Not relevant for user stats
+        activeUsers: 0, // Not relevant for user stats
+      };
+
+      logger.info("User statistics retrieved successfully", {
+        userId,
+        totalTasks,
+        completedTasks,
+        inProgressTasks,
+        overdueTasks,
+        totalProjects: userProjectData.totalProjects,
+        activeProjects: userProjectData.activeProjects,
+        completedProjects: userProjectData.completedProjects,
+      });
+
+      return stats;
+    } catch (error) {
+      logger.error("Get user stats optimized error", error as Error);
+      const appError: AppError = new Error(
+        "Failed to get user statistics"
+      ) as AppError;
+      appError.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      appError.isOperational = true;
+      throw appError;
+    }
   }
 
   /**

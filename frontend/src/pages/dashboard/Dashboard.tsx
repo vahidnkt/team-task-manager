@@ -19,9 +19,15 @@ const Dashboard: React.FC = () => {
     recentTasks,
     recentActivities,
     projects,
+    metadata,
   } = useDashboard({
     autoFetch: true,
     refetchInterval: 30000, // Refresh every 30 seconds
+    statsDays: 30,
+    recentTasksLimit: 10,
+    recentActivitiesLimit: 10,
+    projectsLimit: 20,
+    projectsStatus: "all",
   });
 
   const handleCreateTask = () => {
@@ -137,6 +143,13 @@ const Dashboard: React.FC = () => {
                   ? "Admin Dashboard - Manage your entire system"
                   : "Your personal task management hub"}
               </p>
+              {metadata && (
+                <p className="text-xs sm:text-sm text-gray-600 mt-2">
+                  Last updated:{" "}
+                  {new Date(metadata.generatedAt).toLocaleString()} • Data
+                  range: {metadata.dataRange.statsDays} days
+                </p>
+              )}
             </div>
 
             {/* Action Buttons */}

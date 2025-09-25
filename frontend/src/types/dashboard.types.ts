@@ -51,33 +51,48 @@ export interface DashboardProject {
   updatedAt: string;
 }
 
+// Dashboard metadata from new API
+export interface DashboardMetadata {
+  generatedAt: string;
+  userRole: string;
+  dataRange: {
+    statsDays: number;
+    recentTasksCount: number;
+    recentActivitiesCount: number;
+    projectsCount: number;
+  };
+}
+
+// Complete dashboard data from new single API
 export interface DashboardData {
   stats: DashboardStats;
   recentTasks: DashboardRecentTask[];
   recentActivities: DashboardRecentActivity[];
   projects: DashboardProject[];
+  metadata: DashboardMetadata;
 }
 
-// Dashboard API Query Parameters
-export interface DashboardStatsQuery {
-  days?: number;
-}
-
-export interface DashboardRecentQuery {
-  limit?: number;
-  offset?: number;
-}
-
-export interface DashboardProjectsQuery {
-  limit?: number;
-  offset?: number;
-  status?: string;
-}
-
-export interface DashboardDataQuery {
+// New single dashboard query parameters
+export interface DashboardQuery {
+  // Stats configuration
   statsDays?: number;
-  recentLimit?: number;
-  recentOffset?: number;
+
+  // Recent tasks configuration
+  recentTasksLimit?: number;
+  recentTasksOffset?: number;
+
+  // Recent activities configuration
+  recentActivitiesLimit?: number;
+  recentActivitiesOffset?: number;
+
+  // Projects configuration
   projectsLimit?: number;
   projectsOffset?: number;
+  projectsStatus?: "active" | "completed" | "all";
+
+  // Data inclusion flags (optional - for future flexibility)
+  includeStats?: boolean;
+  includeRecentTasks?: boolean;
+  includeRecentActivities?: boolean;
+  includeProjects?: boolean;
 }

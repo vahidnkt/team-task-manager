@@ -67,10 +67,5 @@ export const API_ENDPOINTS = {
   // Dashboard endpoints
   DASHBOARD: {
     BASE: "/dashboard",
-    STATS: "/dashboard/stats",
-    RECENT_TASKS: "/dashboard/recent-tasks",
-    RECENT_ACTIVITIES: "/dashboard/recent-activities",
-    PROJECTS: "/dashboard/projects",
-    ACTIVITY_SUMMARY: "/dashboard/activity-summary",
   },
 } as const;
