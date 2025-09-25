@@ -85,18 +85,41 @@ export const useDashboard = (options: UseDashboardOptions = {}) => {
     refetch();
   }, [refetch]);
 
-  // Extract data from the single API response
-  const stats = dashboardData?.stats || null;
+  // Extract data from the single API response with proper fallbacks
+  const stats = dashboardData?.stats || {
+    totalTasks: 0,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    overdueTasks: 0,
+    totalProjects: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+  };
+  
   const recentTasks = Array.isArray(dashboardData?.recentTasks)
     ? dashboardData.recentTasks
     : [];
+    
   const recentActivities = Array.isArray(dashboardData?.recentActivities)
     ? dashboardData.recentActivities
     : [];
+    
   const projects = Array.isArray(dashboardData?.projects)
     ? dashboardData.projects
     : [];
-  const metadata = dashboardData?.metadata || null;
+    
+  const metadata = dashboardData?.metadata || {
+    generatedAt: new Date().toISOString(),
+    userRole: "user",
+    dataRange: {
+      statsDays: 30,
+      recentTasksCount: 0,
+      recentActivitiesCount: 0,
+      projectsCount: 0,
+    },
+  };
 
   return {
     // Main data

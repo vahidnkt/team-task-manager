@@ -271,7 +271,7 @@ class DashboardService {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      dueDate: task.dueDate?.toISOString().split("T")[0],
+      dueDate: task.dueDate?.toISOString(),
       projectId: task.projectId,
       projectName: task.project?.name || "Unknown Project",
       assigneeId: task.assigneeId,

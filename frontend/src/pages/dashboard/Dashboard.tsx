@@ -30,6 +30,10 @@ const Dashboard: React.FC = () => {
     projectsStatus: "all",
   });
 
+  // Determine user role from metadata or auth context
+  const userRole = metadata?.userRole || (isAdmin() ? "admin" : "user");
+  const isUserAdmin = userRole === "admin" || isAdmin();
+
   const handleCreateTask = () => {
     navigate(ROUTES.CREATE_TASK);
   };
@@ -83,25 +87,11 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Use real data or fallback to empty data
-  const currentStats = stats || {
-    totalTasks: 0,
-    completedTasks: 0,
-    inProgressTasks: 0,
-    overdueTasks: 0,
-    totalProjects: 0,
-    activeProjects: 0,
-    completedProjects: 0,
-    totalUsers: 0,
-    activeUsers: 0,
-  };
-
-  // Ensure arrays are properly handled
-  const currentRecentTasks = Array.isArray(recentTasks) ? recentTasks : [];
-  const currentRecentActivities = Array.isArray(recentActivities)
-    ? recentActivities
-    : [];
-  const currentProjects = Array.isArray(projects) ? projects : [];
+  // Data is now properly handled in the API layer with fallbacks
+  const currentStats = stats;
+  const currentRecentTasks = recentTasks;
+  const currentRecentActivities = recentActivities;
+  const currentProjects = projects;
 
   // Debug logging to help identify data structure issues
   if (process.env.NODE_ENV === "development") {
@@ -139,7 +129,7 @@ const Dashboard: React.FC = () => {
                 Hi {user?.username || "User"}! 👋
               </h1>
               <p className="text-base sm:text-lg text-gray-800">
-                {isAdmin()
+                {isUserAdmin
                   ? "Admin Dashboard - Manage your entire system"
                   : "Your personal task management hub"}
               </p>
@@ -160,7 +150,7 @@ const Dashboard: React.FC = () => {
               >
                 ✨ Create Task
               </button>
-              {isAdmin() && (
+              {isUserAdmin && (
                 <Button
                   type="default"
                   onClick={handleCreateProject}
@@ -192,7 +182,7 @@ const Dashboard: React.FC = () => {
                       {currentStats.totalTasks}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
-                      {isAdmin()
+                      {isUserAdmin
                         ? "All tasks in system"
                         : "Tasks assigned to you"}
                     </p>
@@ -263,7 +253,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Admin-specific stats */}
-          {isAdmin() && (
+          {isUserAdmin && (
             <div>
               <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">
                 🔧 Admin Overview
@@ -330,7 +320,7 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* User-specific project stats */}
-          {!isAdmin() && (
+          {!isUserAdmin && (
             <div>
               <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">
                 📂 My Projects
@@ -399,7 +389,7 @@ const Dashboard: React.FC = () => {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    📝 {isAdmin() ? "Recent Tasks" : "My Recent Tasks"}
+                    📝 {isUserAdmin ? "Recent Tasks" : "My Recent Tasks"}
                   </h3>
                   <Button
                     type="link"
@@ -459,7 +449,7 @@ const Dashboard: React.FC = () => {
             <div className="glass-card rounded-lg sm:rounded-xl border border-white/30">
               <div className="p-4 sm:p-6 border-b border-white/20">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                  ⚡ {isAdmin() ? "System Activities" : "My Activities"}
+                  ⚡ {isUserAdmin ? "System Activities" : "My Activities"}
                 </h3>
               </div>
               <div className="p-4 sm:p-6">
@@ -518,7 +508,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* User Projects Overview */}
-          {!isAdmin() && currentProjects.length > 0 && (
+          {!isUserAdmin && currentProjects.length > 0 && (
             <div className="glass-card rounded-xl border border-white/30">
               <div className="p-4 sm:p-6 border-b border-white/20">
                 <div className="flex justify-between items-center">
@@ -598,7 +588,7 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* Admin Quick Actions */}
-          {isAdmin() && (
+          {isUserAdmin && (
             <div className="glass-card rounded-lg sm:rounded-xl border border-white/30">
               <div className="p-4 sm:p-6 border-b border-white/20">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900">
