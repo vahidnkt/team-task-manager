@@ -57,7 +57,10 @@ const TaskComments: React.FC = () => {
   console.log("Comments data:", commentsData);
   console.log("Comments array:", comments);
   console.log("Comments length:", comments.length);
-  console.log("API endpoint being called:", `/api/comments/tasks/${id}/comments`);
+  console.log(
+    "API endpoint being called:",
+    `/api/comments/tasks/${id}/comments`
+  );
   const [createComment, { isLoading: isCreatingComment }] =
     useCreateCommentMutation();
   const [updateComment, { isLoading: isUpdatingComment }] =

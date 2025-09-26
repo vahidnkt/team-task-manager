@@ -13,7 +13,13 @@ export class CommentController {
   async getCommentsByTask(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { taskId } = req.params;
-      const { search, limit, offset, sortBy, sortOrder } = req.query as any;
+      const {
+        search,
+        limit = "10",
+        offset = "0",
+        sortBy = "created_at",
+        sortOrder = "ASC",
+      } = req.query;
 
       if (!taskId) {
         res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -23,12 +29,48 @@ export class CommentController {
         return;
       }
 
+      // Validate and parse query parameters
+      const parsedLimit = parseInt(limit as string, 10);
+      const parsedOffset = parseInt(offset as string, 10);
+
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Limit must be a number between 1 and 100",
+        });
+        return;
+      }
+
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Offset must be a non-negative number",
+        });
+        return;
+      }
+
+      if (sortBy && !["created_at", "updated_at"].includes(sortBy as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "sortBy must be one of: created_at, updated_at",
+        });
+        return;
+      }
+
+      if (sortOrder && !["ASC", "DESC"].includes(sortOrder as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "sortOrder must be either 'ASC' or 'DESC'",
+        });
+        return;
+      }
+
       const result = await commentService.getCommentsByTask(taskId, {
-        search,
-        limit,
-        offset,
-        sortBy,
-        sortOrder,
+        search: search as string,
+        limit: parsedLimit,
+        offset: parsedOffset,
+        sortBy: sortBy as "created_at" | "updated_at",
+        sortOrder: sortOrder as "ASC" | "DESC",
       });
 
       const response: ApiResponse = {

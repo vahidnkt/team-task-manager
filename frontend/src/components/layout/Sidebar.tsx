@@ -64,33 +64,9 @@ const menuItems: MenuItem[] = [
         icon: <CheckSquare className="h-4 w-4" />,
         path: "/tasks",
       },
-      {
-        id: "task-board",
-        label: "Task Board",
-        icon: <BarChart3 className="h-4 w-4" />,
-        path: "/tasks/board",
-      },
     ],
   },
-  {
-    id: "team",
-    label: "Team",
-    icon: <Users className="h-5 w-5" />,
-    path: "/team",
-  },
-  {
-    id: "calendar",
-    label: "Calendar",
-    icon: <Calendar className="h-5 w-5" />,
-    path: "/calendar",
-  },
-  {
-    id: "messages",
-    label: "Messages",
-    icon: <MessageSquare className="h-5 w-5" />,
-    path: "/messages",
-    badge: 3,
-  },
+
   {
     id: "activity",
     label: "Activity",
