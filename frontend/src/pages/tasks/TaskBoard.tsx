@@ -309,26 +309,32 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
-            className={`mb-3 transition-opacity duration-200 ${
-              snapshot.isDragging ? "opacity-90" : ""
+            {...provided.dragHandleProps}
+            className={`mb-3 transition-all duration-500 ${
+              snapshot.isDragging ? "opacity-90 transform rotate-1" : ""
             }`}
+            style={{
+              ...provided.draggableProps.style,
+              cursor: snapshot.isDragging ? 'grabbing' : 'grab'
+            }}
           >
             <Card
-              className={`cursor-pointer hover:shadow-md transition-all duration-200 bg-white/80 backdrop-blur-sm border border-white/30 ${
-                snapshot.isDragging ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95" : ""
+              className={`cursor-grab hover:shadow-lg transition-all duration-500 bg-white/80 backdrop-blur-sm border border-white/30 ${
+                snapshot.isDragging ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95 cursor-grabbing" : ""
               } ${
                 isDragging && !snapshot.isDragging ? "opacity-90" : ""
               } ${
                 isUpdatingTaskId === task.id
-                  ? "animate-pulse border-blue-400"
-                  : ""
+                  ? "animate-pulse border-blue-400 shadow-lg transform scale-102"
+                  : "hover:scale-101"
               }`}
               size="small"
-              onClick={() => !isDragging && handleTaskClick(task.id)}
+              onClick={() => !isDragging && !isUpdatingTaskId && handleTaskClick(task.id)}
               style={{
                 minHeight: '100px',
-                transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
-                transition: !snapshot.isDragging ? 'all 200ms ease-out' : 'none'
+                transform: snapshot.isDragging ? 'rotate(2deg)' : isUpdatingTaskId === task.id ? 'scale(1.02)' : 'none',
+                transition: !snapshot.isDragging ? 'all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)' : 'none',
+                userSelect: 'none'
               }}
               actions={[
                 <Dropdown
@@ -348,27 +354,22 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
               <div className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2 flex-1">
-                    <div
-                      {...provided.dragHandleProps}
-                      className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-gray-100/50 transition-colors duration-200"
-                    >
-                      <DragOutlined
-                        className={`text-gray-400 text-sm transition-colors duration-200 ${
-                          snapshot.isDragging ? "text-blue-500" : ""
-                        } ${
-                          isUpdatingTaskId === task.id ? "animate-spin text-blue-500" : ""
-                        }`}
-                      />
-                    </div>
+                    <DragOutlined
+                      className={`text-gray-400 text-sm cursor-grab active:cursor-grabbing transition-all duration-300 ${
+                        snapshot.isDragging ? "text-blue-500 transform scale-110" : ""
+                      } ${
+                        isUpdatingTaskId === task.id ? "animate-spin text-blue-500" : ""
+                      } hover:text-gray-600 hover:scale-110`}
+                    />
                     <h4
-                      className={`font-medium text-gray-900 text-sm leading-tight ${
-                        isUpdatingTaskId === task.id ? "opacity-60" : ""
+                      className={`font-medium text-gray-900 text-sm leading-tight transition-all duration-500 ${
+                        isUpdatingTaskId === task.id ? "opacity-60 transform scale-95" : ""
                       }`}
                     >
                       {task.title}
                       {isUpdatingTaskId === task.id && (
-                        <span className="ml-2 text-xs text-blue-600">
-                          Updating...
+                        <span className="ml-2 text-xs text-blue-600 animate-pulse">
+                          🔄 Updating...
                         </span>
                       )}
                     </h4>
@@ -394,48 +395,57 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
                   </div>
                 )}
 
-                {/* Status change buttons */}
-                <div className="flex gap-1 mt-2">
+                {/* Status change buttons with smooth animations */}
+                <div className={`flex gap-1 mt-2 transition-all duration-500 ${isDragging ? 'hidden sm:flex' : 'flex'}`}>
                   {task.status !== "todo" && (
                     <Button
                       size="small"
                       type="text"
-                      className="text-xs px-2 py-1 h-6"
+                      className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-400 hover:bg-gray-100 hover:scale-105 active:scale-95 ${
+                        isUpdatingTaskId === task.id ? "animate-pulse bg-blue-50" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStatusChange(task.id, "todo");
                       }}
-                      disabled={isUpdatingStatus}
+                      disabled={isUpdatingTaskId === task.id}
+                      loading={isUpdatingTaskId === task.id}
                     >
-                      To Do
+                      📝 To Do
                     </Button>
                   )}
                   {task.status !== "in-progress" && (
                     <Button
                       size="small"
                       type="text"
-                      className="text-xs px-2 py-1 h-6"
+                      className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-400 hover:bg-blue-50 hover:scale-105 active:scale-95 ${
+                        isUpdatingTaskId === task.id ? "animate-pulse bg-blue-50" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStatusChange(task.id, "in-progress");
                       }}
-                      disabled={isUpdatingStatus}
+                      disabled={isUpdatingTaskId === task.id}
+                      loading={isUpdatingTaskId === task.id}
                     >
-                      In Progress
+                      ⚡ In Progress
                     </Button>
                   )}
                   {task.status !== "done" && (
                     <Button
                       size="small"
                       type="text"
-                      className="text-xs px-2 py-1 h-6"
+                      className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-400 hover:bg-green-50 hover:scale-105 active:scale-95 ${
+                        isUpdatingTaskId === task.id ? "animate-pulse bg-green-50" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStatusChange(task.id, "done");
                       }}
-                      disabled={isUpdatingStatus}
+                      disabled={isUpdatingTaskId === task.id}
+                      loading={isUpdatingTaskId === task.id}
                     >
-                      Done
+                      ✅ Done
                     </Button>
                   )}
                 </div>
@@ -497,16 +507,16 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`space-y-2 min-h-96 transition-all duration-200 p-2 rounded-lg touch-manipulation ${
+                className={`space-y-2 min-h-96 transition-all duration-500 p-2 rounded-lg touch-manipulation ${
                   snapshot.isDraggingOver
-                    ? "bg-blue-50/80 border-2 border-blue-300 border-dashed"
+                    ? "bg-blue-50/80 border-2 border-blue-300 border-dashed transform scale-101"
                     : "border-2 border-transparent"
                 } ${
                   isDragging && !snapshot.isDraggingOver ? "bg-gray-50/30" : ""
                 }`}
                 style={{
                   minHeight: window.innerWidth < 768 ? '300px' : '384px',
-                  transition: 'all 200ms ease-out'
+                  transition: 'all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)'
                 }}
               >
                 {tasks.length === 0 ? (
