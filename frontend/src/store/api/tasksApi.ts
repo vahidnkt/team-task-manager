@@ -30,7 +30,7 @@ export const tasksApi = baseApi.injectEndpoints({
     // Get user's tasks (tasks assigned to current user)
     getMyTasks: builder.query<TasksResponse, GetTasksQuery>({
       query: (params = {}) => ({
-        url: `${API_ENDPOINTS.TASKS.BASE}/my`,
+        url: API_ENDPOINTS.TASKS.MY,
         method: "GET",
         params,
       }),
@@ -58,7 +58,7 @@ export const tasksApi = baseApi.injectEndpoints({
       { projectId: string; data: CreateTaskRequest }
     >({
       query: ({ projectId, data }) => ({
-        url: `${API_ENDPOINTS.TASKS.BASE}/projects/${projectId}/tasks`,
+        url: API_ENDPOINTS.PROJECTS.TASKS(projectId),
         method: "POST",
         body: data,
       }),
@@ -135,21 +135,6 @@ export const tasksApi = baseApi.injectEndpoints({
       }
     ),
 
-    // Get task comments
-    getTaskComments: builder.query<any[], string>({
-      query: (taskId) => ({
-        url: API_ENDPOINTS.TASKS.COMMENTS(taskId),
-        method: "GET",
-      }),
-      transformResponse: (response: any) => {
-        return response.data || response;
-      },
-      providesTags: (_result, _error, taskId) => [
-        { type: "Comment", id: taskId },
-        "Comment",
-      ],
-    }),
-
     // Get tasks by project
     getTasksByProject: builder.query<Task[], string>({
       query: (projectId) => ({
@@ -196,7 +181,6 @@ export const {
   useDeleteTaskMutation,
   useUpdateTaskStatusMutation,
   useAssignTaskMutation,
-  useGetTaskCommentsQuery,
   useGetTasksByProjectQuery,
   useGetTasksByStatusQuery,
 } = tasksApi;

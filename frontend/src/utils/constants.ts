@@ -213,6 +213,7 @@ export const ROUTES = {
 
   // Tasks
   TASKS: "/tasks",
+  TASK_BOARD: "/tasks/board",
   CREATE_TASK: "/tasks/new",
   TASK_DETAIL: (id: string) => `/tasks/${id}`,
   EDIT_TASK: (id: string) => `/tasks/${id}/edit`,

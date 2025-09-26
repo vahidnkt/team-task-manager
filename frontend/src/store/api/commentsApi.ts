@@ -18,10 +18,10 @@ export const commentsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: "Comment", id }],
     }),
 
-    // Create comment
+    // Create comment for task
     createComment: builder.mutation<Comment, CreateCommentRequest>({
-      query: (commentData) => ({
-        url: API_ENDPOINTS.COMMENTS.BASE,
+      query: ({ taskId, ...commentData }) => ({
+        url: API_ENDPOINTS.COMMENTS.CREATE_FOR_TASK(taskId),
         method: "POST",
         body: commentData,
       }),
@@ -57,7 +57,7 @@ export const commentsApi = baseApi.injectEndpoints({
     // Get comments by task
     getCommentsByTask: builder.query<Comment[], string>({
       query: (taskId) => ({
-        url: API_ENDPOINTS.TASKS.COMMENTS(taskId),
+        url: API_ENDPOINTS.COMMENTS.BY_TASK(taskId),
         method: "GET",
       }),
       providesTags: (_result, _error, taskId) => [

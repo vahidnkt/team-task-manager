@@ -179,6 +179,26 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "tasks/my",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
+              <TaskBoard showMyTasks={true} />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "tasks/board",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
+              <TaskBoard />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "tasks/new",
         element: (
           <ProtectedRoute requireAuth>
@@ -298,6 +318,8 @@ export const ROUTES = {
 
   // Task routes
   TASKS: "/tasks",
+  MY_TASKS: "/tasks/my",
+  TASK_BOARD: "/tasks/board",
   CREATE_TASK: "/tasks/new",
   TASK_DETAIL: (id: string) => `/tasks/${id}`,
   EDIT_TASK: (id: string) => `/tasks/${id}/edit`,

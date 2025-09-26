@@ -41,12 +41,12 @@ export const API_ENDPOINTS = {
   // Task endpoints
   TASKS: {
     BASE: "/tasks",
+    MY: "/tasks/my",
     BY_ID: (id: string) => `/tasks/${id}`,
     UPDATE: (id: string) => `/tasks/${id}`,
     DELETE: (id: string) => `/tasks/${id}`,
     ASSIGN: (id: string) => `/tasks/${id}/assign`,
     STATUS: (id: string) => `/tasks/${id}/status`,
-    COMMENTS: (id: string) => `/tasks/${id}/comments`,
   },
 
   // Comment endpoints
@@ -55,6 +55,8 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/comments/${id}`,
     UPDATE: (id: string) => `/comments/${id}`,
     DELETE: (id: string) => `/comments/${id}`,
+    BY_TASK: (taskId: string) => `/comments/tasks/${taskId}/comments`,
+    CREATE_FOR_TASK: (taskId: string) => `/comments/tasks/${taskId}/comments`,
   },
 
   // Activity endpoints

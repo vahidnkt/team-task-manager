@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Input, List, Avatar, Spin, Alert, Empty, message } from "antd";
-import {
-  ArrowLeftOutlined,
-  SendOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import { useGetTaskCommentsQuery } from "../../store/api/tasksApi";
+import { ArrowLeftOutlined, SendOutlined } from "@ant-design/icons";
 import { useGetTaskQuery } from "../../store/api/tasksApi";
+import {
+  useGetCommentsByTaskQuery,
+  useCreateCommentMutation,
+} from "../../store/api/commentsApi";
 import { ROUTES } from "../../utils/constants";
 import { formatRelativeTime } from "../../utils/dateUtils";
 
@@ -23,21 +22,43 @@ const TaskComments: React.FC = () => {
     data: comments = [],
     isLoading: isLoadingComments,
     error,
-  } = useGetTaskCommentsQuery(id!);
+  } = useGetCommentsByTaskQuery(id!);
+  const [createComment, { isLoading: isCreatingComment }] =
+    useCreateCommentMutation();
 
   const handleBack = () => {
     navigate(ROUTES.TASK_DETAIL(id!));
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) {
       message.warning("Please enter a comment!");
       return;
     }
 
-    // TODO: Implement add comment functionality
-    message.info("Add comment functionality coming soon!");
-    setNewComment("");
+    if (!id) {
+      message.error("Task ID is missing!");
+      return;
+    }
+
+    try {
+      console.log("Creating comment with:", {
+        taskId: id,
+        text: newComment.trim(),
+      });
+      const result = await createComment({
+        taskId: id,
+        text: newComment.trim(),
+      }).unwrap();
+      console.log("Comment created successfully:", result);
+      message.success("Comment added successfully!");
+      setNewComment("");
+    } catch (error: any) {
+      console.error("Comment creation error:", error);
+      message.error(
+        error?.data?.message || error?.message || "Failed to add comment"
+      );
+    }
   };
 
   if (isLoadingTask || isLoadingComments) {
@@ -116,6 +137,7 @@ const TaskComments: React.FC = () => {
                   type="primary"
                   icon={<SendOutlined />}
                   onClick={handleAddComment}
+                  loading={isCreatingComment}
                   className="h-10 px-6 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   Post Comment
@@ -151,14 +173,15 @@ const TaskComments: React.FC = () => {
                           size="large"
                           className="bg-gradient-to-r from-blue-500 to-purple-500"
                         >
-                          {comment.user?.username?.charAt(0).toUpperCase() ||
-                            "U"}
+                          {comment.commenter?.username
+                            ?.charAt(0)
+                            .toUpperCase() || "U"}
                         </Avatar>
                       }
                       title={
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-gray-900">
-                            {comment.user?.username || "Unknown User"}
+                            {comment.commenter?.username || "Unknown User"}
                           </span>
                           <span className="text-xs text-gray-500">
                             {formatRelativeTime(comment.createdAt)}
@@ -168,7 +191,7 @@ const TaskComments: React.FC = () => {
                       description={
                         <div className="mt-2">
                           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                            {comment.content}
+                            {comment.text}
                           </p>
                         </div>
                       }

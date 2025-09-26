@@ -11,25 +11,49 @@ import {
 } from "@ant-design/icons";
 import {
   useGetTasksQuery,
+  useGetMyTasksQuery,
   useGetTasksByProjectQuery,
+  useUpdateTaskStatusMutation,
+  useDeleteTaskMutation,
 } from "../../store/api/tasksApi";
 import { useAuth } from "../../hooks";
 import { ROUTES } from "../../utils/constants";
 import { formatRelativeTime } from "../../utils/dateUtils";
 import type { Task } from "../../types";
 
-const TaskBoard: React.FC = () => {
+interface TaskBoardProps {
+  showMyTasks?: boolean;
+}
+
+const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
 
-  // If no projectId, we need to get all tasks instead
+  // Get tasks based on the context
   const {
     data: allTasksResponse,
     isLoading: isLoadingAllTasks,
     error: allTasksError,
     refetch: refetchAllTasks,
-  } = useGetTasksQuery({});
+  } = useGetTasksQuery(
+    {},
+    {
+      skip: showMyTasks || !!projectId, // Skip if showing my tasks or project tasks
+    }
+  );
+
+  const {
+    data: myTasksResponse,
+    isLoading: isLoadingMyTasks,
+    error: myTasksError,
+    refetch: refetchMyTasks,
+  } = useGetMyTasksQuery(
+    {},
+    {
+      skip: !showMyTasks || !!projectId, // Skip if not showing my tasks or showing project tasks
+    }
+  );
 
   const {
     data: projectTasks = [],
@@ -42,12 +66,36 @@ const TaskBoard: React.FC = () => {
 
   // Extract tasks array from the response
   const allTasks = allTasksResponse?.tasks || [];
+  const myTasks = myTasksResponse?.tasks || [];
 
-  // Use the appropriate data based on whether we have a projectId
-  const tasks = projectId ? projectTasks : allTasks;
-  const isLoading = projectId ? isLoadingProjectTasks : isLoadingAllTasks;
-  const error = projectId ? projectTasksError : allTasksError;
-  const refetch = projectId ? refetchProjectTasks : refetchAllTasks;
+  // Use the appropriate data based on context
+  let tasks: Task[] = [];
+  let isLoading = false;
+  let error: any = null;
+  let refetch: () => void = () => {};
+
+  if (projectId) {
+    tasks = projectTasks;
+    isLoading = isLoadingProjectTasks;
+    error = projectTasksError;
+    refetch = refetchProjectTasks;
+  } else if (showMyTasks) {
+    tasks = myTasks;
+    isLoading = isLoadingMyTasks;
+    error = myTasksError;
+    refetch = refetchMyTasks;
+  } else {
+    tasks = allTasks;
+    isLoading = isLoadingAllTasks;
+    error = allTasksError;
+    refetch = refetchAllTasks;
+  }
+
+  // Mutations for task operations
+  const [updateTaskStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateTaskStatusMutation();
+  const [deleteTask] = useDeleteTaskMutation();
+
   // Ensure tasks is always an array and group by status
   const safeTasks = Array.isArray(tasks) ? tasks : [];
   const todoTasks = safeTasks.filter((task) => task.status === "todo");
@@ -58,6 +106,30 @@ const TaskBoard: React.FC = () => {
 
   const handleTaskClick = (taskId: string) => {
     navigate(ROUTES.TASK_DETAIL(taskId));
+  };
+
+  const handleStatusChange = async (
+    taskId: string,
+    newStatus: "todo" | "in-progress" | "done"
+  ) => {
+    try {
+      await updateTaskStatus({
+        id: taskId,
+        data: { status: newStatus },
+      }).unwrap();
+      message.success("Task status updated successfully!");
+    } catch (error: any) {
+      message.error(error?.data?.message || "Failed to update task status");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await deleteTask(taskId).unwrap();
+      message.success("Task deleted successfully!");
+    } catch (error: any) {
+      message.error(error?.data?.message || "Failed to delete task");
+    }
   };
 
   const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
@@ -81,6 +153,12 @@ const TaskBoard: React.FC = () => {
         icon: <EditOutlined />,
         onClick: () => navigate(ROUTES.EDIT_TASK(task.id)),
       },
+      {
+        key: "view",
+        label: "View Details",
+        icon: <UserOutlined />,
+        onClick: () => navigate(ROUTES.TASK_DETAIL(task.id)),
+      },
       ...(isAdmin()
         ? [
             {
@@ -88,10 +166,7 @@ const TaskBoard: React.FC = () => {
               label: "Delete Task",
               icon: <DeleteOutlined />,
               danger: true,
-              onClick: () => {
-                // Handle delete
-                message.info("Delete functionality coming soon!");
-              },
+              onClick: () => handleDeleteTask(task.id),
             },
           ]
         : []),
@@ -135,6 +210,52 @@ const TaskBoard: React.FC = () => {
               📁 {task.project.name}
             </div>
           )}
+
+          {/* Status change buttons */}
+          <div className="flex gap-1 mt-2">
+            {task.status !== "todo" && (
+              <Button
+                size="small"
+                type="text"
+                className="text-xs px-2 py-1 h-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(task.id, "todo");
+                }}
+                disabled={isUpdatingStatus}
+              >
+                To Do
+              </Button>
+            )}
+            {task.status !== "in-progress" && (
+              <Button
+                size="small"
+                type="text"
+                className="text-xs px-2 py-1 h-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(task.id, "in-progress");
+                }}
+                disabled={isUpdatingStatus}
+              >
+                In Progress
+              </Button>
+            )}
+            {task.status !== "done" && (
+              <Button
+                size="small"
+                type="text"
+                className="text-xs px-2 py-1 h-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(task.id, "done");
+                }}
+                disabled={isUpdatingStatus}
+              >
+                Done
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center gap-2">
@@ -236,11 +357,18 @@ const TaskBoard: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
-                📋 {projectId ? "Project Task Board" : "All Tasks"}
+                📋{" "}
+                {projectId
+                  ? "Project Task Board"
+                  : showMyTasks
+                  ? "My Tasks"
+                  : "All Tasks"}
               </h1>
               <p className="text-sm sm:text-base text-gray-800">
                 {projectId
                   ? "Manage and track project tasks"
+                  : showMyTasks
+                  ? "View and manage your assigned tasks"
                   : "View and manage all tasks across projects"}
               </p>
             </div>

@@ -13,6 +13,7 @@ import {
   useGetTaskQuery,
   useDeleteTaskMutation,
 } from "../../store/api/tasksApi";
+import { useGetCommentsByTaskQuery } from "../../store/api/commentsApi";
 import { useAuth } from "../../hooks";
 import { ROUTES } from "../../utils/constants";
 import { formatRelativeTime, formatDate } from "../../utils/dateUtils";
@@ -24,6 +25,7 @@ const TaskDetail: React.FC = () => {
 
   const { data: task, isLoading, error } = useGetTaskQuery(id!);
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
+  const { data: comments = [] } = useGetCommentsByTaskQuery(id!);
 
   const handleBack = () => {
     navigate(-1);
@@ -222,7 +224,7 @@ const TaskDetail: React.FC = () => {
                   onClick={() => navigate(ROUTES.TASK_COMMENTS(id!))}
                   className="mt-2"
                 >
-                  Add Comment
+                  💬 Add Comment ({comments.length})
                 </Button>
               </Empty>
             </div>
@@ -347,7 +349,7 @@ const TaskDetail: React.FC = () => {
                   onClick={() => navigate(ROUTES.TASK_COMMENTS(id!))}
                   className="w-full h-10 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
                 >
-                  Add Comment
+                  💬 Comments ({comments.length})
                 </Button>
                 {isAdmin() && (
                   <Button
