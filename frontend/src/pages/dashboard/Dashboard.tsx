@@ -34,6 +34,16 @@ const Dashboard: React.FC = () => {
   const userRole = metadata?.userRole || (isAdmin() ? "admin" : "user");
   const isUserAdmin = userRole === "admin" || isAdmin();
 
+  // Debug user role detection
+  if (process.env.NODE_ENV === "development") {
+    console.log("User Role Debug:", {
+      metadataUserRole: metadata?.userRole,
+      isAdminResult: isAdmin(),
+      finalUserRole: userRole,
+      finalIsUserAdmin: isUserAdmin,
+    });
+  }
+
   const handleCreateTask = () => {
     navigate(ROUTES.CREATE_TASK);
   };
@@ -96,6 +106,8 @@ const Dashboard: React.FC = () => {
   // Debug logging to help identify data structure issues
   if (process.env.NODE_ENV === "development") {
     console.log("Dashboard Debug Data:", {
+      dashboardData,
+      stats,
       recentTasks,
       recentTasksType: typeof recentTasks,
       isArray: Array.isArray(recentTasks),
@@ -104,6 +116,9 @@ const Dashboard: React.FC = () => {
       recentActivitiesType: typeof recentActivities,
       projects,
       projectsType: typeof projects,
+      metadata,
+      userRole,
+      isUserAdmin,
     });
   }
 
@@ -179,7 +194,7 @@ const Dashboard: React.FC = () => {
                       Total Tasks
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {currentStats.totalTasks}
+                      {currentStats?.totalTasks || 0}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       {isUserAdmin
@@ -200,7 +215,7 @@ const Dashboard: React.FC = () => {
                       Completed
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {currentStats.completedTasks}
+                      {currentStats?.completedTasks || 0}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       Finished tasks
@@ -219,7 +234,7 @@ const Dashboard: React.FC = () => {
                       In Progress
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {currentStats.inProgressTasks}
+                      {currentStats?.inProgressTasks || 0}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       Active tasks
@@ -238,7 +253,7 @@ const Dashboard: React.FC = () => {
                       Overdue
                     </p>
                     <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                      {currentStats.overdueTasks}
+                      {currentStats?.overdueTasks || 0}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                       Past due date
@@ -266,7 +281,7 @@ const Dashboard: React.FC = () => {
                         Total Projects
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        {currentStats.totalProjects}
+                        {currentStats?.totalProjects || 0}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         All projects in system
@@ -285,7 +300,7 @@ const Dashboard: React.FC = () => {
                         Active Projects
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        {currentStats.activeProjects}
+                        {currentStats?.activeProjects || 0}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         Currently running
@@ -304,7 +319,7 @@ const Dashboard: React.FC = () => {
                         Completed Projects
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        {currentStats.completedProjects}
+                        {currentStats?.completedProjects || 0}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         Finished projects
@@ -323,7 +338,7 @@ const Dashboard: React.FC = () => {
                         Total Users
                       </p>
                       <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        {currentStats.totalUsers || 0}
+                        {currentStats?.totalUsers || 0}
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
                         Registered users
@@ -352,7 +367,7 @@ const Dashboard: React.FC = () => {
                         My Projects
                       </p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {currentStats.totalProjects}
+                        {currentStats?.totalProjects || 0}
                       </p>
                       <p className="text-sm text-gray-500">
                         Projects you're involved in
@@ -371,7 +386,7 @@ const Dashboard: React.FC = () => {
                         Active Projects
                       </p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {currentStats.activeProjects}
+                        {currentStats?.activeProjects || 0}
                       </p>
                       <p className="text-sm text-gray-500">Currently working</p>
                     </div>
@@ -388,7 +403,7 @@ const Dashboard: React.FC = () => {
                         Completed Projects
                       </p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {currentStats.completedProjects}
+                        {currentStats?.completedProjects || 0}
                       </p>
                       <p className="text-sm text-gray-500">Finished projects</p>
                     </div>
@@ -422,7 +437,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="p-4 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {currentRecentTasks.map((task) => (
+                  {(currentRecentTasks || []).map((task) => (
                     <div
                       key={task.id}
                       className="p-3 sm:p-4 border border-white/30 rounded-lg hover:bg-white/50 cursor-pointer transition-colors backdrop-blur-sm"
@@ -454,7 +469,7 @@ const Dashboard: React.FC = () => {
                       )}
                     </div>
                   ))}
-                  {currentRecentTasks.length === 0 && (
+                  {(currentRecentTasks || []).length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">📋</div>
                       <p>No recent tasks</p>
@@ -473,7 +488,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="p-4 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {currentRecentActivities.map((activity) => (
+                  {(currentRecentActivities || []).map((activity) => (
                     <div
                       key={activity.id}
                       className="flex items-start space-x-2 sm:space-x-3"
@@ -515,7 +530,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   ))}
-                  {currentRecentActivities.length === 0 && (
+                  {(currentRecentActivities || []).length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">⚡</div>
                       <p>No recent activities</p>
@@ -527,7 +542,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* User Projects Overview */}
-          {!isUserAdmin && currentProjects.length > 0 && (
+          {!isUserAdmin && (currentProjects || []).length > 0 && (
             <div className="glass-card rounded-xl border border-white/30">
               <div className="p-4 sm:p-6 border-b border-white/20">
                 <div className="flex justify-between items-center">
@@ -546,7 +561,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="p-4 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-                  {currentProjects.map((project) => (
+                  {(currentProjects || []).map((project) => (
                     <div
                       key={project.id}
                       className="p-4 sm:p-6 border border-white/30 rounded-lg hover:bg-white/50 cursor-pointer transition-colors backdrop-blur-sm"
@@ -595,7 +610,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   ))}
-                  {currentProjects.length === 0 && (
+                  {(currentProjects || []).length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">🚀</div>
                       <p>No projects yet</p>

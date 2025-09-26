@@ -53,35 +53,19 @@ class DashboardService {
       // Get project status counts separately to avoid complex joins
       const [activeProjects, completedProjects, activeUsers] =
         await Promise.all([
-          // Count projects with active tasks (not all done)
+          // Count projects with status "active" (not completed)
           Project.count({
-            where: { deletedAt: null } as any,
-            include: [
-              {
-                model: Task,
-                as: "tasks",
-                where: {
-                  status: { [Op.ne]: "done" },
-                  deletedAt: null,
-                } as any,
-                required: true,
-              },
-            ],
+            where: {
+              status: "active",
+              deletedAt: null,
+            } as any,
           }),
-          // Count projects where all tasks are done
+          // Count projects with status "completed"
           Project.count({
-            where: { deletedAt: null } as any,
-            include: [
-              {
-                model: Task,
-                as: "tasks",
-                where: {
-                  status: "done",
-                  deletedAt: null,
-                } as any,
-                required: true,
-              },
-            ],
+            where: {
+              status: "completed",
+              deletedAt: null,
+            } as any,
           }),
           // Count active users (users with recent activities)
           User.count({
@@ -176,42 +160,22 @@ class DashboardService {
         };
       }
 
-      // Count projects with active tasks (not done)
+      // Count projects with status "active"
       const activeProjects = await Project.count({
         where: {
           id: { [Op.in]: uniqueProjectIds },
+          status: "active",
           deletedAt: null,
         } as any,
-        include: [
-          {
-            model: Task,
-            as: "tasks",
-            where: {
-              status: { [Op.ne]: "done" },
-              deletedAt: null,
-            } as any,
-            required: true,
-          },
-        ],
       });
 
-      // Count projects with completed tasks (all done)
+      // Count projects with status "completed"
       const completedProjects = await Project.count({
         where: {
           id: { [Op.in]: uniqueProjectIds },
+          status: "completed",
           deletedAt: null,
         } as any,
-        include: [
-          {
-            model: Task,
-            as: "tasks",
-            where: {
-              status: "done",
-              deletedAt: null,
-            } as any,
-            required: true,
-          },
-        ],
       });
 
       const result = {
