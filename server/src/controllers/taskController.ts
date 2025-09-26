@@ -562,6 +562,200 @@ export class TaskController {
       });
     }
   }
+
+  // Get in-progress tasks
+  async getInProgressTasks(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const {
+        search,
+        priority,
+        assignee_id,
+        project_id,
+        limit = "10",
+        offset = "0",
+        sortBy = "created_at",
+        sortOrder = "DESC",
+      } = req.query;
+
+      // Validate and parse query parameters
+      const parsedLimit = parseInt(limit as string, 10);
+      const parsedOffset = parseInt(offset as string, 10);
+
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Limit must be a number between 1 and 100",
+        });
+        return;
+      }
+
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Offset must be a non-negative number",
+        });
+        return;
+      }
+
+      if (priority && !["low", "medium", "high"].includes(priority as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Priority must be one of: low, medium, high",
+        });
+        return;
+      }
+
+      if (
+        sortBy &&
+        !["title", "priority", "created_at", "updated_at", "due_date"].includes(
+          sortBy as string
+        )
+      ) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message:
+            "Sort by must be one of: title, priority, created_at, updated_at, due_date",
+        });
+        return;
+      }
+
+      if (sortOrder && !["ASC", "DESC"].includes(sortOrder as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: 'Sort order must be either "ASC" or "DESC"',
+        });
+        return;
+      }
+
+      const result = await taskService.getInProgressTasks({
+        search: search as string,
+        priority: priority as string,
+        assignee_id: assignee_id as string,
+        project_id: project_id as string,
+        limit: parsedLimit,
+        offset: parsedOffset,
+        sortBy: sortBy as any,
+        sortOrder: sortOrder as "ASC" | "DESC",
+        userRole: req.user?.role || "user",
+        userId: req.user?.userId || "",
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+        message: "In-progress tasks retrieved successfully",
+      };
+
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      const statusCode =
+        (error as any).statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      res.status(statusCode).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve in-progress tasks",
+      });
+    }
+  }
+
+  // Get completed tasks
+  async getCompletedTasks(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const {
+        search,
+        priority,
+        assignee_id,
+        project_id,
+        limit = "10",
+        offset = "0",
+        sortBy = "updated_at",
+        sortOrder = "DESC",
+      } = req.query;
+
+      // Validate and parse query parameters
+      const parsedLimit = parseInt(limit as string, 10);
+      const parsedOffset = parseInt(offset as string, 10);
+
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Limit must be a number between 1 and 100",
+        });
+        return;
+      }
+
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Offset must be a non-negative number",
+        });
+        return;
+      }
+
+      if (priority && !["low", "medium", "high"].includes(priority as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Priority must be one of: low, medium, high",
+        });
+        return;
+      }
+
+      if (
+        sortBy &&
+        !["title", "priority", "created_at", "updated_at", "due_date"].includes(
+          sortBy as string
+        )
+      ) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message:
+            "Sort by must be one of: title, priority, created_at, updated_at, due_date",
+        });
+        return;
+      }
+
+      if (sortOrder && !["ASC", "DESC"].includes(sortOrder as string)) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: 'Sort order must be either "ASC" or "DESC"',
+        });
+        return;
+      }
+
+      const result = await taskService.getCompletedTasks({
+        search: search as string,
+        priority: priority as string,
+        assignee_id: assignee_id as string,
+        project_id: project_id as string,
+        limit: parsedLimit,
+        offset: parsedOffset,
+        sortBy: sortBy as any,
+        sortOrder: sortOrder as "ASC" | "DESC",
+        userRole: req.user?.role || "user",
+        userId: req.user?.userId || "",
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+        message: "Completed tasks retrieved successfully",
+      };
+
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      const statusCode =
+        (error as any).statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      res.status(statusCode).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve completed tasks",
+      });
+    }
+  }
 }
 
 export const taskController = new TaskController();

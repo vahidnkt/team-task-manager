@@ -1,8 +1,12 @@
+import { Op } from "sequelize";
 import { Task } from "../models/Task";
 import { Project } from "../models/Project";
 import { User } from "../models/User";
+import { Comment } from "../models/Comment";
 import { CreateTaskRequest, UpdateTaskRequest } from "../types/task.types";
 import { HTTP_STATUS } from "../utils/constants";
+import { logger } from "../utils/logger";
+import { AppError } from "../types/common.types";
 
 export class TaskService {
   // Create a new task
@@ -31,7 +35,7 @@ export class TaskService {
         `Task with title "${title.trim()}" already exists in this project`
       ) as any;
       error.statusCode = HTTP_STATUS.CONFLICT;
-      error.isrequire("sequelize").Operational = true;
+      error.isOperational = true;
       throw error;
     }
 
@@ -87,9 +91,9 @@ export class TaskService {
     const searchConditions: any = {};
 
     if (search) {
-      searchConditions[require("sequelize").Op.or] = [
-        { title: { [require("sequelize").Op.like]: `%${search}%` } },
-        { description: { [require("sequelize").Op.like]: `%${search}%` } },
+      searchConditions[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -154,7 +158,7 @@ export class TaskService {
       include: [
         { model: User, as: "assignee" },
         { model: Project, as: "project" },
-        { model: require("../models/Comment").Comment, as: "comments" },
+        { model: Comment, as: "comments" },
       ],
     });
   }
@@ -201,9 +205,9 @@ export class TaskService {
     };
 
     if (search) {
-      searchConditions[require("sequelize").Op.or] = [
-        { title: { [require("sequelize").Op.like]: `%${search}%` } },
-        { description: { [require("sequelize").Op.like]: `%${search}%` } },
+      searchConditions[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -280,7 +284,7 @@ export class TaskService {
           `Task with title "${updateData.title.trim()}" already exists in this project`
         ) as any;
         error.statusCode = HTTP_STATUS.CONFLICT;
-        error.isrequire("sequelize").Operational = true;
+        error.isOperational = true;
         throw error;
       }
     }
@@ -390,9 +394,9 @@ export class TaskService {
     limit: number = 20
   ): Promise<Task[]> {
     const whereCondition: any = {
-      [require("sequelize").Op.or]: [
-        { title: { [require("sequelize").Op.like]: `%${searchTerm}%` } },
-        { description: { [require("sequelize").Op.like]: `%${searchTerm}%` } },
+      [Op.or]: [
+        { title: { [Op.iLike]: `%${searchTerm}%` } },
+        { description: { [Op.iLike]: `%${searchTerm}%` } },
       ],
     };
 
@@ -435,10 +439,10 @@ export class TaskService {
   async getOverdueTasks(projectId?: number): Promise<Task[]> {
     const whereCondition: any = {
       dueDate: {
-        [require("sequelize").Op.lt]: new Date(),
+        [Op.lt]: new Date(),
       },
       status: {
-        [require("sequelize").Op.ne]: "done",
+        [Op.ne]: "done",
       },
     };
 
@@ -463,10 +467,10 @@ export class TaskService {
 
     const whereCondition: any = {
       dueDate: {
-        [require("sequelize").Op.between]: [new Date(), sevenDaysFromNow],
+        [Op.between]: [new Date(), sevenDaysFromNow],
       },
       status: {
-        [require("sequelize").Op.ne]: "done",
+        [Op.ne]: "done",
       },
     };
 
@@ -488,6 +492,236 @@ export class TaskService {
   async taskExists(id: string): Promise<boolean> {
     const task = await this.getTaskById(id);
     return !!task;
+  }
+
+  // Get in-progress tasks
+  async getInProgressTasks(params: {
+    search?: string;
+    priority?: string;
+    assignee_id?: string;
+    project_id?: string;
+    limit: number;
+    offset: number;
+    sortBy: string;
+    sortOrder: "ASC" | "DESC";
+    userRole: string;
+    userId: string;
+  }): Promise<{
+    tasks: any[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    try {
+      const {
+        search,
+        priority,
+        assignee_id,
+        project_id,
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        userRole,
+        userId,
+      } = params;
+
+      // Build where clause
+      const whereClause: any = {
+        status: "in-progress",
+        deletedAt: null,
+      };
+
+      // Add search condition
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.iLike]: `%${search}%` } },
+          { description: { [Op.iLike]: `%${search}%` } },
+        ];
+      }
+
+      // Add priority filter
+      if (priority) {
+        whereClause.priority = priority;
+      }
+
+      // Add assignee filter
+      if (assignee_id) {
+        whereClause.assigneeId = assignee_id;
+      }
+
+      // Add project filter
+      if (project_id) {
+        whereClause.projectId = project_id;
+      }
+
+      // For non-admin users, only show their assigned tasks
+      if (userRole !== "admin") {
+        whereClause.assigneeId = userId;
+      }
+
+      // Get total count
+      const total = await Task.count({ where: whereClause });
+
+      // Get tasks with pagination
+      const tasks = await Task.findAll({
+        where: whereClause,
+        include: [
+          { model: Project, as: "project" },
+          { model: User, as: "assignee" },
+        ],
+        order: [[sortBy, sortOrder]],
+        limit,
+        offset,
+      });
+
+      return {
+        tasks: tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          priority: task.priority,
+          dueDate: task.dueDate
+            ? typeof task.dueDate === "string"
+              ? task.dueDate
+              : task.dueDate.toISOString()
+            : undefined,
+          projectId: task.projectId,
+          projectName: task.project?.name || "Unknown Project",
+          assigneeId: task.assigneeId,
+          assigneeName: task.assignee?.username,
+          createdAt: task.createdAt.toISOString(),
+          updatedAt: task.updatedAt.toISOString(),
+        })),
+        total,
+        limit,
+        offset,
+      };
+    } catch (error) {
+      logger.error("Get in-progress tasks error", error as Error);
+      const appError: AppError = new Error(
+        "Failed to get in-progress tasks"
+      ) as AppError;
+      appError.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      appError.isOperational = true;
+      throw appError;
+    }
+  }
+
+  // Get completed tasks
+  async getCompletedTasks(params: {
+    search?: string;
+    priority?: string;
+    assignee_id?: string;
+    project_id?: string;
+    limit: number;
+    offset: number;
+    sortBy: string;
+    sortOrder: "ASC" | "DESC";
+    userRole: string;
+    userId: string;
+  }): Promise<{
+    tasks: any[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    try {
+      const {
+        search,
+        priority,
+        assignee_id,
+        project_id,
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        userRole,
+        userId,
+      } = params;
+
+      // Build where clause
+      const whereClause: any = {
+        status: "done",
+        deletedAt: null,
+      };
+
+      // Add search condition
+      if (search) {
+        whereClause[Op.or] = [
+          { title: { [Op.iLike]: `%${search}%` } },
+          { description: { [Op.iLike]: `%${search}%` } },
+        ];
+      }
+
+      // Add priority filter
+      if (priority) {
+        whereClause.priority = priority;
+      }
+
+      // Add assignee filter
+      if (assignee_id) {
+        whereClause.assigneeId = assignee_id;
+      }
+
+      // Add project filter
+      if (project_id) {
+        whereClause.projectId = project_id;
+      }
+
+      // For non-admin users, only show their assigned tasks
+      if (userRole !== "admin") {
+        whereClause.assigneeId = userId;
+      }
+
+      // Get total count
+      const total = await Task.count({ where: whereClause });
+
+      // Get tasks with pagination
+      const tasks = await Task.findAll({
+        where: whereClause,
+        include: [
+          { model: Project, as: "project" },
+          { model: User, as: "assignee" },
+        ],
+        order: [[sortBy, sortOrder]],
+        limit,
+        offset,
+      });
+
+      return {
+        tasks: tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          priority: task.priority,
+          dueDate: task.dueDate
+            ? typeof task.dueDate === "string"
+              ? task.dueDate
+              : task.dueDate.toISOString()
+            : undefined,
+          projectId: task.projectId,
+          projectName: task.project?.name || "Unknown Project",
+          assigneeId: task.assigneeId,
+          assigneeName: task.assignee?.username,
+          createdAt: task.createdAt.toISOString(),
+          updatedAt: task.updatedAt.toISOString(),
+        })),
+        total,
+        limit,
+        offset,
+      };
+    } catch (error) {
+      logger.error("Get completed tasks error", error as Error);
+      const appError: AppError = new Error(
+        "Failed to get completed tasks"
+      ) as AppError;
+      appError.statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      appError.isOperational = true;
+      throw appError;
+    }
   }
 }
 

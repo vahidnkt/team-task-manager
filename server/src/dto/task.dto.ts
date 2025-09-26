@@ -208,3 +208,89 @@ export class GetMyTasksQueryDto {
   })
   sortOrder?: "ASC" | "DESC" = "DESC";
 }
+
+// Get In Progress Tasks Query DTO
+export class GetInProgressTasksQueryDto {
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  priority?: string;
+
+  @IsOptional()
+  @IsUUID(4, { message: "Assignee ID must be a valid UUID" })
+  assignee_id?: string;
+
+  @IsOptional()
+  @IsUUID(4, { message: "Project ID must be a valid UUID" })
+  project_id?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 10;
+
+  @IsOptional()
+  @Type(() => Number)
+  offset?: number = 0;
+
+  @IsOptional()
+  @IsIn(["title", "priority", "created_at", "updated_at", "due_date"], {
+    message:
+      "Sort by must be one of: title, priority, created_at, updated_at, due_date",
+  })
+  sortBy?: "title" | "priority" | "created_at" | "updated_at" | "due_date" =
+    "created_at";
+
+  @IsOptional()
+  @IsIn(["ASC", "DESC"], {
+    message: 'Sort order must be either "ASC" or "DESC"',
+  })
+  sortOrder?: "ASC" | "DESC" = "DESC";
+}
+
+// Get Completed Tasks Query DTO
+export class GetCompletedTasksQueryDto {
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  priority?: string;
+
+  @IsOptional()
+  @IsUUID(4, { message: "Assignee ID must be a valid UUID" })
+  assignee_id?: string;
+
+  @IsOptional()
+  @IsUUID(4, { message: "Project ID must be a valid UUID" })
+  project_id?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 10;
+
+  @IsOptional()
+  @Type(() => Number)
+  offset?: number = 0;
+
+  @IsOptional()
+  @IsIn(["title", "priority", "created_at", "updated_at", "due_date"], {
+    message:
+      "Sort by must be one of: title, priority, created_at, updated_at, due_date",
+  })
+  sortBy?: "title" | "priority" | "created_at" | "updated_at" | "due_date" =
+    "updated_at";
+
+  @IsOptional()
+  @IsIn(["ASC", "DESC"], {
+    message: 'Sort order must be either "ASC" or "DESC"',
+  })
+  sortOrder?: "ASC" | "DESC" = "DESC";
+}

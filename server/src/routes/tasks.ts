@@ -12,12 +12,19 @@ import {
   validateParamDto,
 } from "../middleware/dtoValidation";
 import {
+  checkProjectStatus,
+  checkProjectStatusForCreation,
+  checkProjectStatusForUpdate,
+} from "../middleware/projectStatusCheck";
+import {
   CreateTaskDto,
   UpdateTaskDto,
   UpdateTaskStatusDto,
   AssignTaskDto,
   GetAllTasksQueryDto,
   GetMyTasksQueryDto,
+  GetInProgressTasksQueryDto,
+  GetCompletedTasksQueryDto,
   IdParamDto,
   ProjectIdParamDto,
 } from "../dto";
@@ -76,6 +83,7 @@ router.put(
   requireAdmin,
   validateParamDto(IdParamDto),
   validateDto(UpdateTaskDto),
+  checkProjectStatusForUpdate,
   apiAccessLogger("task-update"),
   taskController.updateTask.bind(taskController)
 );
@@ -102,6 +110,7 @@ router.patch(
   "/:id/status",
   validateParamDto(IdParamDto),
   validateDto(UpdateTaskStatusDto),
+  checkProjectStatus,
   apiAccessLogger("task-status-update"),
   taskController.updateTaskStatus.bind(taskController)
 );
@@ -116,6 +125,7 @@ router.patch(
   requireAdmin,
   validateParamDto(IdParamDto),
   validateDto(AssignTaskDto),
+  checkProjectStatusForUpdate,
   apiAccessLogger("task-assignment"),
   taskController.assignTask.bind(taskController)
 );
@@ -144,6 +154,7 @@ router.post(
   validateParamDto(ProjectIdParamDto),
   validateDto(CreateTaskDto),
   requireProjectAccess,
+  checkProjectStatusForCreation,
   apiAccessLogger("task-create"),
   taskController.createTask.bind(taskController)
 );
@@ -159,6 +170,30 @@ router.get(
   requireProjectAccess,
   apiAccessLogger("project-tasks-by-status"),
   taskController.getTasksByStatus.bind(taskController)
+);
+
+/**
+ * @route   GET /api/tasks/in-progress?search=authentication&priority=high&assignee_id=user-uuid&project_id=project-uuid&limit=10&offset=0&sortBy=title&sortOrder=ASC
+ * @desc    Get in-progress tasks with search, filter, and pagination
+ * @access  Private (User+)
+ */
+router.get(
+  "/in-progress",
+  validateQueryDto(GetInProgressTasksQueryDto),
+  apiAccessLogger("in-progress-tasks"),
+  taskController.getInProgressTasks.bind(taskController)
+);
+
+/**
+ * @route   GET /api/tasks/completed?search=authentication&priority=high&assignee_id=user-uuid&project_id=project-uuid&limit=10&offset=0&sortBy=title&sortOrder=ASC
+ * @desc    Get completed tasks with search, filter, and pagination
+ * @access  Private (User+)
+ */
+router.get(
+  "/completed",
+  validateQueryDto(GetCompletedTasksQueryDto),
+  apiAccessLogger("completed-tasks"),
+  taskController.getCompletedTasks.bind(taskController)
 );
 
 export default router;
