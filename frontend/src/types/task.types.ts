@@ -23,6 +23,7 @@ export interface Task {
   project?: {
     id: string;
     name: string;
+    status?: "active" | "completed" | "on_hold";
   };
   comments?: Comment[];
 }

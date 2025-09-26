@@ -39,13 +39,12 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const { showSuccess, showError, handleApiError } = useToast();
+  const { showSuccess, handleApiError } = useToast();
 
   // State for optimistic updates
   const [optimisticTasks, setOptimisticTasks] = useState<Task[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [isUpdatingTaskId, setIsUpdatingTaskId] = useState<string | null>(null);
 
   // Get tasks based on the context
@@ -110,8 +109,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
   }
 
   // Mutations for task operations
-  const [updateTaskStatus, { isLoading: isUpdatingStatus }] =
-    useUpdateTaskStatusMutation();
+  const [updateTaskStatus] = useUpdateTaskStatusMutation();
   const [deleteTask] = useDeleteTaskMutation();
 
   // Ensure tasks is always an array and group by status
@@ -145,10 +143,9 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
     }
   };
 
-  const handleDragStart = useCallback((start: any) => {
+  const handleDragStart = useCallback(() => {
     setIsDragging(true);
     setDragError(null);
-    setDraggedTaskId(start.draggableId);
 
     // Add haptic feedback for mobile
     if ("vibrate" in navigator) {
@@ -165,7 +162,6 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
       const { destination, source, draggableId } = result;
 
       setIsDragging(false);
-      setDraggedTaskId(null);
 
       // Restore page scroll on mobile
       document.body.style.overflow = "";
@@ -209,6 +205,13 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
       // Don't update if the status is the same
       if (task.status === newStatus) {
         setOptimisticTasks([]);
+        return;
+      }
+
+      // Don't allow status changes for completed projects
+      if (isProjectCompleted(task)) {
+        setOptimisticTasks([]);
+        setDragError("Cannot change status of tasks in completed projects");
         return;
       }
 
@@ -260,10 +263,17 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
     }
   };
 
+  // Helper function to check if a project is completed
+  const isProjectCompleted = (task: Task): boolean => {
+    return task.project?.status === "completed";
+  };
+
   const TaskCard: React.FC<{ task: Task; index: number }> = ({
     task,
     index,
   }) => {
+    const projectCompleted = isProjectCompleted(task);
+
     const getPriorityColor = (priority: string) => {
       switch (priority) {
         case "high":
@@ -303,6 +313,80 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
         : []),
     ];
 
+    // If project is completed, render without drag functionality
+    if (projectCompleted) {
+      return (
+        <div className="mb-3">
+          <Card
+            className="cursor-default hover:shadow-lg transition-all duration-300 bg-green-50/90 border-green-200"
+            size="small"
+            onClick={() => handleTaskClick(task.id)}
+            style={{
+              minHeight: "100px",
+              userSelect: "none",
+            }}
+          >
+            <div className="space-y-2">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-green-500 text-sm">🔒</span>
+                  <h4 className="font-medium text-green-800 text-sm leading-tight">
+                    ✅ {task.title}
+                  </h4>
+                </div>
+                <Tag
+                  color={getPriorityColor(task.priority)}
+                  className="text-xs"
+                >
+                  {task.priority}
+                </Tag>
+              </div>
+
+              {task.description && (
+                <p className="text-xs text-gray-600 line-clamp-2">
+                  {task.description}
+                </p>
+              )}
+
+              {!projectId && task.project && (
+                <div className="text-xs text-blue-600 font-medium">
+                  📁 {task.project.name}
+                </div>
+              )}
+
+              <div className="mt-2 p-2 bg-green-100 rounded-md border border-green-200">
+                <p className="text-xs text-green-700 font-medium">
+                  ✅ Project completed - Status changes disabled
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-2">
+                  {task.assignee ? (
+                    <div className="flex items-center gap-1">
+                      <UserOutlined className="text-xs" />
+                      <span className="truncate max-w-20">
+                        {task.assignee.username}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">Unassigned</span>
+                  )}
+                </div>
+
+                {task.dueDate && (
+                  <div className="flex items-center gap-1">
+                    <CalendarOutlined className="text-xs" />
+                    <span>{formatRelativeTime(task.dueDate)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <Draggable draggableId={task.id} index={index}>
         {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
@@ -310,31 +394,41 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            className={`mb-3 transition-all duration-500 ${
+            className={`mb-3 transition-all duration-300 ${
               snapshot.isDragging ? "opacity-90 transform rotate-1" : ""
             }`}
             style={{
               ...provided.draggableProps.style,
-              cursor: snapshot.isDragging ? 'grabbing' : 'grab'
+              cursor: snapshot.isDragging ? "grabbing" : "grab",
             }}
           >
             <Card
-              className={`cursor-grab hover:shadow-lg transition-all duration-500 bg-white/80 backdrop-blur-sm border border-white/30 ${
-                snapshot.isDragging ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95 cursor-grabbing" : ""
+              className={`cursor-grab hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border border-white/30 ${
+                projectCompleted ? "bg-green-50/90 border-green-200" : ""
               } ${
-                isDragging && !snapshot.isDragging ? "opacity-90" : ""
-              } ${
+                snapshot.isDragging
+                  ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95 cursor-grabbing"
+                  : ""
+              } ${isDragging && !snapshot.isDragging ? "opacity-90" : ""} ${
                 isUpdatingTaskId === task.id
                   ? "animate-pulse border-blue-400 shadow-lg transform scale-102"
                   : "hover:scale-101"
               }`}
               size="small"
-              onClick={() => !isDragging && !isUpdatingTaskId && handleTaskClick(task.id)}
+              onClick={() =>
+                !isDragging && !isUpdatingTaskId && handleTaskClick(task.id)
+              }
               style={{
-                minHeight: '100px',
-                transform: snapshot.isDragging ? 'rotate(2deg)' : isUpdatingTaskId === task.id ? 'scale(1.02)' : 'none',
-                transition: !snapshot.isDragging ? 'all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)' : 'none',
-                userSelect: 'none'
+                minHeight: "100px",
+                transform: snapshot.isDragging
+                  ? "rotate(2deg)"
+                  : isUpdatingTaskId === task.id
+                  ? "scale(1.02)"
+                  : "none",
+                transition: !snapshot.isDragging
+                  ? "all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)"
+                  : "none",
+                userSelect: "none",
               }}
               actions={[
                 <Dropdown
@@ -356,16 +450,27 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
                   <div className="flex items-center gap-2 flex-1">
                     <DragOutlined
                       className={`text-gray-400 text-sm cursor-grab active:cursor-grabbing transition-all duration-300 ${
-                        snapshot.isDragging ? "text-blue-500 transform scale-110" : ""
+                        snapshot.isDragging
+                          ? "text-blue-500 transform scale-110"
+                          : ""
                       } ${
-                        isUpdatingTaskId === task.id ? "animate-spin text-blue-500" : ""
+                        isUpdatingTaskId === task.id
+                          ? "animate-spin text-blue-500"
+                          : ""
                       } hover:text-gray-600 hover:scale-110`}
                     />
                     <h4
-                      className={`font-medium text-gray-900 text-sm leading-tight transition-all duration-500 ${
-                        isUpdatingTaskId === task.id ? "opacity-60 transform scale-95" : ""
+                      className={`font-medium text-sm leading-tight transition-all duration-300 ${
+                        projectCompleted ? "text-green-800" : "text-gray-900"
+                      } ${
+                        isUpdatingTaskId === task.id
+                          ? "opacity-60 transform scale-95"
+                          : ""
                       }`}
                     >
+                      {projectCompleted && (
+                        <span className="mr-1 text-xs">✅</span>
+                      )}
                       {task.title}
                       {isUpdatingTaskId === task.id && (
                         <span className="ml-2 text-xs text-blue-600 animate-pulse">
@@ -396,59 +501,80 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
                 )}
 
                 {/* Status change buttons with smooth animations */}
-                <div className={`flex gap-1 mt-2 transition-all duration-500 ${isDragging ? 'hidden sm:flex' : 'flex'}`}>
-                  {task.status !== "todo" && (
-                    <Button
-                      size="small"
-                      type="text"
-                      className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-400 hover:bg-gray-100 hover:scale-105 active:scale-95 ${
-                        isUpdatingTaskId === task.id ? "animate-pulse bg-blue-50" : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(task.id, "todo");
-                      }}
-                      disabled={isUpdatingTaskId === task.id}
-                      loading={isUpdatingTaskId === task.id}
-                    >
-                      📝 To Do
-                    </Button>
-                  )}
-                  {task.status !== "in-progress" && (
-                    <Button
-                      size="small"
-                      type="text"
-                      className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-400 hover:bg-blue-50 hover:scale-105 active:scale-95 ${
-                        isUpdatingTaskId === task.id ? "animate-pulse bg-blue-50" : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(task.id, "in-progress");
-                      }}
-                      disabled={isUpdatingTaskId === task.id}
-                      loading={isUpdatingTaskId === task.id}
-                    >
-                      ⚡ In Progress
-                    </Button>
-                  )}
-                  {task.status !== "done" && (
-                    <Button
-                      size="small"
-                      type="text"
-                      className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-400 hover:bg-green-50 hover:scale-105 active:scale-95 ${
-                        isUpdatingTaskId === task.id ? "animate-pulse bg-green-50" : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(task.id, "done");
-                      }}
-                      disabled={isUpdatingTaskId === task.id}
-                      loading={isUpdatingTaskId === task.id}
-                    >
-                      ✅ Done
-                    </Button>
-                  )}
-                </div>
+                {!projectCompleted && (
+                  <div
+                    className={`flex gap-1 mt-2 transition-all duration-300 ${
+                      isDragging ? "hidden sm:flex" : "flex"
+                    }`}
+                  >
+                    {task.status !== "todo" && (
+                      <Button
+                        size="small"
+                        type="text"
+                        className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-gray-100 hover:scale-105 active:scale-95 ${
+                          isUpdatingTaskId === task.id
+                            ? "animate-pulse bg-blue-50"
+                            : ""
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(task.id, "todo");
+                        }}
+                        disabled={isUpdatingTaskId === task.id}
+                        loading={isUpdatingTaskId === task.id}
+                      >
+                        📝 To Do
+                      </Button>
+                    )}
+                    {task.status !== "in-progress" && (
+                      <Button
+                        size="small"
+                        type="text"
+                        className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-blue-50 hover:scale-105 active:scale-95 ${
+                          isUpdatingTaskId === task.id
+                            ? "animate-pulse bg-blue-50"
+                            : ""
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(task.id, "in-progress");
+                        }}
+                        disabled={isUpdatingTaskId === task.id}
+                        loading={isUpdatingTaskId === task.id}
+                      >
+                        ⚡ In Progress
+                      </Button>
+                    )}
+                    {task.status !== "done" && (
+                      <Button
+                        size="small"
+                        type="text"
+                        className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-green-50 hover:scale-105 active:scale-95 ${
+                          isUpdatingTaskId === task.id
+                            ? "animate-pulse bg-green-50"
+                            : ""
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(task.id, "done");
+                        }}
+                        disabled={isUpdatingTaskId === task.id}
+                        loading={isUpdatingTaskId === task.id}
+                      >
+                        ✅ Done
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Show completed project message */}
+                {projectCompleted && (
+                  <div className="mt-2 p-2 bg-green-100 rounded-md border border-green-200">
+                    <p className="text-xs text-green-700 font-medium">
+                      ✅ Project completed - Status changes disabled
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <div className="flex items-center gap-2">
@@ -507,7 +633,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`space-y-2 min-h-96 transition-all duration-500 p-2 rounded-lg touch-manipulation ${
+                className={`space-y-2 min-h-96 transition-all duration-300 p-2 rounded-lg touch-manipulation ${
                   snapshot.isDraggingOver
                     ? "bg-blue-50/80 border-2 border-blue-300 border-dashed transform scale-101"
                     : "border-2 border-transparent"
@@ -515,8 +641,8 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
                   isDragging && !snapshot.isDraggingOver ? "bg-gray-50/30" : ""
                 }`}
                 style={{
-                  minHeight: window.innerWidth < 768 ? '300px' : '384px',
-                  transition: 'all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)'
+                  minHeight: window.innerWidth < 768 ? "300px" : "384px",
+                  transition: "all 300ms cubic-bezier(0.25, 0.8, 0.25, 1)",
                 }}
               >
                 {tasks.length === 0 ? (
