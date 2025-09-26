@@ -354,8 +354,13 @@ class DashboardService {
       const completedTasks = tasks.filter(
         (task) => task.status === "done"
       ).length;
+
+      // If project is marked as completed, show 100% progress
+      // Otherwise, calculate based on task completion
       const progressPercentage =
-        tasks.length > 0
+        project.status === "completed"
+          ? 100
+          : tasks.length > 0
           ? Math.round((completedTasks / tasks.length) * 100)
           : 0;
 
@@ -742,8 +747,13 @@ class DashboardService {
       const completedTasks = tasks.filter(
         (task) => task.status === "done"
       ).length;
+
+      // If project is marked as completed, show 100% progress
+      // Otherwise, calculate based on task completion
       const progressPercentage =
-        tasks.length > 0
+        project.status === "completed"
+          ? 100
+          : tasks.length > 0
           ? Math.round((completedTasks / tasks.length) * 100)
           : 0;
 
