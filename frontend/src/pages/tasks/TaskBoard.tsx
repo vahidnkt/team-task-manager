@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Card, Tag, Dropdown, message, Spin, Empty } from "antd";
+import { Button, Card, Tag, Dropdown, Spin, Empty } from "antd";
 import {
   PlusOutlined,
   MoreOutlined,
@@ -26,6 +26,7 @@ import {
   useDeleteTaskMutation,
 } from "../../store/api/tasksApi";
 import { useAuth } from "../../hooks";
+import { useToast } from "../../hooks/useToast";
 import { ROUTES } from "../../utils/constants";
 import { formatRelativeTime } from "../../utils/dateUtils";
 import type { Task } from "../../types";
@@ -38,6 +39,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { showSuccess, showError, handleApiError } = useToast();
 
   // State for optimistic updates
   const [optimisticTasks, setOptimisticTasks] = useState<Task[]>([]);
@@ -137,14 +139,9 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
         id: taskId,
         data: { status: newStatus },
       }).unwrap();
-      message.success("Task status updated successfully!");
+      showSuccess("Task status updated successfully!");
     } catch (error: any) {
-      // Check if it's a project completion error
-      if (error?.data?.message?.includes("already completed")) {
-        message.error(error.data.message);
-      } else {
-        message.error(error?.data?.message || "Failed to update task status");
-      }
+      handleApiError(error, "Failed to update task status");
     }
   };
 
@@ -220,6 +217,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
         t.id === draggableId ? { ...t, status: newStatus } : t
       );
       setOptimisticTasks(updatedTasks);
+      setIsUpdatingTaskId(draggableId);
 
       // Add success haptic feedback
       if ("vibrate" in navigator) {
@@ -234,10 +232,12 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
 
         // Clear optimistic state after successful update
         setOptimisticTasks([]);
-        message.success("Task moved successfully!", 1);
+        setIsUpdatingTaskId(null);
+        showSuccess("Task moved successfully!");
       } catch (error: any) {
         // Revert optimistic update on error
         setOptimisticTasks([]);
+        setIsUpdatingTaskId(null);
         setDragError(error?.data?.message || "Failed to move task");
 
         // Error haptic feedback
@@ -245,12 +245,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
           navigator.vibrate([100, 50, 100]);
         }
 
-        // Check if it's a project completion error
-        if (error?.data?.message?.includes("already completed")) {
-          message.error(error.data.message, 3);
-        } else {
-          message.error(error?.data?.message || "Failed to move task", 3);
-        }
+        handleApiError(error, "Failed to move task");
       }
     },
     [safeTasks, updateTaskStatus]
@@ -259,9 +254,9 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
   const handleDeleteTask = async (taskId: string) => {
     try {
       await deleteTask(taskId).unwrap();
-      message.success("Task deleted successfully!");
+      showSuccess("Task deleted successfully!");
     } catch (error: any) {
-      message.error(error?.data?.message || "Failed to delete task");
+      handleApiError(error, "Failed to delete task");
     }
   };
 
@@ -314,22 +309,26 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            className={`mb-3 ${snapshot.isDragging ? "opacity-50" : ""}`}
+            className={`mb-3 transition-opacity duration-200 ${
+              snapshot.isDragging ? "opacity-90" : ""
+            }`}
           >
             <Card
               className={`cursor-pointer hover:shadow-md transition-all duration-200 bg-white/80 backdrop-blur-sm border border-white/30 ${
-                snapshot.isDragging ? "shadow-lg rotate-2 scale-105 z-50" : ""
-              } ${isDragging && !snapshot.isDragging ? "opacity-75" : ""} ${
+                snapshot.isDragging ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95" : ""
+              } ${
+                isDragging && !snapshot.isDragging ? "opacity-90" : ""
+              } ${
                 isUpdatingTaskId === task.id
                   ? "animate-pulse border-blue-400"
                   : ""
-              } touch-manipulation select-none`}
+              }`}
               size="small"
               onClick={() => !isDragging && handleTaskClick(task.id)}
               style={{
-                minHeight: "120px", // Larger touch target for mobile
-                touchAction: "none",
+                minHeight: '100px',
+                transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
+                transition: !snapshot.isDragging ? 'all 200ms ease-out' : 'none'
               }}
               actions={[
                 <Dropdown
@@ -349,12 +348,18 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
               <div className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2 flex-1">
-                    <DragOutlined
-                      className={`text-gray-400 text-lg sm:text-xs cursor-grab active:cursor-grabbing transition-colors duration-200 ${
-                        snapshot.isDragging ? "text-blue-500" : ""
-                      } touch-manipulation`}
-                      style={{ minWidth: "20px", minHeight: "20px" }}
-                    />
+                    <div
+                      {...provided.dragHandleProps}
+                      className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-gray-100/50 transition-colors duration-200"
+                    >
+                      <DragOutlined
+                        className={`text-gray-400 text-sm transition-colors duration-200 ${
+                          snapshot.isDragging ? "text-blue-500" : ""
+                        } ${
+                          isUpdatingTaskId === task.id ? "animate-spin text-blue-500" : ""
+                        }`}
+                      />
+                    </div>
                     <h4
                       className={`font-medium text-gray-900 text-sm leading-tight ${
                         isUpdatingTaskId === task.id ? "opacity-60" : ""
@@ -492,16 +497,16 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`space-y-2 min-h-96 transition-all duration-300 p-2 rounded-lg ${
+                className={`space-y-2 min-h-96 transition-all duration-200 p-2 rounded-lg touch-manipulation ${
                   snapshot.isDraggingOver
-                    ? "bg-blue-50/80 border-2 border-blue-300 border-dashed scale-102"
+                    ? "bg-blue-50/80 border-2 border-blue-300 border-dashed"
                     : "border-2 border-transparent"
                 } ${
                   isDragging && !snapshot.isDraggingOver ? "bg-gray-50/30" : ""
                 }`}
                 style={{
-                  minHeight: "384px",
-                  transition: "all 300ms cubic-bezier(0.2, 0, 0, 1)",
+                  minHeight: window.innerWidth < 768 ? '300px' : '384px',
+                  transition: 'all 200ms ease-out'
                 }}
               >
                 {tasks.length === 0 ? (
