@@ -161,23 +161,35 @@ const ProjectsList: React.FC = () => {
       key: "status",
       width: "15%",
       render: (record: Project) => {
-        const taskCount = record.tasks?.length || 0;
-        const completedTasks =
-          record.tasks?.filter((t) => t.status === "done").length || 0;
-
-        let status = "Not Started";
+        let status = "Active";
         let color = "default";
 
-        if (taskCount > 0) {
-          if (completedTasks === taskCount) {
-            status = "Completed";
-            color = "success";
-          } else if (completedTasks > 0) {
-            status = "In Progress";
-            color = "processing";
+        if (record.status === "completed") {
+          status = "Completed";
+          color = "success";
+        } else if (record.status === "on_hold") {
+          status = "On Hold";
+          color = "warning";
+        } else {
+          // For active projects, show progress-based status
+          const taskCount = record.tasks?.length || 0;
+          const completedTasks =
+            record.tasks?.filter((t) => t.status === "done").length || 0;
+
+          if (taskCount > 0) {
+            if (completedTasks === taskCount) {
+              status = "Ready to Complete";
+              color = "processing";
+            } else if (completedTasks > 0) {
+              status = "In Progress";
+              color = "processing";
+            } else {
+              status = "Active";
+              color = "default";
+            }
           } else {
             status = "Active";
-            color = "warning";
+            color = "default";
           }
         }
 
@@ -320,7 +332,6 @@ const ProjectsList: React.FC = () => {
                 >
                   <Option value="active">Active</Option>
                   <Option value="completed">Completed</Option>
-                  <Option value="inactive">Inactive</Option>
                   <Option value="on_hold">On Hold</Option>
                 </Select>
               </div>

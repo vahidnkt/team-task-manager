@@ -1,6 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Tag, Progress, Spin, Alert, Empty, Divider } from "antd";
+import {
+  Button,
+  Tag,
+  Progress,
+  Spin,
+  Alert,
+  Empty,
+  Divider,
+  Modal,
+  Input,
+  message,
+} from "antd";
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -11,19 +22,30 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../hooks";
 import { ROUTES } from "../../router";
-import { useGetProjectQuery } from "../../store/api/projectsApi";
+import {
+  useGetProjectQuery,
+  useCompleteProjectMutation,
+} from "../../store/api/projectsApi";
 import { formatRelativeTime } from "../../utils/dateUtils";
+import type { CompleteProjectRequest } from "../../types";
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
 
+  // State for complete project modal
+  const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
+  const [completionNotes, setCompletionNotes] = useState("");
+
   // API hooks
-  const { data: project, isLoading, error } = useGetProjectQuery(id!);
+  const { data: project, isLoading, error, refetch } = useGetProjectQuery(id!);
+  const [completeProject, { isLoading: isCompleting }] =
+    useCompleteProjectMutation();
 
   const handleBack = () => {
     navigate(ROUTES.PROJECTS);
@@ -35,6 +57,31 @@ const ProjectDetail: React.FC = () => {
 
   const handleCreateTask = () => {
     navigate(ROUTES.CREATE_TASK_FOR_PROJECT(id!));
+  };
+
+  const handleCompleteProject = () => {
+    setIsCompleteModalVisible(true);
+  };
+
+  const handleCompleteProjectConfirm = async () => {
+    try {
+      const data: CompleteProjectRequest = {
+        completionNotes: completionNotes.trim() || undefined,
+      };
+
+      await completeProject({ id: id!, data }).unwrap();
+      message.success("Project completed successfully!");
+      setIsCompleteModalVisible(false);
+      setCompletionNotes("");
+      refetch();
+    } catch (error: any) {
+      message.error(error?.data?.message || "Failed to complete project");
+    }
+  };
+
+  const handleCompleteProjectCancel = () => {
+    setIsCompleteModalVisible(false);
+    setCompletionNotes("");
   };
 
   if (isLoading) {
@@ -92,20 +139,32 @@ const ProjectDetail: React.FC = () => {
   const progressPercentage =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Determine project status
-  let projectStatus = "Not Started";
+  // Determine project status based on the status field
+  let projectStatus = "Active";
   let statusColor = "default";
 
-  if (totalTasks > 0) {
-    if (completedTasks === totalTasks) {
-      projectStatus = "Completed";
-      statusColor = "success";
-    } else if (completedTasks > 0) {
-      projectStatus = "In Progress";
-      statusColor = "processing";
+  if (project.status === "completed") {
+    projectStatus = "Completed";
+    statusColor = "success";
+  } else if (project.status === "on_hold") {
+    projectStatus = "On Hold";
+    statusColor = "warning";
+  } else {
+    // For active projects, show progress-based status
+    if (totalTasks > 0) {
+      if (completedTasks === totalTasks) {
+        projectStatus = "Ready to Complete";
+        statusColor = "processing";
+      } else if (completedTasks > 0) {
+        projectStatus = "In Progress";
+        statusColor = "processing";
+      } else {
+        projectStatus = "Active";
+        statusColor = "default";
+      }
     } else {
       projectStatus = "Active";
-      statusColor = "warning";
+      statusColor = "default";
     }
   }
 
@@ -161,6 +220,15 @@ const ProjectDetail: React.FC = () => {
                 >
                   Add Task
                 </Button>
+                {project.status !== "completed" && (
+                  <Button
+                    icon={<CheckOutlined />}
+                    onClick={handleCompleteProject}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-none"
+                  >
+                    Complete
+                  </Button>
+                )}
                 <Button
                   icon={<EditOutlined />}
                   onClick={handleEdit}
@@ -402,6 +470,41 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Complete Project Modal */}
+      <Modal
+        title="Complete Project"
+        open={isCompleteModalVisible}
+        onOk={handleCompleteProjectConfirm}
+        onCancel={handleCompleteProjectCancel}
+        confirmLoading={isCompleting}
+        okText="Complete Project"
+        cancelText="Cancel"
+        okButtonProps={{
+          className:
+            "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-none",
+        }}
+      >
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            Are you sure you want to mark this project as completed? This action
+            cannot be undone.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Completion Notes (Optional)
+            </label>
+            <Input.TextArea
+              rows={4}
+              placeholder="Add any notes about the project completion..."
+              value={completionNotes}
+              onChange={(e) => setCompletionNotes(e.target.value)}
+              maxLength={500}
+              showCount
+            />
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

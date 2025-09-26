@@ -3,6 +3,7 @@ export interface Project {
   id: string;
   name: string;
   description?: string;
+  status: "active" | "completed" | "on_hold";
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -25,6 +26,10 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+}
+
+export interface CompleteProjectRequest {
+  completionNotes?: string;
 }
 
 export interface ProjectWithStats extends Project {

@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">
                 🔧 Admin Overview
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                 <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div>
@@ -293,6 +293,25 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="p-2 sm:p-3 rounded-lg bg-blue-50 text-blue-600">
                       <span className="text-lg sm:text-xl lg:text-2xl">🚀</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="glass-card rounded-lg sm:rounded-xl border border-white/30 p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                        Completed Projects
+                      </p>
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                        {currentStats.completedProjects}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                        Finished projects
+                      </p>
+                    </div>
+                    <div className="p-2 sm:p-3 rounded-lg bg-green-50 text-green-600">
+                      <span className="text-lg sm:text-xl lg:text-2xl">🎉</span>
                     </div>
                   </div>
                 </div>

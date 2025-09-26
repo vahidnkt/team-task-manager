@@ -4,6 +4,7 @@ import type {
   Project,
   CreateProjectRequest,
   UpdateProjectRequest,
+  CompleteProjectRequest,
   ProjectWithStats,
   ProjectMember,
   GetProjectsQuery,
@@ -92,6 +93,25 @@ export const projectsApi = baseApi.injectEndpoints({
       invalidatesTags: ["Project"],
     }),
 
+    // Complete project
+    completeProject: builder.mutation<
+      Project,
+      { id: string; data: CompleteProjectRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `${API_ENDPOINTS.PROJECTS.BASE}/${id}/complete`,
+        method: "POST",
+        body: data,
+      }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Project", id },
+        "Project",
+      ],
+    }),
+
     // Get project members
     getProjectMembers: builder.query<ProjectMember[], string>({
       query: (projectId) => ({
@@ -151,6 +171,7 @@ export const {
   useCreateProjectMutation,
   useUpdateProjectMutation,
   useDeleteProjectMutation,
+  useCompleteProjectMutation,
   useGetProjectMembersQuery,
   useAddProjectMemberMutation,
   useRemoveProjectMemberMutation,
