@@ -34,8 +34,8 @@ export const API_ENDPOINTS = {
     ADD_MEMBER: (id: string) => `/projects/${id}/members`,
     REMOVE_MEMBER: (id: string, userId: string) =>
       `/projects/${id}/members/${userId}`,
-    TASKS: (id: string) => `/projects/${id}/tasks`,
-    TASKS_BY_STATUS: (id: string) => `/projects/${id}/tasks/status`,
+    TASKS: (id: string) => `/tasks/projects/${id}/tasks`,
+    TASKS_BY_STATUS: (id: string) => `/tasks/projects/${id}/tasks/status`,
   },
 
   // Task endpoints

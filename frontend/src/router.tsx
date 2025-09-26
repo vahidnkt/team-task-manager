@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Layout, ProtectedRoute } from "./components/layout";
 import { PageLoading } from "./components/common/Loading";
+import { ErrorBoundary } from "./components/common";
 
 // Lazy load all page components for better performance
 const Login = React.lazy(() => import("./pages/auth/Login"));
@@ -232,9 +233,11 @@ export const router = createBrowserRouter([
         path: "tasks/:id/comments",
         element: (
           <ProtectedRoute requireAuth>
-            <LazyWrapper>
-              <TaskComments />
-            </LazyWrapper>
+            <ErrorBoundary>
+              <LazyWrapper>
+                <TaskComments />
+              </LazyWrapper>
+            </ErrorBoundary>
           </ProtectedRoute>
         ),
       },

@@ -15,6 +15,9 @@ export const commentsApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.COMMENTS.BY_ID(id),
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
       providesTags: (_result, _error, id) => [{ type: "Comment", id }],
     }),
 
@@ -25,7 +28,13 @@ export const commentsApi = baseApi.injectEndpoints({
         method: "POST",
         body: commentData,
       }),
-      invalidatesTags: ["Comment", "Task"],
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
+      invalidatesTags: (result, error, { taskId }) => [
+        { type: "Task", id: taskId },
+        "Comment",
+      ],
     }),
 
     // Update comment
@@ -38,7 +47,10 @@ export const commentsApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id }) => [
+      transformResponse: (response: any) => {
+        return response.data || response;
+      },
+      invalidatesTags: (result, error, { id }) => [
         { type: "Comment", id },
         "Comment",
         "Task",
@@ -51,7 +63,11 @@ export const commentsApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.COMMENTS.DELETE(id),
         method: "DELETE",
       }),
-      invalidatesTags: ["Comment", "Task"],
+      invalidatesTags: (result, error, id) => [
+        { type: "Comment", id },
+        "Comment",
+        "Task",
+      ],
     }),
 
     // Get comments by task
@@ -60,6 +76,33 @@ export const commentsApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.COMMENTS.BY_TASK(taskId),
         method: "GET",
       }),
+      transformResponse: (response: any) => {
+        console.log("Raw comments API response:", response);
+
+        // Handle the nested structure: response.data.comments (from your API response)
+        if (response?.data?.comments && Array.isArray(response.data.comments)) {
+          console.log(
+            "Extracted comments from data.comments:",
+            response.data.comments
+          );
+          return response.data.comments;
+        }
+
+        // Handle direct data array
+        if (response?.data && Array.isArray(response.data)) {
+          console.log("Extracted comments from data array:", response.data);
+          return response.data;
+        }
+
+        // Fallback for direct response array
+        if (Array.isArray(response)) {
+          console.log("Using direct response array:", response);
+          return response;
+        }
+
+        console.log("No valid comments found, returning empty array");
+        return [];
+      },
       providesTags: (_result, _error, taskId) => [
         { type: "Task", id: taskId },
         "Comment",

@@ -1,7 +1,7 @@
 import React from "react";
+import { Button } from "antd";
 import { AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react";
 import { Modal } from "./Modal";
-import { Button } from "./Button";
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
