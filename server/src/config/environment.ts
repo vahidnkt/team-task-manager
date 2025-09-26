@@ -1,14 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
-import {
-  DatabaseConfig,
-  JWTConfig,
-  SecurityConfig,
-  LoggingConfig,
-  ServerConfig,
-  AppConfig,
-  Environment,
-} from "../types";
+import { DatabaseConfig } from "../types";
 
 // Load environment variables from .env file in server root
 dotenv.config({ path: path.join(__dirname, "../../.env") });
@@ -18,6 +10,39 @@ interface CORSConfig {
   credentials: boolean;
   methods: string[];
   allowedHeaders: string[];
+}
+
+interface JWTConfig {
+  secret: string;
+  expiresIn: string;
+  algorithm: string;
+  refreshTokenExpiresIn: string;
+}
+
+interface SecurityConfig {
+  bcryptSaltRounds: number;
+  rateLimitWindowMs: number;
+  rateLimitMaxRequests: number;
+  corsOrigin: string;
+}
+
+interface LoggingConfig {
+  level: string;
+  file: string;
+  maxSize: string;
+  maxFiles: number;
+  datePattern: string;
+}
+
+interface AppConfig {
+  name: string;
+  version: string;
+  description: string;
+}
+
+interface ServerConfig {
+  port: number;
+  env: string;
 }
 
 interface Config {
@@ -34,7 +59,9 @@ const config: Config = {
   // Server Configuration
   server: {
     port: parseInt(process.env.PORT || "3000"),
-    env: (process.env.NODE_ENV as Environment) || "development",
+    env:
+      (process.env.NODE_ENV as "development" | "production" | "test") ||
+      "development",
   },
 
   // Database Configuration

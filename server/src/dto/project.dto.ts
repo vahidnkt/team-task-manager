@@ -77,3 +77,14 @@ export class GetAllProjectsQueryDto {
   })
   sortOrder?: "ASC" | "DESC" = "DESC";
 }
+
+// Complete Project DTO
+export class CompleteProjectDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(500, {
+    message: "Completion notes must be less than 500 characters",
+  })
+  @Transform(({ value }) => value?.trim())
+  completionNotes?: string;
+}

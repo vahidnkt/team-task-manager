@@ -327,6 +327,42 @@ export class ProjectController {
       });
     }
   }
+
+  // Complete a project
+  async completeProject(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { completionNotes } = req.body;
+
+      if (!id) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Project ID is required",
+        });
+        return;
+      }
+
+      const completedProject = await projectService.completeProject(
+        id,
+        completionNotes
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        data: completedProject,
+        message: "Project completed successfully",
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      const statusCode =
+        (error as any).statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+      res.status(statusCode).json({
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to complete project",
+      });
+    }
+  }
 }
 
 export const projectController = new ProjectController();

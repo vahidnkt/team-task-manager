@@ -16,6 +16,7 @@ import {
   UpdateProjectDto,
   GetAllProjectsQueryDto,
   IdParamDto,
+  CompleteProjectDto,
 } from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
@@ -102,6 +103,21 @@ router.delete(
   requireProjectAccess,
   apiAccessLogger("project-delete"),
   projectController.deleteProject.bind(projectController)
+);
+
+/**
+ * @route   POST /api/projects/:id/complete
+ * @desc    Complete a project
+ * @access  Private (Admin only)
+ */
+router.post(
+  "/:id/complete",
+  requireAdmin,
+  validateParamDto(IdParamDto),
+  validateDto(CompleteProjectDto),
+  requireProjectAccess,
+  apiAccessLogger("project-complete"),
+  projectController.completeProject.bind(projectController)
 );
 
 export default router;

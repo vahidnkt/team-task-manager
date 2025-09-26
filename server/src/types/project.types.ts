@@ -3,6 +3,7 @@ export interface Project {
   id: string;
   name: string;
   description?: string;
+  status: "active" | "completed" | "on_hold";
   created_by: string;
   created_at: Date;
   updated_at: Date;

@@ -40,6 +40,13 @@ export class Project extends Model<Project> {
   })
   description?: string;
 
+  @Column({
+    type: DataType.ENUM("active", "completed", "on_hold"),
+    allowNull: false,
+    defaultValue: "active",
+  })
+  status!: "active" | "completed" | "on_hold";
+
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,

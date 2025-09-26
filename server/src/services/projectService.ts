@@ -269,6 +269,40 @@ export class ProjectService {
     });
     return count > 0;
   }
+
+  // Complete a project
+  async completeProject(
+    projectId: string,
+    completionNotes?: string
+  ): Promise<Project> {
+    const project = await Project.findByPk(projectId);
+
+    if (!project) {
+      const error = new Error("Project not found") as any;
+      error.statusCode = HTTP_STATUS.NOT_FOUND;
+      error.isOperational = true;
+      throw error;
+    }
+
+    if (project.status === "completed") {
+      const error = new Error("Project is already completed") as any;
+      error.statusCode = HTTP_STATUS.BAD_REQUEST;
+      error.isOperational = true;
+      throw error;
+    }
+
+    // Update project status to completed
+    await project.update({
+      status: "completed",
+      description: completionNotes
+        ? `${
+            project.description || ""
+          }\n\nCompletion Notes: ${completionNotes}`.trim()
+        : project.description,
+    });
+
+    return project;
+  }
 }
 
 export const projectService = new ProjectService();
