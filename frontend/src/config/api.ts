@@ -62,10 +62,16 @@ export const API_ENDPOINTS = {
   // Activity endpoints
   ACTIVITIES: {
     BASE: "/activities",
+    RECENT: "/activities/recent",
+    MY: "/activities/my",
     BY_ID: (id: string) => `/activities/${id}`,
-    BY_PROJECT: (projectId: string) => `/activities/project/${projectId}`,
-    BY_TASK: (taskId: string) => `/activities/task/${taskId}`,
-    BY_USER: (userId: string) => `/activities/user/${userId}`,
+    BY_USER: (userId: string) => `/activities/users/${userId}`,
+    BY_PROJECT: (projectId: string) =>
+      `/activities/projects/${projectId}/activities`,
+    PROJECT_STATS: (projectId: string) =>
+      `/activities/projects/${projectId}/activities/stats`,
+    BY_TASK: (taskId: string) => `/activities/tasks/${taskId}/activities`,
+    SYSTEM_STATS: "/activities/system/stats",
   },
 
   // Dashboard endpoints

@@ -28,6 +28,8 @@ const TaskComments = React.lazy(() => import("./pages/tasks/TaskComments"));
 const UsersList = React.lazy(() => import("./pages/users/UsersList"));
 const UserDetail = React.lazy(() => import("./pages/users/UserDetail"));
 
+const Activities = React.lazy(() => import("./pages/activities/Activities"));
+
 const Profile = React.lazy(() => import("./pages/profile/Profile"));
 
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -259,6 +261,18 @@ export const router = createBrowserRouter([
           <ProtectedRoute requireAuth requireAdmin>
             <LazyWrapper>
               <UserDetail />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
+
+      // Activities routes
+      {
+        path: "activities",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
+              <Activities />
             </LazyWrapper>
           </ProtectedRoute>
         ),

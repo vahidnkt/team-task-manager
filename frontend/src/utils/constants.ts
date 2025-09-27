@@ -223,6 +223,9 @@ export const ROUTES = {
   USERS: "/users",
   USER_DETAIL: (id: string) => `/users/${id}`,
 
+  // Activities
+  ACTIVITIES: "/activities",
+
   // Profile
   PROFILE: "/profile",
   CHANGE_PASSWORD: "/profile/change-password",

@@ -2,10 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Spin, Alert } from "antd";
 import { useAuth, useDashboard } from "../../hooks";
-import { ROUTES } from "../../router";
+import { ROUTES } from "../../utils/constants";
 import { formatRelativeTime } from "../../utils/dateUtils";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { PriorityBadge } from "../../components/ui/PriorityBadge";
+import { getActivityIcon, getActivityTitle } from "../../utils/activityUtils";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -100,7 +101,6 @@ const Dashboard: React.FC = () => {
   // Data is now properly handled in the API layer with fallbacks
   const currentStats = stats;
   const currentRecentTasks = recentTasks;
-  const currentRecentActivities = recentActivities;
   const currentProjects = projects;
 
   // Debug logging to help identify data structure issues
@@ -482,55 +482,100 @@ const Dashboard: React.FC = () => {
             {/* Recent Activities */}
             <div className="glass-card rounded-lg sm:rounded-xl border border-white/30">
               <div className="p-4 sm:p-6 border-b border-white/20">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                  ⚡ {isUserAdmin ? "System Activities" : "My Activities"}
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                    ⚡ {isUserAdmin ? "System Activities" : "My Activities"}
+                  </h3>
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => navigate("/activities")}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    View All →
+                  </Button>
+                </div>
               </div>
               <div className="p-4 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {(currentRecentActivities || []).map((activity) => (
+                  {(recentActivities || []).slice(0, 5).map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start space-x-2 sm:space-x-3"
+                      className="p-3 sm:p-4 border border-white/30 rounded-lg hover:bg-white/50 cursor-pointer transition-colors backdrop-blur-sm"
                     >
-                      <div
-                        className={`p-2 rounded-full ${
-                          {
-                            task_completed: "bg-green-100 text-green-600",
-                            task_created: "bg-blue-100 text-blue-600",
-                            project_created: "bg-purple-100 text-purple-600",
-                            user_created: "bg-orange-100 text-orange-600",
-                            task_assigned: "bg-indigo-100 text-indigo-600",
-                          }[activity.action] || "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        <span className="text-sm">
-                          {{
-                            task_completed: "✅",
-                            task_created: "➕",
-                            project_created: "📁",
-                            user_created: "👤",
-                            task_assigned: "👥",
-                          }[activity.action] || "📝"}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-900">
-                          {activity.description}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-xs text-gray-500">
-                            {activity.userName}
-                          </span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs text-gray-500">
-                            {formatRelativeTime(activity.createdAt)}
-                          </span>
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        {/* Activity Icon */}
+                        <div className="flex-shrink-0 mt-1">
+                          {getActivityIcon(activity.action)}
+                        </div>
+
+                        {/* Activity Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              {/* Activity Title and Tag */}
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                <span className="font-medium text-gray-900 text-xs sm:text-sm truncate">
+                                  {getActivityTitle(activity.action)}
+                                </span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">
+                                  {activity.action.replace(/_/g, " ")}
+                                </span>
+                              </div>
+
+                              {/* Activity Description */}
+                              {activity.description && (
+                                <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">
+                                  {activity.description}
+                                </p>
+                              )}
+
+                              {/* Project and Task Info */}
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-gray-500">
+                                {/* User Info */}
+                                <div className="flex items-center gap-1">
+                                  <span className="w-4 h-4 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                                    👤
+                                  </span>
+                                  <span className="truncate">
+                                    {activity.userName || "Unknown User"}
+                                  </span>
+                                </div>
+
+                                {/* Project Info */}
+                                {activity.projectName && (
+                                  <div className="flex items-center gap-1">
+                                    <span>📁</span>
+                                    <span className="truncate max-w-24 sm:max-w-32">
+                                      {activity.projectName}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Task Info */}
+                                {activity.taskTitle && (
+                                  <div className="flex items-center gap-1">
+                                    <span>📝</span>
+                                    <span className="truncate max-w-24 sm:max-w-32">
+                                      {activity.taskTitle}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Time */}
+                                <div className="flex items-center gap-1">
+                                  <span className="truncate">
+                                    {formatRelativeTime(activity.createdAt)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
-                  {(currentRecentActivities || []).length === 0 && (
+                  {(recentActivities || []).length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">⚡</div>
                       <p>No recent activities</p>

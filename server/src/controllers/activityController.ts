@@ -80,7 +80,7 @@ export class ActivityController {
   // Get activities by user
   async getUserActivities(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { userId } = req.params;
+      const { id: userId } = req.params;
       const { limit, offset } = req.query;
 
       if (!userId) {
@@ -230,6 +230,86 @@ export class ActivityController {
           error instanceof Error
             ? error.message
             : "Failed to retrieve activity summary",
+      });
+    }
+  }
+
+  // Delete activity (admin only)
+  async deleteActivity(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Activity ID is required",
+        });
+        return;
+      }
+
+      const deleted = await activityService.deleteActivity(id);
+
+      if (!deleted) {
+        res.status(HTTP_STATUS.NOT_FOUND).json({
+          success: false,
+          message: "Activity not found",
+        });
+        return;
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        data: { id },
+        message: "Activity deleted successfully",
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to delete activity",
+      });
+    }
+  }
+
+  // Update activity (admin only)
+  async updateActivity(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { action, description } = req.body;
+
+      if (!id) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: "Activity ID is required",
+        });
+        return;
+      }
+
+      const updatedActivity = await activityService.updateActivity(id, {
+        action,
+        description,
+      });
+
+      if (!updatedActivity) {
+        res.status(HTTP_STATUS.NOT_FOUND).json({
+          success: false,
+          message: "Activity not found",
+        });
+        return;
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        data: updatedActivity,
+        message: "Activity updated successfully",
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to update activity",
       });
     }
   }

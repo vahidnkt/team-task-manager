@@ -5,6 +5,8 @@ import {
   UpdateProjectRequest,
 } from "../types/project.types";
 import { HTTP_STATUS } from "../utils/constants";
+import { activityService } from "./activityService";
+import { logger } from "../utils/logger";
 
 export class ProjectService {
   // Create a new project
@@ -29,11 +31,28 @@ export class ProjectService {
     }
 
     // Create project using Sequelize
-    return await Project.create({
+    const project = await Project.create({
       name: name.trim(),
       description: description?.trim() || undefined,
       createdBy,
     } as any);
+
+    // Log activity - project created
+    try {
+      await activityService.logProjectCreated(
+        project.id,
+        createdBy,
+        project.name
+      );
+    } catch (activityError) {
+      // Log activity error but don't fail the project creation
+      logger.error(
+        "Failed to log project creation activity",
+        activityError as Error
+      );
+    }
+
+    return project;
   }
 
   // Get all projects with search and filter
@@ -273,6 +292,7 @@ export class ProjectService {
   // Complete a project
   async completeProject(
     projectId: string,
+    userId: string,
     completionNotes?: string
   ): Promise<Project> {
     const project = await Project.findByPk(projectId);
@@ -300,6 +320,25 @@ export class ProjectService {
           }\n\nCompletion Notes: ${completionNotes}`.trim()
         : project.description,
     });
+
+    // Log activity - project completed
+    try {
+      await activityService.createActivity({
+        project_id: projectId,
+        task_id: undefined,
+        user_id: userId,
+        action: "project_completed",
+        description: `Project '${project.name}' was completed${
+          completionNotes ? " with notes" : ""
+        }`,
+      });
+    } catch (activityError) {
+      // Log activity error but don't fail the project completion
+      logger.error(
+        "Failed to log project completion activity",
+        activityError as Error
+      );
+    }
 
     return project;
   }

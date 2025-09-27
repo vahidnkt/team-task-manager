@@ -173,7 +173,11 @@ export class TaskController {
         project_id: projectId,
       };
 
-      const newTask = await taskService.createTask(taskData, projectId);
+      const newTask = await taskService.createTask(
+        taskData,
+        projectId,
+        req.user?.userId || ""
+      );
 
       const response: ApiResponse = {
         success: true,
@@ -242,7 +246,11 @@ export class TaskController {
         return;
       }
 
-      const updatedTask = await taskService.updateTask(id, updateData);
+      const updatedTask = await taskService.updateTask(
+        id,
+        updateData,
+        req.user?.userId || ""
+      );
 
       if (!updatedTask) {
         res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -280,7 +288,7 @@ export class TaskController {
         return;
       }
 
-      const deleted = await taskService.deleteTask(id);
+      const deleted = await taskService.deleteTask(id, req.user?.userId || "");
 
       if (!deleted) {
         res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -326,7 +334,11 @@ export class TaskController {
         return;
       }
 
-      const updatedTask = await taskService.updateTaskStatus(id, status);
+      const updatedTask = await taskService.updateTaskStatus(
+        id,
+        status,
+        req.user?.userId || ""
+      );
 
       if (!updatedTask) {
         res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -367,7 +379,11 @@ export class TaskController {
         return;
       }
 
-      const updatedTask = await taskService.assignTask(id, assignee_id || null);
+      const updatedTask = await taskService.assignTask(
+        id,
+        assignee_id || null,
+        req.user?.userId || ""
+      );
 
       if (!updatedTask) {
         res.status(HTTP_STATUS.NOT_FOUND).json({

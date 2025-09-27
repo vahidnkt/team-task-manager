@@ -344,6 +344,7 @@ export class ProjectController {
 
       const completedProject = await projectService.completeProject(
         id,
+        req.user?.userId || "",
         completionNotes
       );
 

@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_BASE_URL } from "../../config";
 import type { RootState } from "../index";
-import { HttpStatus } from "../../types";
 
 // Base API configuration
 export const baseApi = createApi({
@@ -24,7 +23,7 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["User", "Project", "Task", "Comment", "Activity"],
+  tagTypes: ["User", "Project", "Task", "Comment", "Activity", "ActivityStats"],
   endpoints: () => ({}),
 });
 

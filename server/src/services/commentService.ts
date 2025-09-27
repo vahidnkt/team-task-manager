@@ -6,6 +6,8 @@ import {
   UpdateCommentRequest,
 } from "../types/comment.types";
 import { HTTP_STATUS } from "../utils/constants";
+import { activityService } from "./activityService";
+import { logger } from "../utils/logger";
 
 export class CommentService {
   // Create a new comment
@@ -25,11 +27,28 @@ export class CommentService {
     }
 
     // Create comment using Sequelize
-    return await Comment.create({
+    const comment = await Comment.create({
       taskId: task_id,
       commenterId: commenter_id,
       text: text.trim(),
     } as any);
+
+    // Log activity - comment added
+    try {
+      await activityService.logCommentAdded(
+        task.projectId,
+        task_id,
+        commenter_id
+      );
+    } catch (activityError) {
+      // Log activity error but don't fail the comment creation
+      logger.error(
+        "Failed to log comment creation activity",
+        activityError as Error
+      );
+    }
+
+    return comment;
   }
 
   // Get comment by ID

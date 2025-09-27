@@ -463,6 +463,37 @@ export class ActivityService {
 
     return stats;
   }
+
+  // Delete activity (admin only)
+  async deleteActivity(id: string): Promise<boolean> {
+    const activity = await Activity.findByPk(id);
+    if (!activity) {
+      return false;
+    }
+
+    await Activity.destroy({ where: { id } });
+    return true;
+  }
+
+  // Update activity (admin only)
+  async updateActivity(
+    id: string,
+    updateData: { action?: string; description?: string }
+  ): Promise<Activity | null> {
+    const activity = await Activity.findByPk(id);
+    if (!activity) {
+      return null;
+    }
+
+    await Activity.update(updateData, { where: { id } });
+    return await Activity.findByPk(id, {
+      include: [
+        { model: User, as: "user" },
+        { model: Project, as: "project" },
+        { model: Task, as: "task" },
+      ],
+    });
+  }
 }
 
 export const activityService = new ActivityService();

@@ -68,10 +68,10 @@ const menuItems: MenuItem[] = [
   },
 
   {
-    id: "activity",
-    label: "Activity",
+    id: "activities",
+    label: "Activities",
     icon: <Activity className="h-5 w-5" />,
-    path: "/activity",
+    path: "/activities",
   },
   {
     id: "admin",

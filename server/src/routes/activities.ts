@@ -50,15 +50,15 @@ router.get(
 );
 
 /**
- * @route   GET /api/activities/users/:userId
+ * @route   GET /api/activities/users/:id
  * @desc    Get activities by specific user
  * @access  Private (Own activities or Admin)
  */
 router.get(
-  "/users/:userId",
+  "/users/:id",
   validateParamDto(IdParamDto),
   validateQueryDto(PaginationQueryDto),
-  requireOwnershipOrAdmin("userId"),
+  requireOwnershipOrAdmin("id"),
   apiAccessLogger("user-activities"),
   activityController.getUserActivities.bind(activityController)
 );
@@ -101,6 +101,32 @@ router.get(
   validateQueryDto(PaginationQueryDto),
   apiAccessLogger("task-activities"),
   activityController.getTaskActivities.bind(activityController)
+);
+
+/**
+ * @route   DELETE /api/activities/:id
+ * @desc    Delete a specific activity (admin only)
+ * @access  Admin
+ */
+router.delete(
+  "/:id",
+  requireAdmin,
+  validateParamDto(IdParamDto),
+  apiAccessLogger("activity-delete"),
+  activityController.deleteActivity.bind(activityController)
+);
+
+/**
+ * @route   PUT /api/activities/:id
+ * @desc    Update a specific activity (admin only)
+ * @access  Admin
+ */
+router.put(
+  "/:id",
+  requireAdmin,
+  validateParamDto(IdParamDto),
+  apiAccessLogger("activity-update"),
+  activityController.updateActivity.bind(activityController)
 );
 
 export default router;

@@ -7,12 +7,14 @@ import { CreateTaskRequest, UpdateTaskRequest } from "../types/task.types";
 import { HTTP_STATUS } from "../utils/constants";
 import { logger } from "../utils/logger";
 import { AppError } from "../types/common.types";
+import { activityService } from "./activityService";
 
 export class TaskService {
   // Create a new task
   async createTask(
     taskData: CreateTaskRequest,
-    projectId: string
+    projectId: string,
+    userId: string
   ): Promise<Task> {
     const { title, description, assignee_id, priority, due_date } = taskData;
 
@@ -40,7 +42,7 @@ export class TaskService {
     }
 
     // Create task using Sequelize
-    return await Task.create({
+    const task = await Task.create({
       projectId,
       title: title.trim(),
       description: description?.trim() || undefined,
@@ -48,6 +50,24 @@ export class TaskService {
       priority: priority || "medium",
       dueDate: due_date || undefined,
     } as any);
+
+    // Log activity - task created
+    try {
+      await activityService.logTaskCreated(
+        projectId,
+        task.id,
+        userId,
+        task.title
+      );
+    } catch (activityError) {
+      // Log activity error but don't fail the task creation
+      logger.error(
+        "Failed to log task creation activity",
+        activityError as Error
+      );
+    }
+
+    return task;
   }
 
   // Get all tasks with search and filter
@@ -263,7 +283,8 @@ export class TaskService {
   // Update task
   async updateTask(
     id: string,
-    updateData: UpdateTaskRequest
+    updateData: UpdateTaskRequest,
+    userId: string
   ): Promise<Task | null> {
     const task = await this.getTaskById(id);
     if (!task) {
@@ -290,24 +311,66 @@ export class TaskService {
     }
 
     await Task.update(updateData, { where: { id } });
+
+    // Log activity - task updated
+    try {
+      await activityService.createActivity({
+        project_id: task.projectId,
+        task_id: task.id,
+        user_id: userId,
+        action: "task_updated",
+        description: `Task '${task.title}' was updated`,
+      });
+    } catch (activityError) {
+      // Log activity error but don't fail the task update
+      logger.error(
+        "Failed to log task update activity",
+        activityError as Error
+      );
+    }
+
     return await this.getTaskById(id);
   }
 
   // Update task status
-  async updateTaskStatus(id: string, status: string): Promise<Task | null> {
+  async updateTaskStatus(
+    id: string,
+    status: string,
+    userId: string
+  ): Promise<Task | null> {
     const task = await this.getTaskById(id);
     if (!task) {
       throw new Error("Task not found");
     }
 
+    const oldStatus = task.status;
     await Task.update({ status } as any, { where: { id } });
+
+    // Log activity - status changed
+    try {
+      await activityService.logStatusChanged(
+        task.projectId,
+        task.id,
+        userId,
+        oldStatus,
+        status
+      );
+    } catch (activityError) {
+      // Log activity error but don't fail the status update
+      logger.error(
+        "Failed to log task status change activity",
+        activityError as Error
+      );
+    }
+
     return await this.getTaskById(id);
   }
 
   // Assign task to user
   async assignTask(
     id: string,
-    assigneeId: string | null
+    assigneeId: string | null,
+    userId: string
   ): Promise<Task | null> {
     const task = await this.getTaskById(id);
     if (!task) {
@@ -315,17 +378,63 @@ export class TaskService {
     }
 
     await Task.update({ assigneeId } as any, { where: { id } });
+
+    // Log activity - task assigned
+    try {
+      if (assigneeId) {
+        const assignee = await User.findByPk(assigneeId);
+        await activityService.logTaskAssigned(
+          task.projectId,
+          task.id,
+          userId,
+          assignee?.username || "Unknown User"
+        );
+      } else {
+        await activityService.createActivity({
+          project_id: task.projectId,
+          task_id: task.id,
+          user_id: userId,
+          action: "task_unassigned",
+          description: `Task '${task.title}' was unassigned`,
+        });
+      }
+    } catch (activityError) {
+      // Log activity error but don't fail the assignment
+      logger.error(
+        "Failed to log task assignment activity",
+        activityError as Error
+      );
+    }
+
     return await this.getTaskById(id);
   }
 
   // Delete task (soft delete)
-  async deleteTask(id: string): Promise<boolean> {
+  async deleteTask(id: string, userId: string): Promise<boolean> {
     const task = await this.getTaskById(id);
     if (!task) {
       throw new Error("Task not found");
     }
 
     await Task.destroy({ where: { id } });
+
+    // Log activity - task deleted
+    try {
+      await activityService.createActivity({
+        project_id: task.projectId,
+        task_id: task.id,
+        user_id: userId,
+        action: "task_deleted",
+        description: `Task '${task.title}' was deleted`,
+      });
+    } catch (activityError) {
+      // Log activity error but don't fail the deletion
+      logger.error(
+        "Failed to log task deletion activity",
+        activityError as Error
+      );
+    }
+
     return true;
   }
 
