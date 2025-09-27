@@ -21,7 +21,7 @@ import {
 } from "@ant-design/icons";
 import { useCreateUserMutation } from "../../store/api/usersApi";
 import { useAuth } from "../../hooks";
-import { useToast } from "../../hooks/useToast";
+// Toast messages are handled by middleware
 import type { CreateUserRequest } from "../../types";
 
 const { Title, Text } = Typography;
@@ -30,7 +30,7 @@ const { Option } = Select;
 const CreateUser: React.FC = () => {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const { showSuccess, handleApiError } = useToast();
+  // Toast messages are handled by middleware
 
   const [form] = Form.useForm();
   const [createUser, { isLoading }] = useCreateUserMutation();
@@ -60,10 +60,10 @@ const CreateUser: React.FC = () => {
   const handleSubmit = async (values: CreateUserRequest) => {
     try {
       await createUser(values).unwrap();
-      showSuccess("User created successfully!");
+      // Toast message is handled by middleware
       navigate("/users");
     } catch (error) {
-      handleApiError(error, "Failed to create user");
+      // Error toast is handled by middleware
     }
   };
 

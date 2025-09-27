@@ -28,7 +28,7 @@ import {
   useDeleteUserMutation,
 } from "../../store/api/usersApi";
 import { useAuth } from "../../hooks";
-import { useToast } from "../../hooks/useToast";
+// Toast messages are handled by middleware
 import { format } from "date-fns";
 import type { GetAllUsersQuery, UserWithoutPassword } from "../../types";
 import type { ColumnsType } from "antd/es/table";
@@ -40,7 +40,7 @@ const { Option } = Select;
 const UsersList: React.FC = () => {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const { showSuccess, handleApiError } = useToast();
+  // Toast messages are handled by middleware
 
   // State for filters and pagination
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,10 +90,10 @@ const UsersList: React.FC = () => {
       onOk: async () => {
         try {
           await deleteUser(userId).unwrap();
-          showSuccess("User deleted successfully!");
+          // Toast message is handled by middleware
           refetch();
         } catch (error) {
-          handleApiError(error, "Failed to delete user");
+          // Error toast is handled by middleware
         }
       },
     });

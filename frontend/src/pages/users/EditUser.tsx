@@ -26,7 +26,7 @@ import {
   useUpdateUserMutation,
 } from "../../store/api/usersApi";
 import { useAuth } from "../../hooks";
-import { useToast } from "../../hooks/useToast";
+// Toast messages are handled by middleware
 import type { UpdateProfileRequest } from "../../types";
 
 const { Title, Text } = Typography;
@@ -36,7 +36,7 @@ const EditUser: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user: currentUser, isAdmin } = useAuth();
-  const { showSuccess, handleApiError } = useToast();
+  // Toast messages are handled by middleware
 
   const [form] = Form.useForm();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
@@ -120,14 +120,10 @@ const EditUser: React.FC = () => {
   const handleSubmit = async (values: UpdateProfileRequest) => {
     try {
       await updateUser({ id: user.id, data: values }).unwrap();
-      showSuccess(
-        isOwnProfile
-          ? "Profile updated successfully!"
-          : "User updated successfully!"
-      );
+      // Toast message is handled by middleware
       navigate(isOwnProfile ? "/profile" : "/users");
     } catch (error) {
-      handleApiError(error, "Failed to update user");
+      // Error toast is handled by middleware
     }
   };
 

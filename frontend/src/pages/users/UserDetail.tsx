@@ -30,7 +30,7 @@ import {
   useDeleteUserMutation,
 } from "../../store/api/usersApi";
 import { useAuth } from "../../hooks";
-import { useToast } from "../../hooks/useToast";
+// Toast messages are handled by middleware
 import { format, formatDistanceToNow } from "date-fns";
 
 const { Title, Text } = Typography;
@@ -39,7 +39,7 @@ const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user: currentUser, isAdmin } = useAuth();
-  const { showSuccess, handleApiError } = useToast();
+  // Toast messages are handled by middleware
 
   const [deleteUser] = useDeleteUserMutation();
 
@@ -70,10 +70,10 @@ const UserDetail: React.FC = () => {
       onOk: async () => {
         try {
           await deleteUser(user.id).unwrap();
-          showSuccess("User deleted successfully!");
+          // Toast message is handled by middleware
           navigate("/users");
         } catch (error) {
-          handleApiError(error, "Failed to delete user");
+          // Error toast is handled by middleware
         }
       },
     });
