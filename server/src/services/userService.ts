@@ -5,31 +5,77 @@ import environment from "../config/environment";
 import { HTTP_STATUS } from "../utils/constants";
 
 export class UserService {
-  // Get all users (admin only)
-  async getAllUsers(): Promise<User[]> {
-    return await User.findAll({
-      order: [["createdAt", "DESC"]],
-    });
-  }
-
-  // Get all users with filter and pagination
-  async getAllUsersWithFilter(options: {
-    where?: any;
+  // Get all users with search, filter and pagination
+  async getAllUsers(options: {
+    search?: string;
+    role?: string;
     limit?: number;
     offset?: number;
-    order?: any;
-  }): Promise<{ count: number; rows: User[] }> {
-    return await User.findAndCountAll({
-      where: options.where,
+    sortBy?:
+      | "username"
+      | "email"
+      | "created_at"
+      | "updated_at"
+      | "createdAt"
+      | "updatedAt";
+    sortOrder?: "ASC" | "DESC";
+  }): Promise<{
+    users: User[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const { Op } = require("sequelize");
+
+    // Build where clause for filtering
+    const whereClause: any = {};
+
+    // Role filter
+    if (options.role) {
+      whereClause.role = options.role;
+    }
+
+    // Search filter (username or email)
+    if (options.search) {
+      whereClause[Op.or] = [
+        { username: { [Op.like]: `%${options.search}%` } },
+        { email: { [Op.like]: `%${options.search}%` } },
+      ];
+    }
+
+    // Build order clause - convert camelCase to snake_case for database
+    const dbSortBy =
+      options.sortBy === "createdAt"
+        ? "created_at"
+        : options.sortBy === "updatedAt"
+        ? "updated_at"
+        : options.sortBy || "created_at";
+
+    const orderClause = [[dbSortBy, options.sortOrder || "DESC"]] as any;
+
+    const result = await User.findAndCountAll({
+      where: whereClause,
       limit: options.limit,
       offset: options.offset,
-      order: options.order || [["createdAt", "DESC"]],
+      order: orderClause,
+      attributes: { exclude: ["passwordHash"] },
     });
+
+    return {
+      users: result.rows,
+      total: result.count,
+      page: Math.floor((options.offset || 0) / (options.limit || 10)) + 1,
+      limit: options.limit || 10,
+      totalPages: Math.ceil(result.count / (options.limit || 10)),
+    };
   }
 
   // Get user by ID
   async getUserById(id: string): Promise<User | null> {
-    return await User.findByPk(id);
+    return await User.findByPk(id, {
+      attributes: { exclude: ["passwordHash"] },
+    });
   }
 
   // Get user by email
@@ -66,12 +112,17 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create user using Sequelize
-    return await User.create({
+    const newUser = await User.create({
       username,
       email,
       passwordHash: hashedPassword,
       role,
     } as any);
+
+    // Return user without password hash
+    return (await User.findByPk(newUser.id, {
+      attributes: { exclude: ["passwordHash"] },
+    })) as User;
   }
 
   // Update user

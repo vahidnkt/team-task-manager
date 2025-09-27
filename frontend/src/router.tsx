@@ -27,6 +27,8 @@ const TaskComments = React.lazy(() => import("./pages/tasks/TaskComments"));
 
 const UsersList = React.lazy(() => import("./pages/users/UsersList"));
 const UserDetail = React.lazy(() => import("./pages/users/UserDetail"));
+const CreateUser = React.lazy(() => import("./pages/users/CreateUser"));
+const EditUser = React.lazy(() => import("./pages/users/EditUser"));
 
 const Activities = React.lazy(() => import("./pages/activities/Activities"));
 
@@ -244,11 +246,11 @@ export const router = createBrowserRouter([
         ),
       },
 
-      // User management routes (admin only)
+      // User management routes
       {
         path: "users",
         element: (
-          <ProtectedRoute requireAuth requireAdmin>
+          <ProtectedRoute requireAuth>
             <LazyWrapper>
               <UsersList />
             </LazyWrapper>
@@ -256,11 +258,31 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "users/:id",
+        path: "users/create",
         element: (
           <ProtectedRoute requireAuth requireAdmin>
             <LazyWrapper>
+              <CreateUser />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "users/:id",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
               <UserDetail />
+            </LazyWrapper>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "users/:id/edit",
+        element: (
+          <ProtectedRoute requireAuth>
+            <LazyWrapper>
+              <EditUser />
             </LazyWrapper>
           </ProtectedRoute>
         ),
@@ -344,7 +366,9 @@ export const ROUTES = {
 
   // User routes
   USERS: "/users",
+  CREATE_USER: "/users/create",
   USER_DETAIL: (id: string) => `/users/${id}`,
+  EDIT_USER: (id: string) => `/users/${id}/edit`,
 
   // Profile routes
   PROFILE: "/profile",
@@ -383,7 +407,9 @@ export const navigation = {
 
   // User navigation
   goToUsers: () => ROUTES.USERS,
+  goToCreateUser: () => ROUTES.CREATE_USER,
   goToUserDetail: (id: string) => ROUTES.USER_DETAIL(id),
+  goToEditUser: (id: string) => ROUTES.EDIT_USER(id),
 
   // Profile navigation
   goToProfile: () => ROUTES.PROFILE,

@@ -83,7 +83,7 @@ const menuItems: MenuItem[] = [
         id: "users",
         label: "Users",
         icon: <Users className="h-4 w-4" />,
-        path: "/admin/users",
+        path: "/users",
         permission: "users:read",
       },
       {

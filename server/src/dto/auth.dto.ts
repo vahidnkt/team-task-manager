@@ -98,10 +98,20 @@ export class GetAllUsersQueryDto {
   offset?: number = 0;
 
   @IsOptional()
-  @IsIn(["username", "email", "created_at", "updated_at"], {
-    message: "Sort by must be one of: username, email, created_at, updated_at",
-  })
-  sortBy?: "username" | "email" | "created_at" | "updated_at" = "created_at";
+  @IsIn(
+    ["username", "email", "created_at", "updated_at", "createdAt", "updatedAt"],
+    {
+      message:
+        "Sort by must be one of: username, email, created_at, updated_at, createdAt, updatedAt",
+    }
+  )
+  sortBy?:
+    | "username"
+    | "email"
+    | "created_at"
+    | "updated_at"
+    | "createdAt"
+    | "updatedAt" = "created_at";
 
   @IsOptional()
   @IsIn(["ASC", "DESC"], {

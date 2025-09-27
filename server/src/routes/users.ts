@@ -7,7 +7,12 @@ import {
   validateQueryDto,
   validateParamDto,
 } from "../middleware/dtoValidation";
-import { UpdateProfileDto, GetAllUsersQueryDto, IdParamDto } from "../dto";
+import {
+  CreateUserDto,
+  UpdateProfileDto,
+  GetAllUsersQueryDto,
+  IdParamDto,
+} from "../dto";
 import { requestLogger, apiAccessLogger } from "../middleware/logging";
 
 const router = Router();
@@ -15,6 +20,19 @@ const router = Router();
 // Apply authentication to all routes
 router.use(authenticateToken);
 router.use(requestLogger);
+
+/**
+ * @route   POST /api/users
+ * @desc    Create new user (admin only)
+ * @access  Admin
+ */
+router.post(
+  "/",
+  requireAdmin,
+  validateDto(CreateUserDto),
+  apiAccessLogger("user-create"),
+  userController.createUser.bind(userController)
+);
 
 /**
  * @route   GET /api/users
