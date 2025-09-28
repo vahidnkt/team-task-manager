@@ -32,7 +32,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsIn(["user", "admin"], { message: 'Role must be either "user" or "admin"' })
-  role?: "user" | "admin";
+  role?: "user" | "admin" = "user";
 }
 
 // User Login DTO

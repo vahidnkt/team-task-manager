@@ -81,22 +81,29 @@ const UsersList: React.FC = () => {
 
   // Handle delete user
   const handleDelete = async (userId: string, username: string) => {
-    Modal.confirm({
-      title: "Delete User",
-      content: `Are you sure you want to delete user "${username}"? This action cannot be undone.`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
+    try {
+      const result = await Modal.confirm({
+        title: "Delete User",
+        content: `Are you sure you want to delete user "${username}"? This action cannot be undone.`,
+        okText: "Delete",
+        okType: "danger",
+        cancelText: "Cancel",
+      });
+
+      // If user confirmed, proceed with deletion
+      if (result) {
         try {
           await deleteUser(userId).unwrap();
           // Toast message is handled by middleware
           refetch();
-        } catch (error) {
+        } catch (error: any) {
           // Error toast is handled by middleware
+          console.error("Delete error:", error);
         }
-      },
-    });
+      }
+    } catch (error) {
+      console.error("Modal error:", error);
+    }
   };
 
   // Table columns
@@ -264,6 +271,22 @@ const UsersList: React.FC = () => {
             onClick={() => navigate("/users/create")}
           >
             Add User
+          </Button>
+          {/* Test Modal Button - Remove this after testing */}
+          <Button
+            type="default"
+            onClick={() => {
+              console.log("Test modal button clicked");
+              Modal.confirm({
+                title: "Test Modal",
+                content:
+                  "This is a test modal to verify Modal.confirm is working",
+                onOk: () => console.log("Test modal OK clicked"),
+                onCancel: () => console.log("Test modal Cancel clicked"),
+              });
+            }}
+          >
+            Test Modal
           </Button>
         </div>
       </div>

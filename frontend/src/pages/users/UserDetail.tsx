@@ -61,22 +61,29 @@ const UserDetail: React.FC = () => {
   const handleDelete = async () => {
     if (!user) return;
 
-    Modal.confirm({
-      title: "Delete User",
-      content: `Are you sure you want to delete user "${user.username}"? This action cannot be undone.`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
+    try {
+      const result = await Modal.confirm({
+        title: "Delete User",
+        content: `Are you sure you want to delete user "${user.username}"? This action cannot be undone.`,
+        okText: "Delete",
+        okType: "danger",
+        cancelText: "Cancel",
+      });
+
+      // If user confirmed, proceed with deletion
+      if (result) {
         try {
           await deleteUser(user.id).unwrap();
           // Toast message is handled by middleware
           navigate("/users");
-        } catch (error) {
+        } catch (error: any) {
           // Error toast is handled by middleware
+          console.error("Delete error:", error);
         }
-      },
-    });
+      }
+    } catch (error) {
+      console.error("Modal error:", error);
+    }
   };
 
   // Show access denied if user can't view this profile

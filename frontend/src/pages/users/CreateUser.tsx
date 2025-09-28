@@ -5,7 +5,6 @@ import {
   Form,
   Input,
   Button,
-  Select,
   Typography,
   Space,
   Alert,
@@ -17,7 +16,6 @@ import {
   UserOutlined,
   MailOutlined,
   LockOutlined,
-  CrownOutlined,
 } from "@ant-design/icons";
 import { useCreateUserMutation } from "../../store/api/usersApi";
 import { useAuth } from "../../hooks";
@@ -25,7 +23,6 @@ import { useAuth } from "../../hooks";
 import type { CreateUserRequest } from "../../types";
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const CreateUser: React.FC = () => {
   const navigate = useNavigate();
@@ -57,9 +54,16 @@ const CreateUser: React.FC = () => {
     );
   }
 
-  const handleSubmit = async (values: CreateUserRequest) => {
+  const handleSubmit = async (values: any) => {
     try {
-      await createUser(values).unwrap();
+      // Remove confirmPassword from payload and set default role
+      const { confirmPassword, ...userData } = values;
+      const payload: CreateUserRequest = {
+        ...userData,
+        role: "user", // Default role is user
+      };
+
+      await createUser(payload).unwrap();
       // Toast message is handled by middleware
       navigate("/users");
     } catch (error) {
@@ -161,25 +165,28 @@ const CreateUser: React.FC = () => {
               </Form.Item>
 
               <Form.Item
-                name="role"
-                label="Role"
-                initialValue="user"
-                rules={[{ required: true, message: "Please select a role" }]}
+                name="confirmPassword"
+                label="Confirm Password"
+                dependencies={["password"]}
+                rules={[
+                  { required: true, message: "Please confirm your password" },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("The two passwords do not match")
+                      );
+                    },
+                  }),
+                ]}
               >
-                <Select placeholder="Select user role">
-                  <Option value="user">
-                    <Space>
-                      <UserOutlined />
-                      User
-                    </Space>
-                  </Option>
-                  <Option value="admin">
-                    <Space>
-                      <CrownOutlined />
-                      Admin
-                    </Space>
-                  </Option>
-                </Select>
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="Confirm password"
+                  autoComplete="new-password"
+                />
               </Form.Item>
 
               <Form.Item className="mb-0">
@@ -219,10 +226,8 @@ const CreateUser: React.FC = () => {
                     Password must be at least 6 characters with uppercase,
                     lowercase, and number
                   </li>
-                  <li>
-                    Admin users have full system access and can manage other
-                    users
-                  </li>
+                  <li>Confirm password must match the password above</li>
+                  <li>New users will be created with "user" role by default</li>
                   <li>
                     Regular users have limited access to their own data and
                     assigned tasks

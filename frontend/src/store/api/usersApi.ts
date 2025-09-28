@@ -86,13 +86,40 @@ export const usersApi = baseApi.injectEndpoints({
     }),
 
     // Delete user (admin only)
-    deleteUser: builder.mutation<void, string>({
-      query: (id) => ({
-        url: API_ENDPOINTS.USERS.DELETE(id),
-        method: "DELETE",
-      }),
-      invalidatesTags: ["User"],
-    }),
+    deleteUser: builder.mutation<{ success: boolean; message: string }, string>(
+      {
+        query: (id) => ({
+          url: API_ENDPOINTS.USERS.DELETE(id),
+          method: "DELETE",
+        }),
+        transformResponse: (response: any) => {
+          // Handle successful deletion response
+          if (response?.success) {
+            return {
+              success: true,
+              message: response.message || "User deleted successfully",
+            };
+          }
+          return {
+            success: true,
+            message: "User deleted successfully",
+          };
+        },
+        transformErrorResponse: (response: any) => {
+          // Handle error response
+          const errorMessage =
+            response?.data?.message ||
+            response?.data?.error ||
+            response?.message ||
+            "Failed to delete user";
+          return {
+            success: false,
+            message: errorMessage,
+          };
+        },
+        invalidatesTags: ["User"],
+      }
+    ),
   }),
 });
 
