@@ -117,7 +117,10 @@ export const usersApi = baseApi.injectEndpoints({
             message: errorMessage,
           };
         },
-        invalidatesTags: ["User"],
+        invalidatesTags: (_result, _error, id) => [
+          { type: "User", id },
+          "User",
+        ],
       }
     ),
   }),

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -39,6 +39,7 @@ const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user: currentUser, isAdmin } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
   // Toast messages are handled by middleware
 
   const [deleteUser] = useDeleteUserMutation();
@@ -49,7 +50,7 @@ const UserDetail: React.FC = () => {
     error,
     refetch,
   } = useGetUserQuery(id!, {
-    skip: !id,
+    skip: !id || isDeleting,
   });
 
   // Check if current user can view this user's details
@@ -72,13 +73,16 @@ const UserDetail: React.FC = () => {
 
       // If user confirmed, proceed with deletion
       if (result) {
+        setIsDeleting(true);
         try {
           await deleteUser(user.id).unwrap();
           // Toast message is handled by middleware
+          // Navigate immediately to prevent further queries
           navigate("/users");
         } catch (error: any) {
           // Error toast is handled by middleware
           console.error("Delete error:", error);
+          setIsDeleting(false); // Reset state on error
         }
       }
     } catch (error) {
@@ -193,7 +197,13 @@ const UserDetail: React.FC = () => {
             </Button>
           ) : null}
           {canDelete ? (
-            <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDelete}
+              loading={isDeleting}
+              disabled={isDeleting}
+            >
               Delete User
             </Button>
           ) : null}
