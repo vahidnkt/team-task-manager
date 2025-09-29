@@ -151,6 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
 
     return (
       <div key={item.id}>
+        {/* button to navigate to the item */}
         <button
           onClick={() => handleItemClick(item)}
           className={cn(
