@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { List, Spin, Empty, Button, Card, Statistic, Row, Col } from "antd";
+import { Spin, Empty, Button, Statistic, Row, Col } from "antd";
 import {
   ReloadOutlined,
   UserOutlined,

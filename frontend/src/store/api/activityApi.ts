@@ -1,17 +1,12 @@
 import { baseApi } from "./baseApi";
 import { API_ENDPOINTS } from "../../config/api";
-import type {
-  Activity,
-  CreateActivityRequest,
-  ActivityWithDetails,
-  ActivitySummary,
-} from "../../types";
+import type { Activity, ActivitySummary } from "../../types";
 
 // Activity API slice
 export const activityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Get activity by ID
-    getActivity: builder.query<ActivityWithDetails, string>({
+    getActivity: builder.query<Activity, string>({
       query: (id) => ({
         url: API_ENDPOINTS.ACTIVITIES.BY_ID(id),
         method: "GET",
@@ -83,7 +78,7 @@ export const activityApi = baseApi.injectEndpoints({
     }),
 
     // Create activity (usually done automatically by other operations)
-    createActivity: builder.mutation<Activity, CreateActivityRequest>({
+    createActivity: builder.mutation<Activity, any>({
       query: (activityData) => ({
         url: API_ENDPOINTS.ACTIVITIES.BASE,
         method: "POST",

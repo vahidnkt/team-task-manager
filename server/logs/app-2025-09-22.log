@@ -1,5 +1,0 @@
-{"timestamp":"2025-09-22T17:49:16.187Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"admin@moulana.com"}}
-{"timestamp":"2025-09-22T17:54:53.025Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"admin@moulana.com"}}
-{"timestamp":"2025-09-22T17:55:12.820Z","level":"WARN","message":"Login attempt with non-existent email","metadata":{"email":"admin@moulana.com"}}
-{"timestamp":"2025-09-22T17:56:59.251Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"b509682a-1ec9-41dc-8d8b-1189115f14c6","email":"admin@moulana.com"}}
-{"timestamp":"2025-09-22T17:58:15.089Z","level":"INFO","message":"User logged in successfully","metadata":{"userId":"b509682a-1ec9-41dc-8d8b-1189115f14c6","email":"admin@moulana.com"}}

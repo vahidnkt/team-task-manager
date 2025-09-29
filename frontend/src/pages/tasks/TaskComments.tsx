@@ -65,8 +65,7 @@ const TaskComments: React.FC = () => {
     useCreateCommentMutation();
   const [updateComment, { isLoading: isUpdatingComment }] =
     useUpdateCommentMutation();
-  const [deleteComment, { isLoading: isDeletingComment }] =
-    useDeleteCommentMutation();
+  const [deleteComment] = useDeleteCommentMutation();
 
   const handleBack = () => {
     navigate(ROUTES.TASK_DETAIL(id!));

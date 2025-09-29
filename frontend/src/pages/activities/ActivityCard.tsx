@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Tag, Avatar, Dropdown, Button } from "antd";
+import { Tag, Avatar, Dropdown, Button } from "antd";
 import {
   UserOutlined,
   ProjectOutlined,

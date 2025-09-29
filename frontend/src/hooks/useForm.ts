@@ -28,7 +28,7 @@ export const useForm = <T extends Record<string, any>>(
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Partial<Record<keyof T, string>> = {};
-        error.errors.forEach((err) => {
+        error.issues.forEach((err: any) => {
           if (err.path.length > 0) {
             const fieldName = err.path[0] as keyof T;
             newErrors[fieldName] = err.message;
@@ -157,7 +157,7 @@ export const useForm = <T extends Record<string, any>>(
 };
 
 // Hook for individual form fields
-export const useField = <T>(
+export const useField = <T extends Record<string, any>>(
   name: string,
   form: ReturnType<typeof useForm<T>>
 ) => {
@@ -167,13 +167,13 @@ export const useField = <T>(
 
   const handleChange = useCallback(
     (newValue: any) => {
-      form.handleChange(name as keyof T, newValue);
+      form.handleChange(name, newValue);
     },
     [form, name]
   );
 
   const handleBlur = useCallback(() => {
-    form.handleBlur(name as keyof T);
+    form.handleBlur(name);
   }, [form, name]);
 
   return {
@@ -183,8 +183,8 @@ export const useField = <T>(
     hasError: Boolean(error && touched),
     handleChange,
     handleBlur,
-    setError: (error: string) => form.setFieldError(name as keyof T, error),
-    clearError: () => form.clearFieldError(name as keyof T),
+    setError: (error: string) => form.setFieldError(name, error),
+    clearError: () => form.clearFieldError(name),
   };
 };
 
@@ -276,4 +276,3 @@ export const useFileUpload = (options?: {
     uploadFiles,
   };
 };
-

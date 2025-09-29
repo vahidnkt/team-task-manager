@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Button } from "antd";
 import { AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react";
 import { Modal } from "./Modal";
@@ -21,25 +21,29 @@ const typeConfig = {
     icon: XCircle,
     iconColor: "text-red-600",
     iconBg: "bg-red-100",
-    confirmVariant: "destructive" as const,
+    confirmVariant: "primary" as const,
+    confirmType: "primary" as const,
   },
   warning: {
     icon: AlertTriangle,
     iconColor: "text-yellow-600",
     iconBg: "bg-yellow-100",
-    confirmVariant: "warning" as const,
+    confirmVariant: "primary" as const,
+    confirmType: "primary" as const,
   },
   info: {
     icon: Info,
     iconColor: "text-blue-600",
     iconBg: "bg-blue-100",
-    confirmVariant: "default" as const,
+    confirmVariant: "primary" as const,
+    confirmType: "primary" as const,
   },
   success: {
     icon: CheckCircle,
     iconColor: "text-green-600",
     iconBg: "bg-green-100",
-    confirmVariant: "success" as const,
+    confirmVariant: "primary" as const,
+    confirmType: "primary" as const,
   },
 };
 
@@ -101,8 +105,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       {/* Actions */}
       <div className="mt-6 sm:mt-4 sm:flex sm:flex-row-reverse">
         <Button
-          type="button"
-          variant={config.confirmVariant}
+          type={config.confirmType}
           onClick={handleConfirm}
           loading={isLoading}
           disabled={isLoading}
@@ -111,8 +114,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           {confirmText}
         </Button>
         <Button
-          type="button"
-          variant="outline"
+          type="default"
           onClick={onClose}
           disabled={isLoading}
           className="mt-3 w-full sm:mt-0 sm:w-auto"
@@ -126,7 +128,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
 // Hook for easy confirmation dialogs
 export const useConfirmDialog = () => {
-  const [dialog, setDialog] = React.useState<{
+  const [dialog, setDialog] = useState<{
     isOpen: boolean;
     props: Omit<ConfirmDialogProps, "isOpen" | "onClose">;
   }>({

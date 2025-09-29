@@ -1,16 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Typography,
-  Space,
-  Alert,
-  Row,
-  Col,
-} from "antd";
+import { Form, Input, Button, Typography, Row, Col } from "antd";
 import {
   ArrowLeftOutlined,
   UserOutlined,

@@ -6,13 +6,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Production builds
-dist/
-dist-ssr/
-build/
-
 # Environment variables and sensitive files
-.env
+# .env
 .env.local
 .env.development.local
 .env.test.local
@@ -20,6 +15,19 @@ build/
 .env.*.local
 *.env
 # Note: .env.example files are allowed (template files)
+
+# Logs and runtime data
+logs/
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Database files (if using SQLite)
+*.sqlite
+*.sqlite3
+*.db
 
 # IDE and Editor files
 .vscode/
@@ -37,12 +45,6 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -79,26 +81,9 @@ jspm_packages/
 .cache
 .parcel-cache
 
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-
-# Storybook build outputs
-.out
-.storybook-out
-
 # Temporary folders
 tmp/
 temp/
-
-# Logs
-logs
-*.log
-
-# Local development files
-*.local
 
 # TypeScript
 *.tsbuildinfo
@@ -106,7 +91,34 @@ logs
 # Optional stylelint cache
 .stylelintcache
 
-# SvelteKit build / generate output
-.svelte-kit
+# Build outputs
+dist/
+build/
 
-# End of https://www.gitignore.io/api/node
+# Local development files
+*.local
+
+# Session store files
+sessions/
+
+# Upload directories (if any)
+uploads/
+public/uploads/
+
+# SSL certificates (if any)
+*.pem
+*.key
+*.crt
+*.csr
+
+# Docker files (if using Docker)
+.dockerignore
+
+# PM2 process files
+.pm2/
+
+# Runtime configuration
+runtime/
+
+# Application specific
+# Add any application-specific files/folders that should be ignored

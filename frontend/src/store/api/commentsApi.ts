@@ -31,7 +31,7 @@ export const commentsApi = baseApi.injectEndpoints({
       transformResponse: (response: any) => {
         return response.data || response;
       },
-      invalidatesTags: (result, error, { taskId }) => [
+      invalidatesTags: (_result, _error, { taskId }) => [
         { type: "Task", id: taskId },
         "Comment",
       ],
@@ -50,7 +50,7 @@ export const commentsApi = baseApi.injectEndpoints({
       transformResponse: (response: any) => {
         return response.data || response;
       },
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: "Comment", id },
         "Comment",
         "Task",
@@ -63,7 +63,7 @@ export const commentsApi = baseApi.injectEndpoints({
         url: API_ENDPOINTS.COMMENTS.DELETE(id),
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, id) => [
+      invalidatesTags: (_result, _error, id) => [
         { type: "Comment", id },
         "Comment",
         "Task",

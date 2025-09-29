@@ -104,13 +104,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
           path: "/users",
           permission: "users:read",
         },
-        {
-          id: "reports",
-          label: "Reports",
-          icon: <BarChart3 className="h-4 w-4" />,
-          path: "/admin/reports",
-          permission: "users:read",
-        },
       ],
     },
   ];
@@ -162,9 +155,20 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
           onClick={() => handleItemClick(item)}
           className={cn(
             "w-full flex items-center justify-between px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors",
-            "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
-            isActive && "bg-blue-50 text-blue-600 border border-blue-200",
-            !isActive && "text-gray-700 hover:text-gray-900",
+            "hover:bg-gray-50 focus:outline-none",
+            // Only show focus ring for parent items (level 0)
+            level === 0 &&
+              "focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+            // Different styling for parent vs child items
+            level === 0 &&
+              isActive &&
+              "bg-blue-50 text-blue-600 border border-blue-200",
+            level === 0 && !isActive && "text-gray-700 hover:text-gray-900",
+            // Child item styling - no borders
+            level > 0 && isActive && "bg-blue-100 text-blue-700 ml-2",
+            level > 0 &&
+              !isActive &&
+              "text-gray-600 hover:text-gray-800 hover:bg-gray-50 ml-2",
             level > 0 && "ml-3 sm:ml-4"
           )}
         >

@@ -121,17 +121,4 @@ export interface TaskSort {
   direction: "asc" | "desc";
 }
 
-// Comment interface for task relations
-export interface Comment {
-  id: string;
-  content: string;
-  userId: string;
-  taskId: string;
-  createdAt: string;
-  updatedAt: string;
-  user?: {
-    id: string;
-    username: string;
-    email: string;
-  };
-}
+// Comment interface is now defined in comment.types.ts

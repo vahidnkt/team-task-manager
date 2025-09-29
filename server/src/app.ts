@@ -45,10 +45,32 @@ class App {
     // CORS configuration
     this.app.use(
       cors({
-        origin: config.cors.origin,
+        origin: (origin, callback) => {
+          // Allow requests with no origin (like mobile apps or curl requests)
+          if (!origin) return callback(null, true);
+
+          const allowedOrigins = Array.isArray(config.cors.origin)
+            ? config.cors.origin
+            : [config.cors.origin];
+
+          if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+          }
+
+          // In development, allow any localhost origin
+          if (
+            config.server.env === "development" &&
+            origin.includes("localhost")
+          ) {
+            return callback(null, true);
+          }
+
+          return callback(new Error("Not allowed by CORS"), false);
+        },
         credentials: config.cors.credentials,
         methods: config.cors.methods,
         allowedHeaders: config.cors.allowedHeaders,
+        optionsSuccessStatus: 200, // Some legacy browsers choke on 204
       })
     );
 

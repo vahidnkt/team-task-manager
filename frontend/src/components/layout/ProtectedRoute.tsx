@@ -26,7 +26,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
-          <Spinner size="lg" />
+          <Spinner size="large" />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>

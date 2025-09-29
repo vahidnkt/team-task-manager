@@ -88,7 +88,7 @@ const authSlice = createSlice({
     // Handle Redux Persist rehydration
     builder.addCase(REHYDRATE, (state, action: any) => {
       if (action.payload && action.payload.auth) {
-        const { token, user, isAuthenticated } = action.payload.auth;
+        const { token, user } = action.payload.auth;
 
         // Always restore the persisted state first
         if (token && user) {

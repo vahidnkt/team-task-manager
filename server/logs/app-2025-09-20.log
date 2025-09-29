@@ -1,2 +1,0 @@
-{"timestamp":"2025-09-20T10:26:06.347Z","level":"WARN","message":"Registration attempt with existing username","metadata":{"username":"test"}}
-{"timestamp":"2025-09-20T10:26:18.274Z","level":"INFO","message":"User registered successfully","metadata":{"userId":"a88595b3-a123-4be5-8d3e-e844be2557c8","email":"testdeleete@gmail.com"}}

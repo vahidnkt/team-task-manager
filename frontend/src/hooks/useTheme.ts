@@ -13,10 +13,11 @@ interface UseThemeReturn {
 }
 
 export const useTheme = (): UseThemeReturn => {
-  const [storedTheme, setStoredTheme] = useLocalStorage<Theme>(
-    "theme",
-    "system"
-  );
+  const { value: storedTheme, setValue: setStoredTheme } =
+    useLocalStorage<Theme>("theme", "system");
+
+  // Ensure storedTheme is never null
+  const theme = storedTheme || "system";
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
 
   // Get system theme preference
@@ -43,16 +44,15 @@ export const useTheme = (): UseThemeReturn => {
 
   // Update resolved theme based on current theme setting
   useEffect(() => {
-    const newResolvedTheme =
-      storedTheme === "system" ? getSystemTheme() : storedTheme;
+    const newResolvedTheme = theme === "system" ? getSystemTheme() : theme;
 
     setResolvedTheme(newResolvedTheme);
     applyTheme(newResolvedTheme);
-  }, [storedTheme, getSystemTheme, applyTheme]);
+  }, [theme, getSystemTheme, applyTheme]);
 
   // Listen for system theme changes
   useEffect(() => {
-    if (storedTheme !== "system") return;
+    if (theme !== "system") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -81,7 +81,7 @@ export const useTheme = (): UseThemeReturn => {
   }, [resolvedTheme, setStoredTheme]);
 
   return {
-    theme: storedTheme,
+    theme: theme,
     resolvedTheme,
     setTheme,
     toggleTheme,
@@ -163,4 +163,3 @@ export const useResponsive = () => {
     breakpoints,
   };
 };
-

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { List, Spin, Empty, Button } from "antd";
+import { Spin, Empty, Button } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import ActivityCard from "./ActivityCard";
 import { useGetTaskActivitiesQuery } from "../../store/api/activitiesApi";
