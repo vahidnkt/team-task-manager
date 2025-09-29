@@ -110,6 +110,7 @@ export class ProjectService {
       limit: Math.min(limit, 100), // Max 100 projects per request
       offset,
       order: [[sortBy, sortOrder]],
+      paranoid: true, // Explicitly exclude soft-deleted records
     });
 
     return {

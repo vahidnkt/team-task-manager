@@ -187,7 +187,20 @@ const TaskComments: React.FC = () => {
         />
         <Button
           onClick={handleBack}
-          className="mt-4 h-10 px-6 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+          className="mt-4 h-10 px-6 text-sm rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+          style={{
+            background: "linear-gradient(to right, #2563eb, #9333ea)",
+            border: "none",
+            color: "white",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(to right, #1d4ed8, #7c3aed)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(to right, #2563eb, #9333ea)";
+          }}
         >
           Go Back
         </Button>
@@ -230,27 +243,42 @@ const TaskComments: React.FC = () => {
 
         <div className="max-w-4xl mx-auto">
           {/* Add Comment Form */}
-          <div className="glass-card rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 border border-white/30">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+          <div className="glass-card rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 border border-white/30">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="text-lg">💬</span>
               Add a Comment
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <TextArea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write your comment here..."
+                placeholder="✨ Write your comment here..."
                 rows={4}
-                className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm transition-all duration-200 shadow-sm hover:shadow-md resize-none"
               />
-              <div className="flex justify-end">
+              <div className="flex justify-end mt-3">
                 <Button
                   type="primary"
                   icon={<SendOutlined />}
                   onClick={handleAddComment}
                   loading={isCreatingComment}
-                  className="h-10 px-6 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                  style={{
+                    background: "linear-gradient(to right, #2563eb, #9333ea)",
+                    border: "none",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      "linear-gradient(to right, #1d4ed8, #7c3aed)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      "linear-gradient(to right, #2563eb, #9333ea)";
+                  }}
                 >
-                  Post Comment
+                  <span className="hidden sm:inline">Post Comment</span>
+                  <span className="sm:hidden">Post</span>
                 </Button>
               </div>
             </div>
@@ -364,7 +392,21 @@ const TaskComments: React.FC = () => {
                                     size="small"
                                     onClick={handleUpdateComment}
                                     loading={isUpdatingComment}
-                                    className="h-8 px-4 text-xs rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                                    className="h-8 px-4 text-xs rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                                    style={{
+                                      background:
+                                        "linear-gradient(to right, #2563eb, #9333ea)",
+                                      border: "none",
+                                      color: "white",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background =
+                                        "linear-gradient(to right, #1d4ed8, #7c3aed)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background =
+                                        "linear-gradient(to right, #2563eb, #9333ea)";
+                                    }}
                                   >
                                     Save
                                   </Button>

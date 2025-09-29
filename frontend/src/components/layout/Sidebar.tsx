@@ -4,6 +4,7 @@ import { cn } from "../../utils/helpers";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useAuth } from "../../hooks/useAuth";
 import { getInitials } from "../../utils/helpers";
+import { useGetProjectsQuery } from "../../store/api/projectsApi";
 import {
   Home,
   FolderOpen,
@@ -11,8 +12,6 @@ import {
   Users,
   BarChart3,
   Settings,
-  Calendar,
-  MessageSquare,
   Activity,
   ChevronRight,
   ChevronDown,
@@ -30,82 +29,91 @@ interface MenuItem {
   path?: string;
   children?: MenuItem[];
   permission?: string;
-  badge?: string | number;
+  badge?: string | number | (() => string | number);
 }
 
-const menuItems: MenuItem[] = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: <Home className="h-5 w-5" />,
-    path: "/dashboard",
-  },
-  {
-    id: "projects",
-    label: "Projects",
-    icon: <FolderOpen className="h-5 w-5" />,
-    path: "/projects",
-    badge: 5,
-  },
-  {
-    id: "tasks",
-    label: "Tasks",
-    icon: <CheckSquare className="h-5 w-5" />,
-    children: [
-      {
-        id: "my-tasks",
-        label: "My Tasks",
-        icon: <CheckSquare className="h-4 w-4" />,
-        path: "/tasks/my",
-      },
-      {
-        id: "all-tasks",
-        label: "All Tasks",
-        icon: <CheckSquare className="h-4 w-4" />,
-        path: "/tasks",
-      },
-    ],
-  },
-
-  {
-    id: "activities",
-    label: "Activities",
-    icon: <Activity className="h-5 w-5" />,
-    path: "/activities",
-  },
-  {
-    id: "admin",
-    label: "Admin",
-    icon: <Settings className="h-5 w-5" />,
-    permission: "users:read",
-    children: [
-      {
-        id: "users",
-        label: "Users",
-        icon: <Users className="h-4 w-4" />,
-        path: "/users",
-        permission: "users:read",
-      },
-      {
-        id: "reports",
-        label: "Reports",
-        icon: <BarChart3 className="h-4 w-4" />,
-        path: "/admin/reports",
-        permission: "users:read",
-      },
-    ],
-  },
-];
-
-export const Sidebar: React.FC<SidebarProps> = ({
-  collapsed = false,
-  onToggle,
-}) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { hasPermission } = usePermissions();
   const { user } = useAuth();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+
+  // Fetch projects data for dynamic badge count
+  const { data: projectsData } = useGetProjectsQuery({
+    search: "",
+    status: undefined,
+    priority: undefined,
+    limit: 100, // Get a higher limit to count all projects
+    offset: 0,
+    sortBy: "created_at",
+    sortOrder: "DESC",
+  });
+  const projectCount = projectsData?.total || 0;
+
+  const menuItems: MenuItem[] = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <Home className="h-5 w-5" />,
+      path: "/dashboard",
+    },
+    {
+      id: "projects",
+      label: "Projects",
+      icon: <FolderOpen className="h-5 w-5" />,
+      path: "/projects",
+      badge: projectCount,
+    },
+    {
+      id: "tasks",
+      label: "Tasks",
+      icon: <CheckSquare className="h-5 w-5" />,
+      children: [
+        {
+          id: "my-tasks",
+          label: "My Tasks",
+          icon: <CheckSquare className="h-4 w-4" />,
+          path: "/tasks/my",
+        },
+        {
+          id: "all-tasks",
+          label: "All Tasks",
+          icon: <CheckSquare className="h-4 w-4" />,
+          path: "/tasks",
+        },
+      ],
+    },
+
+    {
+      id: "activities",
+      label: "Activities",
+      icon: <Activity className="h-5 w-5" />,
+      path: "/activities",
+    },
+    {
+      id: "admin",
+      label: "Admin",
+      icon: <Settings className="h-5 w-5" />,
+      permission: "users:read",
+      children: [
+        {
+          id: "users",
+          label: "Users",
+          icon: <Users className="h-4 w-4" />,
+          path: "/users",
+          permission: "users:read",
+        },
+        {
+          id: "reports",
+          label: "Reports",
+          icon: <BarChart3 className="h-4 w-4" />,
+          path: "/admin/reports",
+          permission: "users:read",
+        },
+      ],
+    },
+  ];
 
   const handleItemClick = (item: MenuItem) => {
     if (item.children) {
@@ -172,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center space-x-2">
             {item.badge && !collapsed && (
               <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                {item.badge}
+                {typeof item.badge === "function" ? item.badge() : item.badge}
               </span>
             )}
             {hasChildren && !collapsed && (
@@ -286,3 +294,5 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
+
+export { Sidebar };

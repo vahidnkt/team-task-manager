@@ -18,6 +18,14 @@ export interface UserWithoutPassword {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
+  statistics?: UserStatistics;
+}
+
+export interface UserStatistics {
+  projectsCreated: number;
+  tasksAssigned: number;
+  tasksCompleted: number;
+  commentsMade: number;
 }
 
 // Request/Response Types

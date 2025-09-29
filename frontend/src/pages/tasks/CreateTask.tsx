@@ -32,7 +32,13 @@ const CreateTask: React.FC = () => {
   const [form] = Form.useForm();
 
   const [createTask, { isLoading }] = useCreateTaskMutation();
-  const { data: users = [], isLoading: isLoadingUsers } = useGetUsersQuery();
+  const { data: usersData, isLoading: isLoadingUsers } = useGetUsersQuery({
+    limit: 100, // Get more users for the dropdown
+    offset: 0,
+    sortBy: "username",
+    sortOrder: "ASC",
+  });
+  const users = usersData?.users || [];
 
   const handleCancel = () => {
     navigate(ROUTES.PROJECT_DETAIL(projectId!));
@@ -88,8 +94,11 @@ const CreateTask: React.FC = () => {
               type="text"
               icon={<ArrowLeftOutlined />}
               onClick={handleCancel}
-              className="text-gray-600 hover:text-gray-800"
-            />
+              className="bg-white/60 hover:bg-white/80 border-gray-200 text-gray-700 transition-all duration-200"
+              size="large"
+            >
+              Back
+            </Button>
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
                 ✨ Create New Task
@@ -114,7 +123,10 @@ const CreateTask: React.FC = () => {
             >
               <Form.Item
                 label={
-                  <span className="text-gray-700 font-medium">Task Title</span>
+                  <span className="text-gray-700 font-medium flex items-center gap-2">
+                    <span className="text-lg">📝</span>
+                    Task Title
+                  </span>
                 }
                 name="title"
                 rules={[
@@ -127,14 +139,17 @@ const CreateTask: React.FC = () => {
                 ]}
               >
                 <Input
-                  placeholder="Enter task title"
-                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                  placeholder="✨ Enter your task title..."
+                  className="h-10 sm:h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm transition-all duration-200 shadow-sm hover:shadow-md"
                 />
               </Form.Item>
 
               <Form.Item
                 label={
-                  <span className="text-gray-700 font-medium">Description</span>
+                  <span className="text-gray-700 font-medium flex items-center gap-2">
+                    <span className="text-lg">📋</span>
+                    Description
+                  </span>
                 }
                 name="description"
                 rules={[
@@ -146,8 +161,8 @@ const CreateTask: React.FC = () => {
               >
                 <TextArea
                   rows={4}
-                  placeholder="Enter task description (optional)"
-                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                  placeholder="📝 Describe your task goals, requirements, and any important details..."
+                  className="rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm transition-all duration-200 shadow-sm hover:shadow-md resize-none"
                 />
               </Form.Item>
 
@@ -229,7 +244,20 @@ const CreateTask: React.FC = () => {
                     htmlType="submit"
                     loading={isLoading}
                     icon={<SaveOutlined />}
-                    className="flex-1 h-10 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+                    className="flex-1 h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                    style={{
+                      background: "linear-gradient(to right, #2563eb, #9333ea)",
+                      border: "none",
+                      color: "white",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "linear-gradient(to right, #1d4ed8, #7c3aed)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        "linear-gradient(to right, #2563eb, #9333ea)";
+                    }}
                   >
                     {isLoading ? "Creating..." : "Create Task"}
                   </Button>

@@ -1,6 +1,9 @@
 import bcrypt from "bcrypt";
 import jwtService from "../config/jwt";
 import { userService } from "./userService";
+import { projectService } from "./projectService";
+import { taskService } from "./taskService";
+import { commentService } from "./commentService";
 import {
   CreateUserRequest,
   LoginRequest,
@@ -174,22 +177,183 @@ class AuthService {
   }
 
   /**
-   * Get user profile (without password)
+   * Get user profile with projects and tasks (without password)
    */
-  public async getUserProfile(
-    userId: string
-  ): Promise<UserWithoutPassword | null> {
+  public async getUserProfile(userId: string): Promise<
+    | (UserWithoutPassword & {
+        projects: any[];
+        tasks: any[];
+        statistics: {
+          projectsCreated: number;
+          tasksAssigned: number;
+          tasksCompleted: number;
+          commentsMade: number;
+          activeProjects: number;
+          completedProjects: number;
+          inProgressTasks: number;
+          overdueTasks: number;
+        };
+        projectStats: {
+          totalProjects: number;
+          activeProjects: number;
+          completedProjects: number;
+        };
+        taskStats: {
+          totalTasks: number;
+          completedTasks: number;
+          inProgressTasks: number;
+          overdueTasks: number;
+        };
+      })
+    | null
+  > {
     try {
       const user = await userService.getUserById(userId);
       if (!user) {
         return null;
       }
 
+      // Get user's projects and tasks in parallel
+      const [userProjects, userTasks] = await Promise.all([
+        // Get projects created by the user
+        projectService.getProjectsByCreator(userId, 1, 50),
+        // Get tasks assigned to the user
+        taskService.getTasksByAssignee(userId, {
+          limit: 50,
+          offset: 0,
+          sortBy: "created_at",
+          sortOrder: "DESC",
+        }),
+      ]);
+
+      // Calculate project statistics
+      const projectStats = {
+        totalProjects: userProjects.length,
+        activeProjects: userProjects.filter((p) => p.status === "active")
+          .length,
+        completedProjects: userProjects.filter((p) => p.status === "completed")
+          .length,
+      };
+
+      // Calculate task statistics
+      const taskStats = {
+        totalTasks: userTasks.tasks?.length || 0,
+        completedTasks:
+          userTasks.tasks?.filter((t: any) => t.status === "done").length || 0,
+        inProgressTasks:
+          userTasks.tasks?.filter((t: any) => t.status === "in-progress")
+            .length || 0,
+        overdueTasks:
+          userTasks.tasks?.filter((t: any) => {
+            if (!t.dueDate) return false;
+            return new Date(t.dueDate) < new Date() && t.status !== "done";
+          }).length || 0,
+      };
+
+      // Get task counts for each project
+      const projectTaskCounts = await Promise.all(
+        userProjects.map(async (project) => {
+          const projectTasks = await taskService.getTasksByProject(
+            project.id,
+            1,
+            1000
+          );
+
+          const totalTasks = projectTasks.length;
+          const completedTasks = projectTasks.filter(
+            (t: any) => t.status === "done"
+          ).length;
+          const progressPercentage =
+            totalTasks > 0
+              ? Math.round((completedTasks / totalTasks) * 100)
+              : 0;
+
+          return {
+            projectId: project.id,
+            taskCount: totalTasks,
+            completedTaskCount: completedTasks,
+            progressPercentage,
+          };
+        })
+      );
+
+      // Create a map for quick lookup
+      const taskCountMap = new Map(
+        projectTaskCounts.map((count) => [count.projectId, count])
+      );
+
+      // Prepare projects data with actual task counts
+      const projectsWithDetails = userProjects.map((project) => {
+        const counts = taskCountMap.get(project.id) || {
+          taskCount: 0,
+          completedTaskCount: 0,
+          progressPercentage: 0,
+        };
+
+        return {
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          status: project.status,
+          created_at: project.createdAt,
+          updated_at: project.updatedAt,
+          taskCount: counts.taskCount,
+          completedTaskCount: counts.completedTaskCount,
+          progressPercentage: counts.progressPercentage,
+        };
+      });
+
+      // Prepare tasks data with additional details
+      const tasksWithDetails = (userTasks.tasks || []).map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        projectId: task.projectId,
+        projectName: task.project?.name || "Unknown Project",
+        created_at: task.createdAt,
+        updated_at: task.updatedAt,
+      }));
+
+      logger.info(
+        "User profile with projects and tasks retrieved successfully",
+        {
+          userId: user.id,
+          projectsCount: projectsWithDetails.length,
+          tasksCount: tasksWithDetails.length,
+        }
+      );
+
+      // Get comments count for the user
+      const userComments = await commentService.getCommentsByUser(userId, {
+        limit: 1000,
+      });
+      const commentsCount = userComments.total;
+
+      // Create statistics object that matches frontend expectations
+      const statistics = {
+        projectsCreated: projectStats.totalProjects,
+        tasksAssigned: taskStats.totalTasks,
+        tasksCompleted: taskStats.completedTasks,
+        commentsMade: commentsCount,
+        activeProjects: projectStats.activeProjects,
+        completedProjects: projectStats.completedProjects,
+        inProgressTasks: taskStats.inProgressTasks,
+        overdueTasks: taskStats.overdueTasks,
+      };
+
       return {
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
+        projects: projectsWithDetails,
+        tasks: tasksWithDetails,
+        statistics,
+        projectStats,
+        taskStats,
         created_at: user.createdAt,
         updated_at: user.updatedAt,
         deleted_at: user.deletedAt,
@@ -406,16 +570,20 @@ class AuthService {
       }
 
       // Get users with search and filter
-      const { count, rows: users } = await userService.getAllUsersWithFilter({
-        where: searchConditions,
+      const result = await userService.getAllUsers({
+        search,
+        role,
         limit: Math.min(limit, 100), // Max 100 users per request
         offset,
-        order: [[sortBy, sortOrder]],
+        sortBy,
+        sortOrder,
       });
+
+      const { users, total: count } = result;
 
       // Convert to users without passwords
       const usersWithoutPasswords: UserWithoutPassword[] = users.map(
-        (user) => ({
+        (user: any) => ({
           id: user.id,
           username: user.username,
           email: user.email,

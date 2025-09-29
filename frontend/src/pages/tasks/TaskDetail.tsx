@@ -101,7 +101,23 @@ const TaskDetail: React.FC = () => {
           type="error"
           showIcon
         />
-        <Button onClick={handleBack} className="mt-4">
+        <Button
+          onClick={handleBack}
+          className="mt-4 h-10 px-6 text-sm rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+          style={{
+            background: "linear-gradient(to right, #2563eb, #9333ea)",
+            border: "none",
+            color: "white",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(to right, #1d4ed8, #7c3aed)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(to right, #2563eb, #9333ea)";
+          }}
+        >
           Go Back
         </Button>
       </div>
@@ -117,7 +133,23 @@ const TaskDetail: React.FC = () => {
           type="warning"
           showIcon
         />
-        <Button onClick={handleBack} className="mt-4">
+        <Button
+          onClick={handleBack}
+          className="mt-4 h-10 px-6 text-sm rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+          style={{
+            background: "linear-gradient(to right, #2563eb, #9333ea)",
+            border: "none",
+            color: "white",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(to right, #1d4ed8, #7c3aed)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(to right, #2563eb, #9333ea)";
+          }}
+        >
           Go Back
         </Button>
       </div>
@@ -222,7 +254,20 @@ const TaskDetail: React.FC = () => {
                 <Button
                   type="primary"
                   onClick={() => navigate(ROUTES.TASK_COMMENTS(id!))}
-                  className="mt-2"
+                  className="mt-2 h-10 px-6 text-sm rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                  style={{
+                    background: "linear-gradient(to right, #2563eb, #9333ea)",
+                    border: "none",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      "linear-gradient(to right, #1d4ed8, #7c3aed)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      "linear-gradient(to right, #2563eb, #9333ea)";
+                  }}
                 >
                   💬 Add Comment ({comments.length})
                 </Button>
@@ -347,7 +392,20 @@ const TaskDetail: React.FC = () => {
                 <Button
                   type="primary"
                   onClick={() => navigate(ROUTES.TASK_COMMENTS(id!))}
-                  className="w-full h-10 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="w-full h-10 text-sm rounded-lg text-white font-medium border-none shadow-lg hover:shadow-xl transition-all duration-200"
+                  style={{
+                    background: "linear-gradient(to right, #2563eb, #9333ea)",
+                    border: "none",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      "linear-gradient(to right, #1d4ed8, #7c3aed)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      "linear-gradient(to right, #2563eb, #9333ea)";
+                  }}
                 >
                   💬 Comments ({comments.length})
                 </Button>
