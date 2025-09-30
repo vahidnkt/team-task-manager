@@ -6,7 +6,7 @@ import { DatabaseConfig } from "../types";
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 interface CORSConfig {
-  origin: string;
+  origin: string | string[];
   credentials: boolean;
   methods: string[];
   allowedHeaders: string[];
@@ -97,7 +97,13 @@ const config: Config = {
 
   // CORS Configuration
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+      : [
+          "http://localhost:3000",
+          "http://localhost:5173",
+          "https://team-task-manager-1-6dl6.onrender.com",
+        ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
