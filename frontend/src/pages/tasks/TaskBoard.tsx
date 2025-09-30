@@ -10,14 +10,22 @@ import {
   CalendarOutlined,
   DragOutlined,
 } from "@ant-design/icons";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import type {
-  DropResult,
-  DroppableProvided,
-  DroppableStateSnapshot,
-  DraggableProvided,
-  DraggableStateSnapshot,
-} from "react-beautiful-dnd";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   useGetTasksQuery,
   useGetMyTasksQuery,
@@ -46,6 +54,16 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
   const [isUpdatingTaskId, setIsUpdatingTaskId] = useState<string | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  // Configure sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   // Get tasks based on the context
   const {
@@ -143,41 +161,39 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
     }
   };
 
-  const handleDragStart = useCallback(() => {
-    setIsDragging(true);
-    setDragError(null);
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const task = safeTasks.find((t) => t.id === active.id);
+      setActiveTask(task || null);
+      setIsDragging(true);
+      setDragError(null);
 
-    // Add haptic feedback for mobile
-    if ("vibrate" in navigator) {
-      navigator.vibrate(50);
-    }
+      // Add haptic feedback for mobile
+      if ("vibrate" in navigator) {
+        navigator.vibrate(50);
+      }
 
-    // Prevent page scroll on mobile during drag
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
-  }, []);
+      // Prevent page scroll on mobile during drag
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    },
+    [safeTasks]
+  );
 
   const handleDragEnd = useCallback(
-    async (result: DropResult) => {
-      const { destination, source, draggableId } = result;
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
 
       setIsDragging(false);
+      setActiveTask(null);
 
       // Restore page scroll on mobile
       document.body.style.overflow = "";
       document.body.style.touchAction = "";
 
       // If dropped outside a droppable area
-      if (!destination) {
-        setOptimisticTasks([]);
-        return;
-      }
-
-      // If dropped in the same position
-      if (
-        destination.droppableId === source.droppableId &&
-        destination.index === source.index
-      ) {
+      if (!over) {
         setOptimisticTasks([]);
         return;
       }
@@ -189,14 +205,14 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
         "done-column": "done",
       };
 
-      const newStatus = statusMap[destination.droppableId];
+      const newStatus = statusMap[over.id as string];
       if (!newStatus) {
         setOptimisticTasks([]);
         return;
       }
 
       // Find the task being moved
-      const task = safeTasks.find((t) => t.id === draggableId);
+      const task = safeTasks.find((t) => t.id === active.id);
       if (!task) {
         setOptimisticTasks([]);
         return;
@@ -217,10 +233,10 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
 
       // Optimistic update - immediately update the UI
       const updatedTasks = safeTasks.map((t) =>
-        t.id === draggableId ? { ...t, status: newStatus } : t
+        t.id === active.id ? { ...t, status: newStatus } : t
       );
       setOptimisticTasks(updatedTasks);
-      setIsUpdatingTaskId(draggableId);
+      setIsUpdatingTaskId(active.id as string);
 
       // Add success haptic feedback
       if ("vibrate" in navigator) {
@@ -229,7 +245,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
 
       try {
         await updateTaskStatus({
-          id: draggableId,
+          id: active.id as string,
           data: { status: newStatus },
         }).unwrap();
 
@@ -251,7 +267,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
         handleApiError(error, "Failed to move task");
       }
     },
-    [safeTasks, updateTaskStatus]
+    [safeTasks, updateTaskStatus, showSuccess, handleApiError]
   );
 
   const handleDeleteTask = async (taskId: string) => {
@@ -268,10 +284,21 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
     return task.project?.status === "completed";
   };
 
-  const TaskCard: React.FC<{ task: Task; index: number }> = ({
-    task,
-    index,
-  }) => {
+  const SortableTaskCard: React.FC<{ task: Task }> = ({ task }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: task.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
     const projectCompleted = isProjectCompleted(task);
 
     const getPriorityColor = (priority: string) => {
@@ -388,220 +415,206 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
     }
 
     return (
-      <Draggable draggableId={task.id} index={index}>
-        {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            className={`mb-3 transition-all duration-300 ${
-              snapshot.isDragging ? "opacity-90 transform rotate-1" : ""
-            }`}
-            style={{
-              ...provided.draggableProps.style,
-              cursor: snapshot.isDragging ? "grabbing" : "grab",
-            }}
-          >
-            <Card
-              className={`cursor-grab hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border border-white/30 ${
-                projectCompleted ? "bg-green-50/90 border-green-200" : ""
-              } ${
-                snapshot.isDragging
-                  ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95 cursor-grabbing"
-                  : ""
-              } ${isDragging && !snapshot.isDragging ? "opacity-90" : ""} ${
-                isUpdatingTaskId === task.id
-                  ? "animate-pulse border-blue-400 shadow-lg transform scale-102"
-                  : "hover:scale-101"
-              }`}
-              size="small"
-              onClick={() =>
-                !isDragging && !isUpdatingTaskId && handleTaskClick(task.id)
-              }
-              style={{
-                minHeight: "100px",
-                transform: snapshot.isDragging
-                  ? "rotate(2deg)"
-                  : isUpdatingTaskId === task.id
-                  ? "scale(1.02)"
-                  : "none",
-                transition: !snapshot.isDragging
-                  ? "all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)"
-                  : "none",
-                userSelect: "none",
-              }}
-              actions={[
-                <Dropdown
-                  menu={{ items: menuItems }}
-                  trigger={["click"]}
-                  key="more"
-                >
-                  <Button
-                    type="text"
-                    icon={<MoreOutlined />}
-                    size="small"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </Dropdown>,
-              ]}
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`mb-3 transition-all duration-300 ${
+          isDragging ? "opacity-90 transform rotate-1" : ""
+        }`}
+      >
+        <Card
+          className={`cursor-grab hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border border-white/30 ${
+            projectCompleted ? "bg-green-50/90 border-green-200" : ""
+          } ${
+            isDragging
+              ? "shadow-2xl rotate-1 scale-105 z-50 bg-white/95 cursor-grabbing"
+              : ""
+          } ${isDragging && !isDragging ? "opacity-90" : ""} ${
+            isUpdatingTaskId === task.id
+              ? "animate-pulse border-blue-400 shadow-lg transform scale-102"
+              : "hover:scale-101"
+          }`}
+          size="small"
+          onClick={() =>
+            !isDragging && !isUpdatingTaskId && handleTaskClick(task.id)
+          }
+          style={{
+            minHeight: "100px",
+            transform: isDragging
+              ? "rotate(2deg)"
+              : isUpdatingTaskId === task.id
+              ? "scale(1.02)"
+              : "none",
+            transition: !isDragging
+              ? "all 500ms cubic-bezier(0.25, 0.8, 0.25, 1)"
+              : "none",
+            userSelect: "none",
+          }}
+          actions={[
+            <Dropdown
+              menu={{ items: menuItems }}
+              trigger={["click"]}
+              key="more"
             >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 flex-1">
-                    <DragOutlined
-                      className={`text-gray-400 text-sm cursor-grab active:cursor-grabbing transition-all duration-300 ${
-                        snapshot.isDragging
-                          ? "text-blue-500 transform scale-110"
-                          : ""
-                      } ${
-                        isUpdatingTaskId === task.id
-                          ? "animate-spin text-blue-500"
-                          : ""
-                      } hover:text-gray-600 hover:scale-110`}
-                    />
-                    <h4
-                      className={`font-medium text-sm leading-tight transition-all duration-300 ${
-                        projectCompleted ? "text-green-800" : "text-gray-900"
-                      } ${
-                        isUpdatingTaskId === task.id
-                          ? "opacity-60 transform scale-95"
-                          : ""
-                      }`}
-                    >
-                      {projectCompleted && (
-                        <span className="mr-1 text-xs">✅</span>
-                      )}
-                      {task.title}
-                      {isUpdatingTaskId === task.id && (
-                        <span className="ml-2 text-xs text-blue-600 animate-pulse">
-                          🔄 Updating...
-                        </span>
-                      )}
-                    </h4>
-                  </div>
-                  <Tag
-                    color={getPriorityColor(task.priority)}
-                    className="text-xs"
-                  >
-                    {task.priority}
-                  </Tag>
-                </div>
-
-                {task.description && (
-                  <p className="text-xs text-gray-600 line-clamp-2">
-                    {task.description}
-                  </p>
-                )}
-
-                {/* Show project name when viewing all tasks */}
-                {!projectId && task.project && (
-                  <div className="text-xs text-blue-600 font-medium">
-                    📁 {task.project.name}
-                  </div>
-                )}
-
-                {/* Status change buttons with smooth animations */}
-                {!projectCompleted && (
-                  <div
-                    className={`flex gap-1 mt-2 transition-all duration-300 ${
-                      isDragging ? "hidden sm:flex" : "flex"
-                    }`}
-                  >
-                    {task.status !== "todo" && (
-                      <Button
-                        size="small"
-                        type="text"
-                        className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-gray-100 hover:scale-105 active:scale-95 ${
-                          isUpdatingTaskId === task.id
-                            ? "animate-pulse bg-blue-50"
-                            : ""
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(task.id, "todo");
-                        }}
-                        disabled={isUpdatingTaskId === task.id}
-                        loading={isUpdatingTaskId === task.id}
-                      >
-                        📝 To Do
-                      </Button>
-                    )}
-                    {task.status !== "in-progress" && (
-                      <Button
-                        size="small"
-                        type="text"
-                        className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-blue-50 hover:scale-105 active:scale-95 ${
-                          isUpdatingTaskId === task.id
-                            ? "animate-pulse bg-blue-50"
-                            : ""
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(task.id, "in-progress");
-                        }}
-                        disabled={isUpdatingTaskId === task.id}
-                        loading={isUpdatingTaskId === task.id}
-                      >
-                        ⚡ In Progress
-                      </Button>
-                    )}
-                    {task.status !== "done" && (
-                      <Button
-                        size="small"
-                        type="text"
-                        className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-green-50 hover:scale-105 active:scale-95 ${
-                          isUpdatingTaskId === task.id
-                            ? "animate-pulse bg-green-50"
-                            : ""
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(task.id, "done");
-                        }}
-                        disabled={isUpdatingTaskId === task.id}
-                        loading={isUpdatingTaskId === task.id}
-                      >
-                        ✅ Done
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                {/* Show completed project message */}
-                {projectCompleted && (
-                  <div className="mt-2 p-2 bg-green-100 rounded-md border border-green-200">
-                    <p className="text-xs text-green-700 font-medium">
-                      ✅ Project completed - Status changes disabled
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center gap-2">
-                    {task.assignee ? (
-                      <div className="flex items-center gap-1">
-                        <UserOutlined className="text-xs" />
-                        <span className="truncate max-w-20">
-                          {task.assignee.username}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">Unassigned</span>
-                    )}
-                  </div>
-
-                  {task.dueDate && (
-                    <div className="flex items-center gap-1">
-                      <CalendarOutlined className="text-xs" />
-                      <span>{formatRelativeTime(task.dueDate)}</span>
-                    </div>
+              <Button
+                type="text"
+                icon={<MoreOutlined />}
+                size="small"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Dropdown>,
+          ]}
+        >
+          <div className="space-y-2">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2 flex-1">
+                <DragOutlined
+                  {...attributes}
+                  {...listeners}
+                  className={`text-gray-400 text-sm cursor-grab active:cursor-grabbing transition-all duration-300 ${
+                    isDragging ? "text-blue-500 transform scale-110" : ""
+                  } ${
+                    isUpdatingTaskId === task.id
+                      ? "animate-spin text-blue-500"
+                      : ""
+                  } hover:text-gray-600 hover:scale-110`}
+                />
+                <h4
+                  className={`font-medium text-sm leading-tight transition-all duration-300 ${
+                    projectCompleted ? "text-green-800" : "text-gray-900"
+                  } ${
+                    isUpdatingTaskId === task.id
+                      ? "opacity-60 transform scale-95"
+                      : ""
+                  }`}
+                >
+                  {projectCompleted && <span className="mr-1 text-xs">✅</span>}
+                  {task.title}
+                  {isUpdatingTaskId === task.id && (
+                    <span className="ml-2 text-xs text-blue-600 animate-pulse">
+                      🔄 Updating...
+                    </span>
                   )}
-                </div>
+                </h4>
               </div>
-            </Card>
+              <Tag color={getPriorityColor(task.priority)} className="text-xs">
+                {task.priority}
+              </Tag>
+            </div>
+
+            {task.description && (
+              <p className="text-xs text-gray-600 line-clamp-2">
+                {task.description}
+              </p>
+            )}
+
+            {/* Show project name when viewing all tasks */}
+            {!projectId && task.project && (
+              <div className="text-xs text-blue-600 font-medium">
+                📁 {task.project.name}
+              </div>
+            )}
+
+            {/* Status change buttons with smooth animations */}
+            {!projectCompleted && (
+              <div
+                className={`flex gap-1 mt-2 transition-all duration-300 ${
+                  isDragging ? "hidden sm:flex" : "flex"
+                }`}
+              >
+                {task.status !== "todo" && (
+                  <Button
+                    size="small"
+                    type="text"
+                    className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-gray-100 hover:scale-105 active:scale-95 ${
+                      isUpdatingTaskId === task.id
+                        ? "animate-pulse bg-blue-50"
+                        : ""
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(task.id, "todo");
+                    }}
+                    disabled={isUpdatingTaskId === task.id}
+                    loading={isUpdatingTaskId === task.id}
+                  >
+                    📝 To Do
+                  </Button>
+                )}
+                {task.status !== "in-progress" && (
+                  <Button
+                    size="small"
+                    type="text"
+                    className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-blue-50 hover:scale-105 active:scale-95 ${
+                      isUpdatingTaskId === task.id
+                        ? "animate-pulse bg-blue-50"
+                        : ""
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(task.id, "in-progress");
+                    }}
+                    disabled={isUpdatingTaskId === task.id}
+                    loading={isUpdatingTaskId === task.id}
+                  >
+                    ⚡ In Progress
+                  </Button>
+                )}
+                {task.status !== "done" && (
+                  <Button
+                    size="small"
+                    type="text"
+                    className={`text-xs px-2 py-1 h-8 sm:h-6 touch-manipulation transition-all duration-300 hover:bg-green-50 hover:scale-105 active:scale-95 ${
+                      isUpdatingTaskId === task.id
+                        ? "animate-pulse bg-green-50"
+                        : ""
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(task.id, "done");
+                    }}
+                    disabled={isUpdatingTaskId === task.id}
+                    loading={isUpdatingTaskId === task.id}
+                  >
+                    ✅ Done
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Show completed project message */}
+            {projectCompleted && (
+              <div className="mt-2 p-2 bg-green-100 rounded-md border border-green-200">
+                <p className="text-xs text-green-700 font-medium">
+                  ✅ Project completed - Status changes disabled
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center gap-2">
+                {task.assignee ? (
+                  <div className="flex items-center gap-1">
+                    <UserOutlined className="text-xs" />
+                    <span className="truncate max-w-20">
+                      {task.assignee.username}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-gray-400">Unassigned</span>
+                )}
+              </div>
+
+              {task.dueDate && (
+                <div className="flex items-center gap-1">
+                  <CalendarOutlined className="text-xs" />
+                  <span>{formatRelativeTime(task.dueDate)}</span>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </Draggable>
+        </Card>
+      </div>
     );
   };
 
@@ -625,43 +638,33 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
             </div>
           </div>
 
-          <Droppable droppableId={droppableId}>
-            {(
-              provided: DroppableProvided,
-              snapshot: DroppableStateSnapshot
-            ) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`space-y-2 min-h-96 transition-all duration-300 p-2 rounded-lg touch-manipulation ${
-                  snapshot.isDraggingOver
-                    ? "bg-blue-50/80 border-2 border-blue-300 border-dashed transform scale-101"
-                    : "border-2 border-transparent"
-                } ${
-                  isDragging && !snapshot.isDraggingOver ? "bg-gray-50/30" : ""
-                }`}
-                style={{
-                  minHeight: window.innerWidth < 768 ? "300px" : "384px",
-                  transition: "all 300ms cubic-bezier(0.25, 0.8, 0.25, 1)",
-                }}
-              >
-                {tasks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Empty
-                      description="No tasks"
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      className="text-gray-400"
-                    />
-                  </div>
-                ) : (
-                  tasks.map((task, index) => (
-                    <TaskCard key={task.id} task={task} index={index} />
-                  ))
-                )}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <div
+            id={droppableId}
+            className={`space-y-2 min-h-96 transition-all duration-300 p-2 rounded-lg touch-manipulation border-2 border-transparent`}
+            style={{
+              minHeight: window.innerWidth < 768 ? "300px" : "384px",
+              transition: "all 300ms cubic-bezier(0.25, 0.8, 0.25, 1)",
+            }}
+          >
+            <SortableContext
+              items={tasks.map((task) => task.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {tasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <Empty
+                    description="No tasks"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    className="text-gray-400"
+                  />
+                </div>
+              ) : (
+                tasks.map((task) => (
+                  <SortableTaskCard key={task.id} task={task} />
+                ))
+              )}
+            </SortableContext>
+          </div>
         </div>
       </div>
     );
@@ -754,7 +757,9 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
         )}
 
         {/* Kanban Board */}
-        <DragDropContext
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
@@ -781,7 +786,42 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ showMyTasks = false }) => {
               droppableId="done-column"
             />
           </div>
-        </DragDropContext>
+
+          <DragOverlay>
+            {activeTask ? (
+              <div className="transform rotate-3 scale-105 opacity-90">
+                <Card
+                  className="shadow-2xl bg-white/95 border border-blue-300"
+                  size="small"
+                  style={{
+                    minHeight: "100px",
+                    width: "280px",
+                    userSelect: "none",
+                  }}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2 flex-1">
+                        <DragOutlined className="text-blue-500 text-sm" />
+                        <h4 className="font-medium text-sm leading-tight text-gray-900">
+                          {activeTask.title}
+                        </h4>
+                      </div>
+                      <Tag color="blue" className="text-xs">
+                        {activeTask.priority}
+                      </Tag>
+                    </div>
+                    {activeTask.description && (
+                      <p className="text-xs text-gray-600 line-clamp-2">
+                        {activeTask.description}
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
     </>
   );
