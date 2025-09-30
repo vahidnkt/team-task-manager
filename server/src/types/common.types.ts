@@ -39,8 +39,6 @@ export type Priority = "low" | "medium" | "high" | "urgent";
 
 export type UserRole = "user" | "admin" | "super_admin";
 
-export type TaskStatus = "todo" | "in-progress" | "done" | "cancelled";
-
 // Environment Types
 export type Environment = "development" | "staging" | "production" | "test";
 
