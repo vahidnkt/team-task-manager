@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node index.js",
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
+    "dev": "ts-node -r tsconfig-paths/register src/index.ts",
     "dev:watch": "nodemon --exec \"ts-node -r tsconfig-paths/register src/server.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -61,7 +61,7 @@
     "@types/jest": "^29.5.8",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^20.19.17",
+    "@types/node": "^20.19.18",
     "@types/supertest": "^2.0.16",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
@@ -78,7 +78,7 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.3.2"
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=16.0.0",
