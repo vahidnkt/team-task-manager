@@ -53,7 +53,11 @@ class App {
             ? config.cors.origin
             : [config.cors.origin];
 
+          console.log("CORS Request from origin:", origin);
+          console.log("Allowed origins:", allowedOrigins);
+
           if (allowedOrigins.includes(origin)) {
+            console.log("✅ CORS: Origin allowed");
             return callback(null, true);
           }
 
@@ -62,9 +66,11 @@ class App {
             config.server.env === "development" &&
             origin.includes("localhost")
           ) {
+            console.log("✅ CORS: Localhost allowed in development");
             return callback(null, true);
           }
 
+          console.log("❌ CORS: Origin not allowed");
           return callback(new Error("Not allowed by CORS"), false);
         },
         credentials: config.cors.credentials,

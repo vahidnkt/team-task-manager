@@ -95,14 +95,15 @@ const config: Config = {
     corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
   },
 
-  // CORS Configuration add succufully
+  // CORS Configuration
   cors: {
     origin: process.env.CORS_ORIGIN
       ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
       : [
-          "https://team-task-manager-1-6dl6.onrender.com",
-          "http://localhost:3000",
-          "http://localhost:5173",
+          "https://team-task-manager-1-6dl6.onrender.com", // Frontend URL
+          "https://team-task-manager-ivzv.onrender.com", // Backend URL (for API docs, etc.)
+          "http://localhost:3000", // Local development
+          "http://localhost:5173", // Local Vite dev server
         ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
