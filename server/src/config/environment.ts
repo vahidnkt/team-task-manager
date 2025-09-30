@@ -95,14 +95,14 @@ const config: Config = {
     corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
   },
 
-  // CORS Configuration
+  // CORS Configuration add succufully
   cors: {
     origin: process.env.CORS_ORIGIN
       ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
       : [
+          "https://team-task-manager-1-6dl6.onrender.com",
           "http://localhost:3000",
           "http://localhost:5173",
-          "https://team-task-manager-1-6dl6.onrender.com",
         ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
