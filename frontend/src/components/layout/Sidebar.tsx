@@ -4,13 +4,12 @@ import { cn } from "../../utils/helpers";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useAuth } from "../../hooks/useAuth";
 import { getInitials } from "../../utils/helpers";
-import { useGetProjectsQuery } from "../../store/api/projectsApi";
+import { useGetUserProjectsQuery } from "../../store/api/projectsApi";
 import {
   Home,
   FolderOpen,
   CheckSquare,
   Users,
-  BarChart3,
   Settings,
   Activity,
   ChevronRight,
@@ -39,17 +38,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const { user } = useAuth();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
 
-  // Fetch projects data for dynamic badge count
-  const { data: projectsData } = useGetProjectsQuery({
-    search: "",
-    status: undefined,
-    priority: undefined,
-    limit: 100, // Get a higher limit to count all projects
-    offset: 0,
-    sortBy: "created_at",
-    sortOrder: "DESC",
-  });
-  const projectCount = projectsData?.total || 0;
+  // Fetch user's projects for dynamic badge count
+  const { data: userProjects } = useGetUserProjectsQuery();
+  const projectCount = userProjects?.length || 0;
 
   const menuItems: MenuItem[] = [
     {
